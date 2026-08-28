@@ -12,6 +12,8 @@ METEO_SHORT_NAMES = {
     "precipitation_sum": "precip",
 }
 
+SHORT_TO_METEO_NAMES = {value: key for key, value in METEO_SHORT_NAMES.items()}
+
 _openmeteo_client = None
 
 
@@ -116,19 +118,11 @@ def get_data(
         )
 
     if insert_into_database:
-        data_tmp = get_data_in_database(lat, lon, con=con)
-        if data_tmp:
-            if force_update_database:
-                print(
-                    f"For location {lat}°N, {lon}°E, data already exists. \n\tUpdating data in the database."
-                )
-                modify_database(mean_monthly_dataframe, type="update", con=con)
-            else:
-                print(
-                    f"For location {lat}°N, {lon}°E, data already exists. \n\tSkipping these locations."
-                )
-        else:
-            modify_database(mean_monthly_dataframe, type="insert", con=con)
+        # An insert preserves cached values while an update refreshes exactly
+        # the requested month range. Both are safe PostgreSQL upserts.
+        write_type = "update" if force_update_database else "insert"
+        if not modify_database(mean_monthly_dataframe, type=write_type, con=con):
+            return False
 
     if return_DataFrame:
         return mean_monthly_dataframe
@@ -152,6 +146,99 @@ def get_data_in_database(lat, lon, con=None):
     except Exception as e:
         print(f"get_data_in_database failed: {e}")
         return False
+
+
+def load_location_history(location, date_start, date_end, fields, con=None):
+    """Load monthly cached values for a location and requested fields."""
+    invalid_fields = set(fields) - set(SHORT_TO_METEO_NAMES)
+    if invalid_fields:
+        raise ValueError(f"Unsupported climate fields: {sorted(invalid_fields)}")
+
+    columns = ", ".join(f"d.{field}" for field in fields)
+    with weather_db(con) as db:
+        with db.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT d.dates, {columns}
+                FROM data AS d
+                JOIN locations AS l ON l.loc_id = d.loc_id
+                WHERE l.lat = %s AND l.lon = %s
+                  AND d.dates BETWEEN %s AND %s
+                ORDER BY d.dates
+                """,
+                (float(location[0]), float(location[1]), date_start, date_end),
+            )
+            rows = cur.fetchall()
+
+    history = pd.DataFrame(rows, columns=["dates", *fields])
+    if history.empty:
+        return pd.DataFrame(columns=fields, index=pd.DatetimeIndex([], name="dates"))
+    history["dates"] = pd.to_datetime(history["dates"])
+    return history.set_index("dates")
+
+
+def _expected_months(date_start, date_end):
+    start = pd.Timestamp(date_start).to_period("M").to_timestamp()
+    end = pd.Timestamp(date_end).to_period("M").to_timestamp()
+    return pd.date_range(start=start, end=end, freq="MS")
+
+
+def _missing_month_ranges(history, expected_months, fields):
+    """Return contiguous missing/incomplete monthly ranges as daily API bounds."""
+    complete = set()
+    if not history.empty:
+        for month, row in history.iterrows():
+            if not row[list(fields)].isna().any():
+                complete.add(pd.Timestamp(month).to_period("M").to_timestamp())
+
+    missing = [month for month in expected_months if month not in complete]
+    if not missing:
+        return []
+
+    ranges = []
+    start = previous = missing[0]
+    for month in missing[1:]:
+        if month == previous + pd.offsets.MonthBegin(1):
+            previous = month
+            continue
+        ranges.append((start, previous))
+        start = previous = month
+    ranges.append((start, previous))
+    return [
+        (start.strftime("%Y-%m-%d"), (end + pd.offsets.MonthEnd(0)).strftime("%Y-%m-%d"))
+        for start, end in ranges
+    ]
+
+
+def get_location_history(location, date_start, date_end, fields=("temp_mean", "precip"), con=None):
+    """Serve cached history, fetching and storing only missing month ranges.
+
+    Returns ``(history, fetched)`` where ``fetched`` reports whether Open-Meteo
+    was contacted. The returned data always comes from PostgreSQL.
+    """
+    fields = tuple(fields)
+    expected_months = _expected_months(date_start, date_end)
+    with weather_db(con) as db:
+        history = load_location_history(location, date_start, date_end, fields, con=db)
+        missing_ranges = _missing_month_ranges(history, expected_months, fields)
+        if not missing_ranges:
+            return history.reindex(expected_months), False
+
+        meteo_types = [SHORT_TO_METEO_NAMES[field] for field in fields]
+        for missing_start, missing_end in missing_ranges:
+            ok = get_data(
+                con=db,
+                location=location,
+                date_start=missing_start,
+                date_end=missing_end,
+                meteo_types=meteo_types,
+                insert_into_database=True,
+                force_update_database=True,
+            )
+            if not ok:
+                raise RuntimeError("Open-Meteo could not provide the requested history")
+        history = load_location_history(location, date_start, date_end, fields, con=db)
+    return history.reindex(expected_months), True
 
 
 def _locations_with_data(con):
