@@ -3,7 +3,6 @@ from matplotlib import colormaps
 from matplotlib.colors import Normalize
 import numpy as np
 import pandas as pd
-import sqlite3
 
 from db import CLIMATE_TYPES, weather_db
 
@@ -178,8 +177,10 @@ def fetch_data(shape=(91, 91), date="1950-01-01", climate_type="temp_mean", con=
     """
     try:
         with weather_db(con) as db:
-            rows = db.execute(query, (date,)).fetchall()
-    except sqlite3.Error as e:
+            with db.cursor() as cur:
+                cur.execute(query.replace("?", "%s"), (date,))
+                rows = cur.fetchall()
+    except Exception as e:
         print(f"Error while fetching weather data: {e}")
         return lats, lons, grid
 
