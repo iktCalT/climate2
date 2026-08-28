@@ -1,4 +1,12 @@
 # Climate
+
+> [!IMPORTANT]
+> This repository is the AI-assisted refactor fork, produced with **OpenAI Codex (GPT-5)**. It is derived from the original human-authored project by [iktCalT/climate](https://github.com/iktCalT/climate), which was written purely by a human. This refactor must be published only to a **new fork** of that repository; do not push its commits to the original fork.
+
+## Refactor roadmap
+
+The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). The next work includes on-demand Open-Meteo caching and a replacement for the current fixed-resolution Folium map rendering. The new map should become more detailed as a visitor zooms in, request only the needed data from open climate data sources, and cache the results locally. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the fork/publication rules and mapping requirements.
+
 #### Description:
 This program is my CS50 final project, which is composed of a main file (**app.py**), 3 assistant files (**helpers.py**, **helpers_data.py**, and **helpers_maps.py**), and 3 databases (**users.db**, **weather.db**, and **weather_update.db**).
 

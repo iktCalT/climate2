@@ -3,9 +3,7 @@ import numpy as np
 import pandas as pd
 import requests_cache
 from retry_requests import retry
-import sqlite3
-
-from db import WEATHER_DB, fetch_loc_id, weather_db
+from db import fetch_loc_id, weather_db
 
 METEO_SHORT_NAMES = {
     "temperature_2m_mean": "temp_mean",
@@ -48,7 +46,7 @@ def get_data(
     force_update_database=False,
     return_DataFrame=False,
 ):
-    """Fetch climate data from Open-Meteo; optionally save CSV or insert into SQLite."""
+    """Fetch climate data from Open-Meteo; optionally save CSV or upsert into PostgreSQL."""
     lat, lon = location
     loc_id = fetch_loc_id(lat, lon, con) if insert_into_database else None
 
@@ -141,27 +139,31 @@ def get_data_in_database(lat, lon, con=None):
     """Return existing weather rows for a location (at most one probe row)."""
     try:
         with weather_db(con) as db:
-            return db.execute(
-                """
-                SELECT * FROM data WHERE loc_id =
-                (SELECT loc_id FROM locations WHERE lat = ? AND lon = ?)
-                LIMIT 1
-                """,
-                (lat, lon),
-            ).fetchall()
-    except sqlite3.Error as e:
+            with db.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT * FROM data WHERE loc_id =
+                    (SELECT loc_id FROM locations WHERE lat = %s AND lon = %s)
+                    LIMIT 1
+                    """,
+                    (lat, lon),
+                )
+                return cur.fetchall()
+    except Exception as e:
         print(f"get_data_in_database failed: {e}")
         return False
 
 
 def _locations_with_data(con):
-    rows = con.execute(
-        """
-        SELECT l.lat, l.lon
-        FROM locations l
-        WHERE EXISTS (SELECT 1 FROM data d WHERE d.loc_id = l.loc_id)
-        """
-    ).fetchall()
+    with con.cursor() as cur:
+        cur.execute(
+            """
+            SELECT l.lat, l.lon
+            FROM locations l
+            WHERE EXISTS (SELECT 1 FROM data d WHERE d.loc_id = l.loc_id)
+            """
+        )
+        rows = cur.fetchall()
     return {_coord_key(lat, lon) for lat, lon in rows}
 
 
@@ -170,10 +172,9 @@ def get_data_locations(
     lons,
     date_start="1950-01-01",
     date_end="1951-12-31",
-    dbpath=WEATHER_DB,
     force_update_database=False,
 ):
-    """Fetch Open-Meteo data for a lat/lon grid into SQLite."""
+    """Fetch Open-Meteo data for a lat/lon grid into PostgreSQL."""
     # https://open-meteo.com/en/terms — ~10k/day, 5k/hour, 600/min
     if len(lats) * len(lons) > 5000:
         print(
@@ -184,7 +185,7 @@ def get_data_locations(
         )
         return False
 
-    with weather_db(path=dbpath) as con:
+    with weather_db() as con:
         existing = set() if force_update_database else _locations_with_data(con)
         for lat in lats:
             for lon in lons:
@@ -210,34 +211,57 @@ def get_data_locations(
 
 
 def modify_database(data, type="donothing", con=None):
-    """INSERT OR IGNORE or REPLACE weather rows from a DataFrame."""
+    """Insert or update weather rows from a DataFrame with PostgreSQL upserts."""
     if type not in ("insert", "update"):
         print("\nWarning: wrong type specified, only 'insert' or 'update' are acceptable\n")
         return False
 
     try:
         with weather_db(con) as db:
-            data.to_sql("temporary_table", db, if_exists="replace")
-            if type == "insert":
-                db.execute(
-                    """
-                    INSERT OR IGNORE INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
-                    SELECT loc_id, dates, temp_mean, temp_max, temp_min, precip
-                    FROM temporary_table
-                    """
+            rows = [
+                (
+                    int(row.loc_id),
+                    row.Index.date() if hasattr(row.Index, "date") else row.Index,
+                    _nullable_float(getattr(row, "temp_mean", None)),
+                    _nullable_float(getattr(row, "temp_max", None)),
+                    _nullable_float(getattr(row, "temp_min", None)),
+                    _nullable_float(getattr(row, "precip", None)),
                 )
-            else:
-                db.execute(
-                    """
-                    REPLACE INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
-                    SELECT loc_id, dates, temp_mean, temp_max, temp_min, precip
-                    FROM temporary_table
-                    """
-                )
+                for row in data.itertuples()
+            ]
+            if not rows:
+                return True
+            with db.cursor() as cur:
+                if type == "insert":
+                    cur.executemany(
+                        """
+                        INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (loc_id, dates) DO NOTHING
+                        """,
+                        rows,
+                    )
+                else:
+                    cur.executemany(
+                        """
+                        INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (loc_id, dates) DO UPDATE SET
+                            temp_mean = EXCLUDED.temp_mean,
+                            temp_max = EXCLUDED.temp_max,
+                            temp_min = EXCLUDED.temp_min,
+                            precip = EXCLUDED.precip
+                        """,
+                        rows,
+                    )
         return True
-    except sqlite3.Error as e:
+    except Exception as e:
         print(f"modify_database failed: {e}")
         return False
+
+
+def _nullable_float(value):
+    return None if value is None or pd.isna(value) else float(value)
 
 
 if __name__ == "__main__":

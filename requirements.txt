@@ -1,0 +1,11 @@
+Flask
+Flask-Session
+folium
+matplotlib
+numpy
+openmeteo-requests
+pandas
+plotly
+psycopg[binary]
+requests-cache
+retry-requests

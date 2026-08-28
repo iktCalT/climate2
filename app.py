@@ -333,7 +333,7 @@ def update():
         lats = np.linspace(lat_start, lat_end, n_lat)
         lons = np.linspace(lon_start, lon_end, n_lon)
         is_successful = get_data_locations(lats=lats, lons=lons, date_start=date_start, date_end=date_end, 
-                           dbpath="static/weather_update.db", force_update_database=force_update)
+                           force_update_database=force_update)
         if not is_successful:
             return apology("Failed to update data", 400)
         return redirect("/update?message=Succeeded!")

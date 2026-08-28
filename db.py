@@ -1,46 +1,66 @@
-"""SQLite helpers for weather data. Phase B will swap this for PostgreSQL."""
+"""PostgreSQL access for the application's weather data.
 
-import sqlite3
+Set ``DATABASE_URL`` in the shell that runs Flask. All weather code uses this
+module instead of opening database connections itself.
+"""
+
 from contextlib import contextmanager
+import os
 
-WEATHER_DB = "static/weather.db"
+try:
+    import psycopg
+except ImportError:  # Lets non-database commands explain the missing dependency.
+    psycopg = None
+
+
 CLIMATE_TYPES = ("temp_mean", "temp_max", "temp_min", "precip")
 
 
+def database_url():
+    """Return the required PostgreSQL connection string."""
+    url = os.environ.get("DATABASE_URL")
+    if not url:
+        raise RuntimeError(
+            "DATABASE_URL is not set. Export it before starting the app; see "
+            "docs/POSTGRESQL.md."
+        )
+    return url
+
+
 @contextmanager
-def weather_db(con=None, path=WEATHER_DB):
-    """Yield a connection. Close it only if this helper opened it."""
-    owns = con is None
-    if owns:
-        con = sqlite3.connect(path)
+def weather_db(con=None):
+    """Yield a PostgreSQL connection and manage its transaction if we opened it."""
+    owns_connection = con is None
+    if owns_connection:
+        if psycopg is None:
+            raise RuntimeError(
+                "PostgreSQL support is not installed. Run `pip install -r requirements.txt`."
+            )
+        con = psycopg.connect(database_url())
     try:
         yield con
-        if owns:
+        if owns_connection:
             con.commit()
     except Exception:
-        if owns:
+        if owns_connection:
             con.rollback()
         raise
     finally:
-        if owns:
+        if owns_connection:
             con.close()
 
 
 def fetch_loc_id(lat, lon, con=None):
-    """Return loc_id for (lat, lon), inserting the location if needed."""
-    try:
-        with weather_db(con) as db:
-            row = db.execute(
-                "SELECT loc_id FROM locations WHERE lat = ? AND lon = ?",
-                (lat, lon),
-            ).fetchone()
-            if row:
-                return row[0]
-            cur = db.execute(
-                "INSERT INTO locations (lat, lon) VALUES (?, ?)",
-                (lat, lon),
+    """Return the location id, creating the location atomically when needed."""
+    with weather_db(con) as db:
+        with db.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO locations (lat, lon)
+                VALUES (%s, %s)
+                ON CONFLICT (lat, lon) DO UPDATE SET lat = EXCLUDED.lat
+                RETURNING loc_id
+                """,
+                (float(lat), float(lon)),
             )
-            return cur.lastrowid
-    except sqlite3.Error as e:
-        print(f"fetch_loc_id failed for {lat}, {lon}: {e}")
-        return False
+            return cur.fetchone()[0]

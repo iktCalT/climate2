@@ -1,5 +1,6 @@
 .venv/
 .cache
+.matplotlib/
 flask_session/
 __pycache__/
 *.pyc
