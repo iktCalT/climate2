@@ -5,7 +5,7 @@
 
 ## Refactor roadmap
 
-The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). The next work includes on-demand Open-Meteo caching and a replacement for the current fixed-resolution Folium map rendering. The new map should become more detailed as a visitor zooms in, request only the needed data from open climate data sources, and cache the results locally. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the fork/publication rules and mapping requirements.
+The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. The next mapping work replaces the fixed-resolution Folium rendering so the map becomes more detailed as a visitor zooms in, requests only the needed data from open climate sources, and caches results locally. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
 
 #### Description:
 This program is my CS50 final project, which is composed of a main file (**app.py**), 3 assistant files (**helpers.py**, **helpers_data.py**, and **helpers_maps.py**), and 3 databases (**users.db**, **weather.db**, and **weather_update.db**).

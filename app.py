@@ -7,7 +7,7 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
-from helpers_data import get_data, get_data_locations
+from helpers_data import get_data_locations, get_location_history
 from helpers_maps import draw_multi_maps
 
 SHAPE = (91, 91)
@@ -66,9 +66,15 @@ def locations():
     strlat = "{:.2f}".format(lat)
     strlon = "{:.2f}".format(lon)
     filename = "location_data/"+strlat+"_"+strlon+".html"
-    if not os.path.isfile("static/"+filename):
-        data = get_data(location=(lat, lon), date_end=datetime.today().strftime("%Y-%m-%d"), 
-                meteo_types=["temperature_2m_mean", "precipitation_sum"], return_DataFrame=True)
+    try:
+        data, fetched = get_location_history(
+            location=(lat, lon),
+            date_start="1950-01-01",
+            date_end=datetime.today().strftime("%Y-%m-%d"),
+        )
+    except RuntimeError:
+        return apology("Climate data is temporarily unavailable", 503)
+    if fetched or not os.path.isfile("static/"+filename):
         draw_chart(lat, lon, data, filename=filename.split("/")[1])
     return render_template("locations.html", imgname=imgname, lat=lat, lon=lon, filename=filename)
 
