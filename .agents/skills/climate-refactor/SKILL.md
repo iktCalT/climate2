@@ -28,13 +28,23 @@ Owner is Zijian (student). Prefer working in code: create, debug, iterate. Machi
 - Per-cell SQL or a new SQLite connection per grid cell (the old `fetch_data` pattern).
 - Naive 8k Open-Meteo calls for a map. Respect ~10k/day, 5k/hour, 600/min.
 
-## Publishing boundary
+## Git and privacy boundary
 
-- The only remote this refactor may fetch from or push to is `refactor`:
-  `https://github.com/iktCalT/climate2.git`.
-- Never push to, fetch from, rename, remove, or otherwise change `origin` or
-  any other repository. `origin` is the original human-authored project.
-- Commit and publish refactor work only when Zijian explicitly asks.
+- Do not run `git push`, GitHub CLI commands, or GitHub merge operations. Zijian
+  handles all remote publishing and website actions.
+- Do not change, fetch from, push to, rename, or remove any Git remote unless
+  Zijian explicitly asks. In particular, never contact `origin`, which is the
+  original human-authored repository.
+- Never work on `main`. Before a substantial change, create or switch to a
+  non-main branch (prefer `codex/<short-description>`), then commit the tested
+  change locally on that branch. Zijian pushes the branch, merges it to `main`,
+  and updates local `main` before the next branch starts.
+- Before staging or committing, check for credentials and personal artifacts.
+  Do not stage API keys, private keys, `.env` files, database files, personal
+  uploads, local caches, or machine metadata. Respect `.gitignore`.
+- If a tracked file is found to contain a real secret or personal data, stop,
+  report its path and exposure risk without repeating the secret, and ask
+  Zijian before removing it or rewriting Git history.
 
 ## Phases (in order)
 
