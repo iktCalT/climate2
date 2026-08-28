@@ -9,11 +9,8 @@ supplements, but does not replace or edit, `docs/REFACTOR.md`.
   (GPT-5)**.
 - The original, purely human-authored project is
   [iktCalT/climate](https://github.com/iktCalT/climate).
-- The publishing destination is the separately created repository
-  [iktCalT/climate2](https://github.com/iktCalT/climate2), configured locally
-  as the `refactor` remote. Do not push to the original repository/fork.
-- This checkout's `origin` points at the original repository. It must remain
-  untouched; fetch from and push only to `refactor`.
+- Zijian owns every remote, push, pull request, and merge. Codex must not run
+  remote Git or GitHub operations unless explicitly asked.
 
 ## Progressive, data-driven maps
 

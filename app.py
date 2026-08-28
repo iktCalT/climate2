@@ -3,12 +3,12 @@ import numpy as np
 import sqlite3
 
 from datetime import datetime
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
 from helpers_data import get_data_locations, get_location_history
-from helpers_maps import draw_multi_maps
+from map_data import viewport_geojson
 
 SHAPE = (91, 91)
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
@@ -152,12 +152,22 @@ def maps():
     elif data_type not in DATA_TYPES:
         return apology(f"This data type ({data_type}) is not supported", 400)
     else:
-        filename = "weather_data/"+month+"_"+data_type+".html"
-        if not os.path.isfile("static/"+filename):
-            draw_multi_maps(month+"-01", month+"-01", data_type) 
         return render_template("maps.html", imgname=imgname, data_types=DATA_TYPES, 
-                               data_type=data_type, month=month,
-                               filename=filename, start=START, end=END)
+                               data_type=data_type, month=month, start=START, end=END)
+
+@app.route("/api/map-data")
+def map_data():
+    try:
+        month, climate_type = request.args["month"], request.args["climate_type"]
+        south, west, north, east = (float(request.args[key]) for key in ("south", "west", "north", "east"))
+        zoom = float(request.args["zoom"])
+    except (KeyError, TypeError, ValueError):
+        return jsonify(error="Invalid map request"), 400
+    if not is_valid_month(month, start=START, end=END) or climate_type not in DATA_TYPES:
+        return jsonify(error="Unsupported month or climate type"), 400
+    try: return jsonify(viewport_geojson(month, climate_type, south, west, north, east, zoom))
+    except ValueError as error: return jsonify(error=str(error)), 400
+    except RuntimeError: return jsonify(error="Climate data is temporarily unavailable"), 503
 
 
 @app.route("/profile", methods=["GET", "POST"])
