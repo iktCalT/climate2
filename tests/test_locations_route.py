@@ -35,3 +35,10 @@ class LocationsRouteTests(unittest.TestCase):
             response = self.client.get("/locations?latitude=1&longitude=2")
 
         self.assertEqual(response.status_code, 503)
+
+    def test_map_api_returns_viewport_geojson(self):
+        payload = {"type": "FeatureCollection", "features": [], "metadata": {"step": 4, "fetched": 0, "missing": 0}}
+        with patch("app.viewport_geojson", return_value=payload):
+            response = self.client.get("/api/map-data?month=1950-01&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["type"], "FeatureCollection")

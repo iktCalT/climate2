@@ -1,43 +1,20 @@
 {% extends "layout.html" %}
-
-{% block title %}
-    Maps
-{% endblock %}
-
+{% block title %}Maps{% endblock %}
+{% block styles %}<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">{% endblock %}
 {% block main %}
-
-    {% if filename %}
-        <div class="row">
-            <div class="col"></div>
-            <div class="col">
-                <p class="text-center fs-3">{{ data_type }} for {{ month }}</p>
-            </div>
-            <div class="col">
-                <form action="/maps" method="get">
-                    <button class="btn btn-success me-auto d-block" type="submit">Clear</button>
-                </form>
-            </div>
-        </div>
-        <iframe src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px" 
-        class="my-3" style="border:none;"></iframe>
-        
-    {% else %}
-        <form action="/maps" method="get">
-            <div class="mb-3">
-                <label for="month-picker"><h5>Select Year and Month:</h5></label>
-                <input autocomplete="off" class="form-control mx-auto w-auto" name="month-picker"
-                    data-provide="datepicker" type="month" min={{ start }} max={{ end }} required>
-            </div>
-            <label for="month-picker"><h5>Select a Type of Data:</h5></label>
-            <div class="mb-3">
-                <select class="form-select mx-auto w-auto" name="data-type" required>
-                    {% for data_type in data_types %}
-                        <option value="{{ data_type }}">{{ data_type }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <button class="btn btn-success" type="submit">Generate</button>
-        </form>
-    {% endif %}
-
+{% if month and data_type %}
+<div class="d-flex justify-content-between align-items-center mb-3"><h2 class="fs-4 mb-0">{{ data_type }} for {{ month }}</h2><a class="btn btn-success" href="/maps">Change selection</a></div>
+<p id="map-status" class="text-muted">Loading viewport data…</p><div id="climate-map" class="climate-map"></div>
+{% else %}
+<form action="/maps" method="get"><div class="mb-3"><label for="month-picker"><h5>Select Year and Month:</h5></label><input class="form-control mx-auto w-auto" name="month-picker" type="month" min={{ start }} max={{ end }} required></div><label for="data-type"><h5>Select a Type of Data:</h5></label><div class="mb-3"><select id="data-type" class="form-select mx-auto w-auto" name="data-type" required>{% for item in data_types %}<option value="{{ item }}">{{ item }}</option>{% endfor %}</select></div><button class="btn btn-success" type="submit">Open interactive map</button></form>
+{% endif %}
 {% endblock %}
+{% block script %}{% if month and data_type %}
+<script type="module">
+import {Map, NavigationControl, Popup} from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
+const month={{ month|tojson }}, climateType={{ data_type|tojson }}, status=document.getElementById('map-status');
+const map=new Map({container:'climate-map',style:'https://demotiles.maplibre.org/globe.json',center:[0,0],zoom:2}); let timer;
+async function loadData(){const b=map.getBounds(),q=new URLSearchParams({month,climate_type:climateType,south:b.getSouth(),west:b.getWest(),north:b.getNorth(),east:b.getEast(),zoom:map.getZoom()});status.textContent='Loading viewport data…';try{const r=await fetch(`/api/map-data?${q}`),d=await r.json();if(!r.ok)throw Error(d.error);map.getSource('climate').setData(d);status.textContent=`${d.features.length} points · ${d.metadata.step.toFixed(2)}° sampling · ${d.metadata.fetched} fetched · ${d.metadata.missing} pending`;}catch(e){status.textContent=`Map data unavailable: ${e.message}`;}}
+map.on('load',()=>{map.addControl(new NavigationControl());map.addSource('climate',{type:'geojson',data:{type:'FeatureCollection',features:[]}});map.addLayer({id:'climate-points',type:'circle',source:'climate',paint:{'circle-radius':['interpolate',['linear'],['zoom'],2,3,10,7],'circle-color':['interpolate',['linear'],['get','value'],-20,'#2166ac',10,'#f7f7f7',40,'#b2182b'],'circle-opacity':0.8}});map.on('click','climate-points',e=>{const p=e.features[0].properties;new Popup().setLngLat(e.lngLat).setHTML(`<strong>${p.value}</strong><br>${p.latitude}, ${p.longitude}`).addTo(map);});loadData();});
+map.on('moveend',()=>{clearTimeout(timer);timer=setTimeout(loadData,350);});
+</script>{% endif %}{% endblock %}
