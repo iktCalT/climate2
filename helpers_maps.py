@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 import sqlite3
 
+from db import CLIMATE_TYPES, weather_db
+
 
 REPEAT = 2
 SHAPE = (91, 91)
@@ -14,6 +16,7 @@ MAX_PRECIP = 10
 MIN_PRECIP = 0
 OPACITY = 0.5
 
+
 def add_bounds(map):
     # https://python-visualization.github.io/folium/latest/user_guide/raster_layers/image_overlay.html
     image = np.zeros((361, 361))
@@ -22,12 +25,12 @@ def add_bounds(map):
     image[:, 0] = 1.0
     image[:, 360] = 1.0
     folium.raster_layers.ImageOverlay(
-        name = "bounds",
+        name="bounds",
         image=image,
         bounds=[[-90, -180], [90, 180]],
         colormap=lambda x: (0, 0, 0, x),
     ).add_to(map)
-    
+
 
 def add_legend(map, climate_type):
     if climate_type == "precip":
@@ -40,12 +43,10 @@ def add_legend(map, climate_type):
         min_data = str(MIN_TEMP) + "°C"
         title = f"{climate_type[5:].title()} Temperature (°C)"
         colormap = "coolwarm"
-    else: 
+    else:
         return False
-    # Create an HTML legend (scale bar)
     cm = colormaps[colormap]
-    # Comvert rgba values from [0, 1] to [0, 255]
-    r, g, b, a = cm(0.0) # cm(0.0) rather than cm(0) 
+    r, g, b, a = cm(0.0)
     start = f"rgba({int(r * 255)}, {int(g * 255)}, {int(b * 255)}, {OPACITY})"
     r, g, b, a = cm(1.0)
     end = f"rgba({int(r * 255)}, {int(g * 255)}, {int(b * 255)}, {OPACITY})"
@@ -74,149 +75,132 @@ def add_legend(map, climate_type):
     map.get_root().html.add_child(folium.Element(legend_html))
 
 
-def draw_multi_layers(start_date, end_date, climate_type):
+def _colormap_for(climate_type):
     if climate_type == "precip":
-        colormap = "Blues"
-    elif climate_type in ["temp_mean", "temp_max", "temp_min"]:
-        colormap = "coolwarm"
-    else: 
-        print("Invalid climate_type")
+        return "Blues"
+    if climate_type in ["temp_mean", "temp_max", "temp_min"]:
+        return "coolwarm"
+    print("Invalid climate_type")
+    return None
+
+
+def draw_multi_layers(start_date, end_date, climate_type):
+    colormap = _colormap_for(climate_type)
+    if colormap is None:
         return False
-    # Draw multi layers in one map
     dates = generate_dates(start_date=start_date, end_date=end_date)
     m = folium.Map(
-        location=(0, 0), 
+        location=(0, 0),
         zoom_start=2,
         min_zoom=2,
         tiles="cartodb positron",
     )
     add_bounds(m)
     add_legend(m, climate_type)
-    
-    for date in dates:
-        strdate = date.strftime('%Y-%m-%d')
-        strmonth = date.strftime('%Y-%m')
-        lats, lons, data = fetch_data(SHAPE, strdate, climate_type)
-        political_countries_url = (
-            "http://geojson.xyz/naturalearth-3.3.0/ne_50m_admin_0_countries.geojson"
-        )
 
-        # Repeat the map
-        data_r = np.tile(data, (1, (2*REPEAT+1)))
-        cm = colormaps[colormap]
-        colored_data = cm(normalize_data(data_r, climate_type))
-        
-        folium.raster_layers.ImageOverlay(
-            name = strmonth + "_" + climate_type,
-            image=colored_data,
-            bounds=[[lats.min(), lons.min()-REPEAT*360], [lats.max(), lons.max()+REPEAT*360]],
-            mercator_project=True,
-            opacity=OPACITY,
-        ).add_to(m)
-           
+    with weather_db() as con:
+        for date in dates:
+            strdate = date.strftime("%Y-%m-%d")
+            strmonth = date.strftime("%Y-%m")
+            lats, lons, data = fetch_data(SHAPE, strdate, climate_type, con=con)
+            data_r = np.tile(data, (1, (2 * REPEAT + 1)))
+            cm = colormaps[colormap]
+            colored_data = cm(normalize_data(data_r, climate_type))
+
+            folium.raster_layers.ImageOverlay(
+                name=strmonth + "_" + climate_type,
+                image=colored_data,
+                bounds=[
+                    [lats.min(), lons.min() - REPEAT * 360],
+                    [lats.max(), lons.max() + REPEAT * 360],
+                ],
+                mercator_project=True,
+                opacity=OPACITY,
+            ).add_to(m)
+
     folium.LayerControl().add_to(m)
     m.save("static/weather_data/climate.html")
-    
+
 
 def draw_multi_maps(start_date, end_date, climate_type):
-    # Draw multi maps, each map has one layer
-    if climate_type == "precip":
-        colormap = "Blues"
-    elif climate_type in ["temp_mean", "temp_max", "temp_min"]:
-        colormap = "coolwarm"
-    else: 
-        print("Invalid climate_type")
+    colormap = _colormap_for(climate_type)
+    if colormap is None:
         return False
     dates = generate_dates(start_date=start_date, end_date=end_date)
 
-    for date in dates:
-        m = folium.Map(
-            location=(0, 0), 
-            zoom_start=2,
-            min_zoom=2,
-            tiles="cartodb positron",
-        )
-        add_bounds(m)
-        add_legend(m, climate_type)
-        strdate = date.strftime('%Y-%m-%d')
-        strmonth = date.strftime('%Y-%m')
-        lats, lons, data = fetch_data(SHAPE, strdate, climate_type)
-        political_countries_url = (
-            "http://geojson.xyz/naturalearth-3.3.0/ne_50m_admin_0_countries.geojson"
-        )
+    with weather_db() as con:
+        for date in dates:
+            m = folium.Map(
+                location=(0, 0),
+                zoom_start=2,
+                min_zoom=2,
+                tiles="cartodb positron",
+            )
+            add_bounds(m)
+            add_legend(m, climate_type)
+            strdate = date.strftime("%Y-%m-%d")
+            strmonth = date.strftime("%Y-%m")
+            lats, lons, data = fetch_data(SHAPE, strdate, climate_type, con=con)
+            data_r = np.tile(data, (1, (2 * REPEAT + 1)))
+            cm = colormaps[colormap]
+            colored_data = cm(normalize_data(data_r, climate_type))
 
-        # Repeat the map
-        data_r = np.tile(data, (1, (2*REPEAT+1)))
-        cm = colormaps[colormap]
-        colored_data = cm(normalize_data(data_r, climate_type))
-        
-        folium.raster_layers.ImageOverlay(
-            name = strmonth + "_" + climate_type,
-            image=colored_data,
-            bounds=[[lats.min(), lons.min()-REPEAT*360], [lats.max(), lons.max()+REPEAT*360]],
-            mercator_project=True,
-            opacity=OPACITY,
-        ).add_to(m)
-        
-        folium.LayerControl().add_to(m)
-        m.save("static/weather_data/" + strmonth + "_" + climate_type + ".html")
+            folium.raster_layers.ImageOverlay(
+                name=strmonth + "_" + climate_type,
+                image=colored_data,
+                bounds=[
+                    [lats.min(), lons.min() - REPEAT * 360],
+                    [lats.max(), lons.max() + REPEAT * 360],
+                ],
+                mercator_project=True,
+                opacity=OPACITY,
+            ).add_to(m)
+
+            folium.LayerControl().add_to(m)
+            m.save("static/weather_data/" + strmonth + "_" + climate_type + ".html")
 
 
-def fetch_data(shape=(91, 91), date="1950-01-01", climate_type="temp_mean"):
-    """
-    Input: shape, date, climate_type
-    Output: lats, lons, data
-    
-    Args:
-        shape (turple): how many lats and lons to sample
-        date (string): 
-        climate_type (string): "temp_mean" (mean temperature), "temp_max" (max temperature), 
-                       "temp_min" (min temperature), or "precip" (precipitation)
+def fetch_data(shape=(91, 91), date="1950-01-01", climate_type="temp_mean", con=None):
+    """Load one month of a climate variable onto the lat/lon grid with a single query."""
+    if climate_type not in CLIMATE_TYPES:
+        raise ValueError(f"Unsupported climate_type: {climate_type}")
 
-    Returns:
-        (NDarray) lats
-        (NDarray) lons
-        (NDarray) data
-    """
-    date = date
     nlats, nlons = shape
     lats = np.linspace(-90, 90, nlats)
     lons = np.linspace(-180, 180, nlons)
-    data = np.zeros((nlats, nlons))
-    for i in range(nlats):
-        for j in range(nlons):
-            lat = lats[i]
-            lon = lons[j]
-            con = sqlite3.connect("static/weather.db")
-            cur = con.cursor()
-            try:
-                query = f"""SELECT {climate_type} FROM data WHERE loc_id =
-                            (SELECT loc_id FROM locations WHERE lat=? AND lon=?)
-                            AND DATE(dates)=?"""
-                # https://sqlzap.com/blog/select-date-from-datetime-in-sql
-                cur.execute(query, (lat, lon, date))
-                temp = cur.fetchone()
-                con.close()
-            except:
-                print("Error while fetching weather data")
-                con.close()
-                temp = np.nan
-            try:
-                data[i][j] = temp[0]
-            except:
-                print(f"Data doesn't exist in the database: \n\tLatitude: {lat}\n\tLongitude: {lon}")
-                print(f"\tDate: {date}\n\tClimate type: {climate_type}")
-                try:
-                    if j == 0:
-                        data[i][j] = data[(i-1)%nlats][j]
-                    else:
-                        data[i][j] = data[i][(j-1)%nlons]
-                except:
-                    data[i][j] = np.nan
-    #temps = db.execute("SELECT temp FROM temp WHERE latitude = ? AND longitude = ?", lats, lons)
-    #data = temps[0]
+    grid = np.full((nlats, nlons), np.nan)
 
-    return lats, lons, data
+    query = f"""
+        SELECT l.lat, l.lon, d.{climate_type}
+        FROM data AS d
+        JOIN locations AS l ON l.loc_id = d.loc_id
+        WHERE DATE(d.dates) = ?
+    """
+    try:
+        with weather_db(con) as db:
+            rows = db.execute(query, (date,)).fetchall()
+    except sqlite3.Error as e:
+        print(f"Error while fetching weather data: {e}")
+        return lats, lons, grid
+
+    if not rows:
+        return lats, lons, grid
+
+    row_lats = np.fromiter((row[0] for row in rows), dtype=float, count=len(rows))
+    row_lons = np.fromiter((row[1] for row in rows), dtype=float, count=len(rows))
+    values = np.fromiter(
+        (np.nan if row[2] is None else row[2] for row in rows),
+        dtype=float,
+        count=len(rows),
+    )
+
+    dlat = (lats[-1] - lats[0]) / (nlats - 1) if nlats > 1 else 1.0
+    dlon = (lons[-1] - lons[0]) / (nlons - 1) if nlons > 1 else 1.0
+    i = np.rint((row_lats - lats[0]) / dlat).astype(int)
+    j = np.rint((row_lons - lons[0]) / dlon).astype(int)
+    on_grid = (i >= 0) & (i < nlats) & (j >= 0) & (j < nlons)
+    grid[i[on_grid], j[on_grid]] = values[on_grid]
+    return lats, lons, grid
 
 
 def generate_dates(start_date, end_date):
@@ -225,14 +209,13 @@ def generate_dates(start_date, end_date):
 
 
 def normalize_data(data, climate_type):
-    # Normalize data to the static scale
     if climate_type == "precip":
         max_data = MAX_PRECIP
         min_data = MIN_PRECIP
     elif climate_type in ["temp_mean", "temp_max", "temp_min"]:
         max_data = MAX_TEMP
         min_data = MIN_TEMP
-    else: 
+    else:
         return False
     norm = Normalize(vmin=min_data, vmax=max_data)
     return norm(data)
