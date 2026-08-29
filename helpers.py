@@ -1,14 +1,16 @@
-# Some assistence functions are written by CS50 staff
-# https://cs50.harvard.edu/x/2024/psets/9/finance/
 import datetime
+import re
+from calendar import month_name
+from functools import wraps
+
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import re
+from flask import redirect, render_template, session
 
-from calendar import month_name
-from flask import redirect, render_template, request, session
-from functools import wraps
+# Some assistance functions are written by CS50 staff.
+# https://cs50.harvard.edu/x/2024/psets/9/finance/
+
 
 def apology(message, code=400):
     """Render message as an apology to user."""
@@ -31,10 +33,15 @@ def apology(message, code=400):
         ]:
             s = s.replace(old, new)
         return s
-    try:
-        return render_template("apology.html", top=code, bottom=escape(message), imgname=session["imgname"]), code
-    except:
-        return render_template("apology.html", top=code, bottom=escape(message), imgname=''), code
+    return (
+        render_template(
+            "apology.html",
+            top=code,
+            bottom=escape(message),
+            imgname=session.get("imgname", ""),
+        ),
+        code,
+    )
 
 
 # ChatGPT helped me complete this part. https://chatgpt.com/
@@ -47,53 +54,59 @@ def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
     for month, group in grouped:
         # Line charts for Temperature
         for temp_type in ["temp_mean", "temp_max", "temp_min"]:
-            try:
-                fig.add_trace(go.Scatter(
-                    x=group.index, 
-                    y=group[temp_type],
-                    mode='lines+markers',
-                    name=f'{temp_type.split("_")[1].title()} Temperature (°C) - {month_name[month]}',
-                    line=dict(color="red", width=0.5),
-                    marker=dict(color=group[temp_type], colorscale=color_scale_temp, size=8),
-                    yaxis='y1'
-                ))
-            except:
+            if temp_type not in group:
                 continue
-        
-    #　Bar chart for Precipitation
-    fig.add_trace(go.Bar(
-        x=df.index, 
-        y=df['precip'],
-        name='Precipitation per day (mm)',
-        marker=dict(color=df['precip'], colorscale=color_scale_precip),
-        yaxis='y2'
-    ))
+            fig.add_trace(
+                go.Scatter(
+                    x=group.index,
+                    y=group[temp_type],
+                    mode="lines+markers",
+                    name=(
+                        f'{temp_type.split("_")[1].title()} Temperature (°C) - '
+                        f"{month_name[month]}"
+                    ),
+                    line=dict(color="red", width=0.5),
+                    marker=dict(
+                        color=group[temp_type], colorscale=color_scale_temp, size=8
+                    ),
+                    yaxis="y1",
+                )
+            )
+
+    # Bar chart for precipitation
+    fig.add_trace(
+        go.Bar(
+            x=df.index,
+            y=df["precip"],
+            name="Precipitation per day (mm)",
+            marker=dict(color=df["precip"], colorscale=color_scale_precip),
+            yaxis="y2",
+        )
+    )
 
     # Layout and legend
     fig.update_layout(
         xaxis_title='Date',
         yaxis=dict(
-            title='Temperature (°C)', 
-            titlefont=dict(color='red'),
-            tickfont=dict(color='red')
+            title="Temperature (°C)",
+            titlefont=dict(color="red"),
+            tickfont=dict(color="red"),
         ),
         yaxis2=dict(
-            title='Precipitation per day (mm)',
-            titlefont=dict(color='blue'),
-            tickfont=dict(color='blue'),
-            overlaying='y', 
-            side='right' 
+            title="Precipitation per day (mm)",
+            titlefont=dict(color="blue"),
+            tickfont=dict(color="blue"),
+            overlaying="y",
+            side="right",
         ),
-        template='plotly_white'
+        template="plotly_white",
     )
-    fig.update_layout(legend=dict(
-        orientation="h",
-        yanchor="bottom",
-        y=1.03,
-        xanchor="left",
-        x=0
-    ))
-        
+    fig.update_layout(
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.03, xanchor="left", x=0
+        )
+    )
+
     # Save as HTML
     if filename:
         fig.write_html(f"static/location_data/{filename}")
@@ -108,19 +121,13 @@ def is_valid_month(month, start="1950-01", end=None):
         date = datetime.datetime.strptime(month, "%Y-%m")
         start_date = datetime.datetime.strptime(start, "%Y-%m")
         end_date = datetime.datetime.strptime(end, "%Y-%m")
-        if date >= start_date and date <= end_date:
-            return True
-        else:
-            return False
+        return start_date <= date <= end_date
     except ValueError:
-        print ("Invalid date format")
         return False
 
 
 def is_valid_username(username):
-    pattern = r'^[a-zA-Z0-9_-]{3,16}$'
-    is_valid = bool(re.match(pattern, username))
-    return is_valid
+    return bool(re.match(r"^[a-zA-Z0-9_-]{3,16}$", username))
 
 
 def login_required(f):

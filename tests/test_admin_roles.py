@@ -1,3 +1,4 @@
+import io
 import os
 import sqlite3
 import tempfile
@@ -41,13 +42,16 @@ class AdminRoleTests(unittest.TestCase):
         app.config["USER_DATABASE_PATH"] = self.original_user_database_path
         os.unlink(self.user_database_path)
 
-    def create_user(self, username, is_admin):
+    def create_user(self, username, is_admin, with_profile=True):
         with closing(sqlite3.connect(self.user_database_path)) as con:
             cursor = con.execute(
                 "INSERT INTO users (username, hash_pwd, is_admin) VALUES (?, ?, ?)",
                 (username, generate_password_hash("password"), is_admin),
             )
-            con.execute("INSERT INTO profiles (user_id) VALUES (?)", (cursor.lastrowid,))
+            if with_profile:
+                con.execute(
+                    "INSERT INTO profiles (user_id) VALUES (?)", (cursor.lastrowid,)
+                )
             con.commit()
         return cursor.lastrowid
 
@@ -78,6 +82,55 @@ class AdminRoleTests(unittest.TestCase):
                 "SELECT is_admin FROM users WHERE id = ?", (user_id,)
             ).fetchone()[0]
         self.assertTrue(is_admin)
+
+    def test_login_without_profile_uses_an_empty_image(self):
+        self.create_user("member", False, with_profile=False)
+
+        response = self.client.post(
+            "/login", data={"username": "member", "password": "password"}
+        )
+
+        self.assertEqual(response.status_code, 302)
+        with self.client.session_transaction() as flask_session:
+            self.assertIsNone(flask_session["imgname"])
+
+    def test_profile_page_creates_a_missing_profile(self):
+        user_id = self.create_user("member", False, with_profile=False)
+        self.sign_in_as(user_id)
+
+        response = self.client.get("/profile")
+
+        self.assertEqual(response.status_code, 200)
+        with closing(sqlite3.connect(self.user_database_path)) as con:
+            profile = con.execute(
+                "SELECT bio FROM profiles WHERE user_id = ?", (user_id,)
+            ).fetchone()
+        self.assertEqual(profile, ("This is a default bio.",))
+
+    def test_profile_bio_update_upserts_a_missing_profile(self):
+        user_id = self.create_user("member", False, with_profile=False)
+        self.sign_in_as(user_id)
+
+        response = self.client.post("/profile", data={"bio": "Climate student"})
+
+        self.assertEqual(response.status_code, 302)
+        with closing(sqlite3.connect(self.user_database_path)) as con:
+            bio = con.execute(
+                "SELECT bio FROM profiles WHERE user_id = ?", (user_id,)
+            ).fetchone()[0]
+        self.assertEqual(bio, "Climate student")
+
+    def test_profile_rejects_unsupported_image_types(self):
+        user_id = self.create_user("member", False)
+        self.sign_in_as(user_id)
+
+        response = self.client.post(
+            "/profile",
+            data={"img": (io.BytesIO(b"not an image"), "profile.exe")},
+            content_type="multipart/form-data",
+        )
+
+        self.assertEqual(response.status_code, 400)
 
     def test_normal_user_cannot_see_or_open_manual_prefetch(self):
         self.sign_in_as(self.create_user("member", False))
