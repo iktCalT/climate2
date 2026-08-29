@@ -5,7 +5,7 @@
 
 ## Refactor roadmap
 
-The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. Maps use **MapLibre GL JS** in a flat Mercator projection: the browser requests a seamless rectangular tile grid at each zoom level, while the Flask API returns cached PostgreSQL values and fetches at most 12 missing samples per request. The month selector and map API both accept January 1950 through the current month. As a finer grid is being fetched, the remaining cells are displayed as lighter, clearly labelled nearest-cached estimates rather than blank gaps. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
+The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. Maps use **MapLibre GL JS** in a flat Mercator projection: the browser requests a seamless rectangular tile grid at each zoom level, while the Flask API returns cached PostgreSQL values and fetches at most 12 missing samples per request. The month selector and map API both accept January 1950 through the current month. As a finer grid is being fetched, the remaining cells are displayed as lighter, clearly labelled nearest-cached estimates rather than blank gaps. New accounts are normal users; see [docs/USER_ROLES.md](docs/USER_ROLES.md) to appoint administrators and use bounded manual prefetch. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
 
 #### Description:
 This program is my CS50 final project, which is composed of a main file (**app.py**), data and presentation helpers, and local databases for users and weather data.
@@ -15,7 +15,7 @@ To run this program, please use command `flask run`.
 > [!NOTE]
 > Becaues the original database ("static/weather.db") was too large to submit, I deleted most of its data. So, if you want to generate maps in the web page ("/maps"), please choose dates **between January 1950 and December 1952** or **between January 2021 and December 2023**.
 
-1. **app.py** creates a web application, in which users can generate maps of climate data and check climate data history of a specific location. Users can also register and login as a administrator. Administrators have access to a web page called "/update", where they can add data to a temporary database, this temporary database can be merged into the main database if a higher-level administrator find no malicious data in it. Administrators can also change their profile icon or bio if they want to. 
+1. **app.py** creates a web application where visitors can generate maps and check climate data history for a location. New registrations are normal user accounts. Only accounts explicitly marked as administrators can use `/update`, which pre-fetches selected Open-Meteo data directly into the local PostgreSQL climate cache. Administrators can also change their profile icon or bio.
 
     There are 10 functions in **app.py**.
 
@@ -44,10 +44,10 @@ To run this program, please use command `flask run`.
     it directs users to the "/references" page, where the webpages I referred to are listed.  
 
     - `register()`:
-    it direct users to the "/register" page, where users can register. The registered users are automatically registered as administrators. Their admin status can be managed in the database "static/users.db". Admin status is required before calling the function `update()`.
+    it directs users to the `/register` page. Registered users are normal users by default. An administrator can be appointed with `manage_users.py`; admin status is required before calling `update()`.
 
     - `update()`:
-    direct logged in users to the "/update" page. Users with admin status are can update the temporary database "static/weather_update.db" in this page. This temporary database can be merged into the main database "static/weather.db" if there are no malicious data detected.
+    directs administrators to the `/update` page. It pre-fetches a bounded selected grid from Open-Meteo directly into PostgreSQL; normal users cannot view or submit this form.
 
 2. **helpers.py** contains 6 functions for the web application.
 

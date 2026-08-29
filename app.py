@@ -3,6 +3,7 @@ import numpy as np
 import sqlite3
 
 from datetime import datetime
+from functools import wraps
 from flask import Flask, flash, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -13,6 +14,7 @@ from map_data import viewport_geojson
 SHAPE = (91, 91)
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 START = "1950-01"
+MAX_ADMIN_PREFETCH_POINTS = 100
 
 
 def latest_map_month():
@@ -21,11 +23,50 @@ def latest_map_month():
 
 # Configure application
 app = Flask(__name__)
+app.config["USER_DATABASE_PATH"] = os.environ.get("USER_DATABASE_PATH", "static/users.db")
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+
+def user_db():
+    """Open the local user database without mixing it with climate PostgreSQL."""
+    return sqlite3.connect(app.config["USER_DATABASE_PATH"])
+
+
+def current_user_is_admin():
+    user_id = session.get("user_id")
+    if user_id is None:
+        return False
+    con = None
+    try:
+        con = user_db()
+        row = con.execute(
+            "SELECT is_admin FROM users WHERE id = ?", (user_id,)
+        ).fetchone()
+        return bool(row and row[0])
+    except sqlite3.Error:
+        return False
+    finally:
+        if con is not None:
+            con.close()
+
+
+def admin_required(view):
+    """Allow climate prefetching only for an account currently marked admin."""
+    @wraps(view)
+    def decorated_view(*args, **kwargs):
+        if not current_user_is_admin():
+            return apology("Administrator access is required", 403)
+        return view(*args, **kwargs)
+    return decorated_view
+
+
+@app.context_processor
+def inject_user_permissions():
+    return {"is_admin": current_user_is_admin()}
 
 
 @app.after_request
@@ -99,7 +140,7 @@ def login():
             return apology("must provide password", 400)
 
         # Query database for username
-        con = sqlite3.connect("static/users.db")
+        con = user_db()
         rows = con.execute(
             "SELECT * FROM users WHERE username = ?", (request.form.get("username"),)
         ).fetchall()
@@ -188,7 +229,7 @@ def profile():
         img = request.files.get("img")
         bio = request.form.get("bio")
         
-        con = sqlite3.connect("static/users.db")
+        con = user_db()
         if img:
             # Save image only
             try:
@@ -237,7 +278,7 @@ def profile():
 
     # If request.method = "GET"
     else:
-        con = sqlite3.connect("static/users.db")
+        con = user_db()
         try:
             profile = con.execute("SELECT * FROM profiles WHERE user_id = ?", (session["user_id"],)).fetchone()
         except:
@@ -279,9 +320,12 @@ def register():
             return apology("Username must be 3-12 characters long and contain only alphanumeric, underscores, or hyphens", 400)
         hash_pwd = generate_password_hash(pwd)
         
-        con = sqlite3.connect("static/users.db")
+        con = user_db()
         try:
-            con.execute("INSERT INTO users (username, hash_pwd) VALUES (?, ?)", (username, hash_pwd))
+            con.execute(
+                "INSERT INTO users (username, hash_pwd, is_admin) VALUES (?, ?, ?)",
+                (username, hash_pwd, False),
+            )
             con.commit()
             # Create a profile for the user
             user_id = con.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
@@ -298,6 +342,7 @@ def register():
     
 @app.route("/update", methods=["GET", "POST"])
 @login_required
+@admin_required
 def update():
     try:
         imgname = session["imgname"]
@@ -326,27 +371,19 @@ def update():
             dt_date_end = datetime.strptime(date_end,"%Y-%m-%d")
         except:
             return apology("Invalid parameter(s)", 400)
-        
-        # Check if the user is allowed to update database
-        if not "user_id" in session:
-            return apology("You are not logged in", 400)
-        con = sqlite3.connect("static/users.db")
-        try:
-            is_admin = con.execute("SELECT is_admin FROM users WHERE id = ?", (session["user_id"],)).fetchone()[0]
-            if not is_admin:
-                con.close()
-                return apology("Sorry, you are not administrator", 400)
-        except:
-            con.close()
-            return apology("Failed to connect to database", 400)
-        con.close()
-        
-        if force_update:
-            print("Force update")
-            force_update = True
-        else:
-            print("No force update")
-            force_update = False
+
+        if not (-90 <= lat_start <= 90 and -90 <= lat_end <= 90):
+            return apology("Latitude out of range", 400)
+        if not (-180 <= lon_start <= 180 and -180 <= lon_end <= 180):
+            return apology("Longitude out of range", 400)
+        if n_lat < 1 or n_lon < 1 or n_lat * n_lon > MAX_ADMIN_PREFETCH_POINTS:
+            return apology(
+                f"Select between 1 and {MAX_ADMIN_PREFETCH_POINTS} total points per prefetch", 400
+            )
+        if dt_date_start < datetime.strptime(START + "-01", "%Y-%m-%d") or dt_date_end > datetime.today():
+            return apology("Dates must be between January 1950 and today", 400)
+
+        force_update = bool(force_update)
         if lat_start > lat_end:
             lat_start, lat_end = swap(lat_start, lat_end)
         if lon_start > lon_end:
@@ -364,5 +401,11 @@ def update():
         message = request.args.get("message")
         start = START + "-01"  # "1950-01-01"
         end = datetime.today().strftime("%Y-%m-%d")  # eg: "2024-12-25"
-        return render_template("update.html", message=message, imgname=imgname, 
-                               start=start, end=end)
+        return render_template(
+            "update.html",
+            message=message,
+            imgname=imgname,
+            start=start,
+            end=end,
+            max_points=MAX_ADMIN_PREFETCH_POINTS,
+        )
