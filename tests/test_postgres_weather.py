@@ -1,11 +1,18 @@
+import inspect
 import os
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 import pandas as pd
+from openmeteo_requests import OpenMeteoRequestsError
 
 from db import DEFAULT_DATABASE_URL, database_url, fetch_loc_id, weather_db
-from helpers_data import get_location_history, modify_database
+from helpers_data import (
+    get_data,
+    get_data_in_database,
+    get_location_history,
+    modify_database,
+)
 
 
 @unittest.skipUnless(os.environ.get("DATABASE_URL"), "DATABASE_URL is not configured")
@@ -72,6 +79,41 @@ class ConfigurationTests(unittest.TestCase):
         finally:
             if original is not None:
                 os.environ["DATABASE_URL"] = original
+
+
+class OpenMeteoFailureTests(unittest.TestCase):
+    def test_request_failure_returns_false(self):
+        client = Mock()
+        client.weather_api.side_effect = OpenMeteoRequestsError("service unavailable")
+
+        with self.assertLogs("helpers_data", level="WARNING"):
+            with patch("helpers_data.get_openmeteo_client", return_value=client):
+                result = get_data(location=(1, 2))
+
+        self.assertFalse(result)
+
+    def test_empty_provider_response_returns_false(self):
+        client = Mock()
+        client.weather_api.return_value = []
+
+        with self.assertLogs("helpers_data", level="WARNING"):
+            with patch("helpers_data.get_openmeteo_client", return_value=client):
+                result = get_data(location=(1, 2))
+
+        self.assertFalse(result)
+
+    def test_default_provider_lists_are_immutable(self):
+        parameters = inspect.signature(get_data).parameters
+        self.assertIsNone(parameters["models"].default)
+        self.assertIsNone(parameters["meteo_types"].default)
+
+    def test_database_read_failures_propagate(self):
+        unavailable = patch(
+            "helpers_data.weather_db", side_effect=RuntimeError("database down")
+        )
+        with unavailable:
+            with self.assertRaisesRegex(RuntimeError, "database down"):
+                get_data_in_database(1, 2)
 
 
 if __name__ == "__main__":

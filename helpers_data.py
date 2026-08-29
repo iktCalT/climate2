@@ -1,9 +1,15 @@
+import logging
+
 import openmeteo_requests  # https://open-meteo.com/en/docs/climate-api
 import numpy as np
 import pandas as pd
 import requests_cache
+from openmeteo_requests import OpenMeteoRequestsError
 from retry_requests import retry
+
 from db import fetch_loc_id, weather_db
+
+logger = logging.getLogger(__name__)
 
 METEO_SHORT_NAMES = {
     "temperature_2m_mean": "temp_mean",
@@ -13,6 +19,14 @@ METEO_SHORT_NAMES = {
 }
 
 SHORT_TO_METEO_NAMES = {value: key for key, value in METEO_SHORT_NAMES.items()}
+
+DEFAULT_MODELS = ("MRI_AGCM3_2_S", "EC_Earth3P_HR")
+DEFAULT_METEO_TYPES = (
+    "temperature_2m_mean",
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "precipitation_sum",
+)
 
 _openmeteo_client = None
 
@@ -36,13 +50,8 @@ def get_data(
     location=(0, 0),
     date_start="1950-01-01",
     date_end="1951-12-31",
-    models=["MRI_AGCM3_2_S", "EC_Earth3P_HR"],
-    meteo_types=[
-        "temperature_2m_mean",
-        "temperature_2m_max",
-        "temperature_2m_min",
-        "precipitation_sum",
-    ],
+    models=None,
+    meteo_types=None,
     save_as_csv=False,
     insert_into_database=False,
     force_update_database=False,
@@ -50,6 +59,8 @@ def get_data(
 ):
     """Fetch climate data from Open-Meteo; optionally save CSV or upsert into PostgreSQL."""
     lat, lon = location
+    models = DEFAULT_MODELS if models is None else tuple(models)
+    meteo_types = DEFAULT_METEO_TYPES if meteo_types is None else tuple(meteo_types)
     loc_id = fetch_loc_id(lat, lon, con) if insert_into_database else None
 
     params = {
@@ -65,36 +76,63 @@ def get_data(
             "https://climate-api.open-meteo.com/v1/climate",
             params=params,
         )
-    except Exception as e:
-        print(f"Open-Meteo request failed: {e}")
+    except OpenMeteoRequestsError:
+        logger.warning(
+            "Open-Meteo request failed for latitude=%s longitude=%s",
+            lat,
+            lon,
+            exc_info=True,
+        )
+        return False
+
+    if not responses:
+        logger.warning(
+            "Open-Meteo returned no responses for latitude=%s longitude=%s",
+            lat,
+            lon,
+        )
         return False
 
     short_names = [METEO_SHORT_NAMES.get(name, name) for name in meteo_types]
     daily_dataframes = []
 
-    for i, response in enumerate(responses):
-        if i == 0:
-            print(f"Got data from location: {lat}°N, {lon}°E")
-            print(
-                f"\tActual coordinate: {response.Latitude()}°N, {response.Longitude()}°E"
+    try:
+        for index, response in enumerate(responses):
+            model_name = models[index] if index < len(models) else f"response-{index + 1}"
+            logger.info(
+                "Received Open-Meteo model=%s requested=(%s, %s) actual=(%s, %s)",
+                model_name,
+                lat,
+                lon,
+                response.Latitude(),
+                response.Longitude(),
             )
-        print(f"\tModel {i + 1}: {models[i]}")
 
-        daily = response.Daily()
-        daily_data = {
-            "loc_id": loc_id,
-            "dates": pd.date_range(
-                start=pd.to_datetime(daily.Time(), unit="s", utc=True),
-                end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
-                freq=pd.Timedelta(seconds=daily.Interval()),
-                inclusive="left",
-            ),
-        }
-        for j, short_name in enumerate(short_names):
-            daily_data[short_name] = daily.Variables(j).ValuesAsNumpy()
-        daily_dataframes.append(pd.DataFrame(data=daily_data))
+            daily = response.Daily()
+            daily_data = {
+                "loc_id": loc_id,
+                "dates": pd.date_range(
+                    start=pd.to_datetime(daily.Time(), unit="s", utc=True),
+                    end=pd.to_datetime(daily.TimeEnd(), unit="s", utc=True),
+                    freq=pd.Timedelta(seconds=daily.Interval()),
+                    inclusive="left",
+                ),
+            }
+            for variable_index, short_name in enumerate(short_names):
+                daily_data[short_name] = daily.Variables(
+                    variable_index
+                ).ValuesAsNumpy()
+            daily_dataframes.append(pd.DataFrame(data=daily_data))
 
-    mean_daily_dataframe = pd.concat(daily_dataframes).groupby(["dates"]).mean()
+        mean_daily_dataframe = pd.concat(daily_dataframes).groupby(["dates"]).mean()
+    except (AttributeError, IndexError, KeyError, TypeError, ValueError):
+        logger.warning(
+            "Open-Meteo returned an invalid response for latitude=%s longitude=%s",
+            lat,
+            lon,
+            exc_info=True,
+        )
+        return False
 
     aggregation_dict = {
         "loc_id": "mean",
@@ -131,21 +169,17 @@ def get_data(
 
 def get_data_in_database(lat, lon, con=None):
     """Return existing weather rows for a location (at most one probe row)."""
-    try:
-        with weather_db(con) as db:
-            with db.cursor() as cur:
-                cur.execute(
-                    """
-                    SELECT * FROM data WHERE loc_id =
-                    (SELECT loc_id FROM locations WHERE lat = %s AND lon = %s)
-                    LIMIT 1
-                    """,
-                    (lat, lon),
-                )
-                return cur.fetchall()
-    except Exception as e:
-        print(f"get_data_in_database failed: {e}")
-        return False
+    with weather_db(con) as db:
+        with db.cursor() as cur:
+            cur.execute(
+                """
+                SELECT * FROM data WHERE loc_id =
+                (SELECT loc_id FROM locations WHERE lat = %s AND lon = %s)
+                LIMIT 1
+                """,
+                (lat, lon),
+            )
+            return cur.fetchall()
 
 
 def load_location_history(location, date_start, date_end, fields, con=None):
@@ -210,7 +244,13 @@ def _missing_month_ranges(history, expected_months, fields):
     ]
 
 
-def get_location_history(location, date_start, date_end, fields=("temp_mean", "precip"), con=None):
+def get_location_history(
+    location,
+    date_start,
+    date_end,
+    fields=("temp_mean", "precip"),
+    con=None,
+):
     """Serve cached history, fetching and storing only missing month ranges.
 
     Returns ``(history, fetched)`` where ``fetched`` reports whether Open-Meteo
@@ -300,51 +340,49 @@ def get_data_locations(
 def modify_database(data, type="donothing", con=None):
     """Insert or update weather rows from a DataFrame with PostgreSQL upserts."""
     if type not in ("insert", "update"):
-        print("\nWarning: wrong type specified, only 'insert' or 'update' are acceptable\n")
+        logger.warning(
+            "Unsupported database write mode %r; expected 'insert' or 'update'", type
+        )
         return False
 
-    try:
-        with weather_db(con) as db:
-            rows = [
-                (
-                    int(row.loc_id),
-                    row.Index.date() if hasattr(row.Index, "date") else row.Index,
-                    _nullable_float(getattr(row, "temp_mean", None)),
-                    _nullable_float(getattr(row, "temp_max", None)),
-                    _nullable_float(getattr(row, "temp_min", None)),
-                    _nullable_float(getattr(row, "precip", None)),
+    with weather_db(con) as db:
+        rows = [
+            (
+                int(row.loc_id),
+                row.Index.date() if hasattr(row.Index, "date") else row.Index,
+                _nullable_float(getattr(row, "temp_mean", None)),
+                _nullable_float(getattr(row, "temp_max", None)),
+                _nullable_float(getattr(row, "temp_min", None)),
+                _nullable_float(getattr(row, "precip", None)),
+            )
+            for row in data.itertuples()
+        ]
+        if not rows:
+            return True
+        with db.cursor() as cur:
+            if type == "insert":
+                cur.executemany(
+                    """
+                    INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (loc_id, dates) DO NOTHING
+                    """,
+                    rows,
                 )
-                for row in data.itertuples()
-            ]
-            if not rows:
-                return True
-            with db.cursor() as cur:
-                if type == "insert":
-                    cur.executemany(
-                        """
-                        INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (loc_id, dates) DO NOTHING
-                        """,
-                        rows,
-                    )
-                else:
-                    cur.executemany(
-                        """
-                        INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (loc_id, dates) DO UPDATE SET
-                            temp_mean = EXCLUDED.temp_mean,
-                            temp_max = EXCLUDED.temp_max,
-                            temp_min = EXCLUDED.temp_min,
-                            precip = EXCLUDED.precip
-                        """,
-                        rows,
-                    )
-        return True
-    except Exception as e:
-        print(f"modify_database failed: {e}")
-        return False
+            else:
+                cur.executemany(
+                    """
+                    INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (loc_id, dates) DO UPDATE SET
+                        temp_mean = EXCLUDED.temp_mean,
+                        temp_max = EXCLUDED.temp_max,
+                        temp_min = EXCLUDED.temp_min,
+                        precip = EXCLUDED.precip
+                    """,
+                    rows,
+                )
+    return True
 
 
 def _nullable_float(value):
