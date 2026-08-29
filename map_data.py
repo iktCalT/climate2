@@ -8,13 +8,6 @@ from helpers_data import SHORT_TO_METEO_NAMES, get_data
 MAX_VIEWPORT_POINTS = 600
 MAX_FETCH_PER_VIEWPORT = 12
 
-def _display_rows(rows):
-    """Keep broad views responsive without changing detailed small viewports."""
-    if len(rows) <= MAX_VIEWPORT_POINTS:
-        return rows
-    stride = math.ceil(len(rows) / MAX_VIEWPORT_POINTS)
-    return rows[::stride]
-
 def step_for_zoom(zoom):
     if zoom < 3: return 4.0
     if zoom < 5: return 2.0
@@ -27,8 +20,12 @@ def _sample_coordinates(south, west, north, east, zoom):
     step = step_for_zoom(zoom)
     count = (math.floor((north-south)/step)+1) * (math.floor((east-west)/step)+1)
     if count > MAX_VIEWPORT_POINTS: step *= math.sqrt(count / MAX_VIEWPORT_POINTS)
-    lats = np.arange(math.ceil(south/step)*step, north+step/2, step)
-    lons = np.arange(math.ceil(west/step)*step, east+step/2, step)
+    while True:
+        lats = np.arange(math.ceil(south/step)*step, north+step/2, step)
+        lons = np.arange(math.ceil(west/step)*step, east+step/2, step)
+        if len(lats) * len(lons) <= MAX_VIEWPORT_POINTS:
+            break
+        step *= 1.01
     return [(round(float(a), 6), round(float(b), 6)) for a in lats for b in lons], step
 
 def viewport_geojson(month, climate_type, south, west, north, east, zoom, fetch_missing=True):
@@ -50,12 +47,20 @@ def viewport_geojson(month, climate_type, south, west, north, east, zoom, fetch_
             if fetched:
                 with con.cursor() as cur:
                     cur.execute(query, (date, south, north, west, east)); rows = cur.fetchall()
-    rows = _display_rows(rows)
-    half_step = step / 2
-    features = []
+    sample_lats = sorted({lat for lat, _ in samples})
+    sample_lons = sorted({lon for _, lon in samples})
+    cell_values = {}
     for lat, lon, value in rows:
         if value is None:
             continue
+        cell_lat = min(sample_lats, key=lambda sample: abs(sample - lat))
+        cell_lon = min(sample_lons, key=lambda sample: abs(sample - lon))
+        cell_values.setdefault((cell_lat, cell_lon), []).append(float(value))
+
+    half_step = step / 2
+    features = []
+    for (lat, lon), values in cell_values.items():
+        value = sum(values) / len(values)
         west_edge, east_edge = max(-180, lon - half_step), min(180, lon + half_step)
         south_edge, north_edge = max(-90, lat - half_step), min(90, lat + half_step)
         features.append({
