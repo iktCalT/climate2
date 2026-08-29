@@ -7,7 +7,7 @@ import pandas as pd
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from app import app
-from map_data import MAX_VIEWPORT_POINTS, _sample_coordinates, step_for_zoom
+from map_data import MAX_VIEWPORT_POINTS, _estimated_values, _sample_coordinates, _viewport_cells, step_for_zoom
 
 
 class LocationsRouteTests(unittest.TestCase):
@@ -45,6 +45,21 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(response.json["type"], "FeatureCollection")
 
     def test_map_sampling_gets_finer_and_broad_views_are_capped(self):
-        self.assertGreater(step_for_zoom(2), step_for_zoom(10))
+        self.assertGreater(step_for_zoom(2)[0], step_for_zoom(10)[0])
         samples, _ = _sample_coordinates(-90, -180, 90, 180, 2)
         self.assertLessEqual(len(samples), MAX_VIEWPORT_POINTS)
+
+    def test_viewport_tiles_share_exact_edges(self):
+        cells, _, _, _, _ = _viewport_cells(-4, 100, 4, 108, 4)
+        indexed = {cell["index"]: cell for cell in cells}
+        first = indexed[(0, 0)]
+        east_neighbour = indexed[(0, 1)]
+        north_neighbour = indexed[(1, 0)]
+        self.assertEqual(first["east"], east_neighbour["west"])
+        self.assertEqual(first["north"], north_neighbour["south"])
+
+    def test_missing_tiles_receive_a_temporary_estimate(self):
+        cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
+        estimates = _estimated_values(cells, {cells[0]["index"]: [17.5]})
+        self.assertEqual(len(estimates), len(cells) - 1)
+        self.assertTrue(all(value == 17.5 for value in estimates.values()))
