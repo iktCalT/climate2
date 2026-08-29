@@ -5,10 +5,10 @@ as the legacy migration source; the Flask weather features no longer read it.
 User accounts continue to use `static/users.db`.
 
 PostgreSQL 18.6 is installed locally through Homebrew and runs as a background
-service. Before starting Flask in a new terminal, configure the connection:
+service. Flask uses `postgresql://localhost/climate` automatically. Set
+`DATABASE_URL` only when you want to use a different database:
 
 ```sh
-export DATABASE_URL='postgresql://localhost/climate'
 .venv/bin/flask --app app run
 ```
 
