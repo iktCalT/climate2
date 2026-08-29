@@ -12,6 +12,7 @@
     </div>
     {% endif %}
 
+    <p class="text-muted">Administrator-only prefetch. Values are downloaded from Open-Meteo and stored directly in the local PostgreSQL climate cache. Limit each request to {{ max_points }} locations.</p>
     <form action="/update" method="post" class="mx-auto" style="width:60%">
         <div class="mb-5 row">
             <h5>Start and end latitudes and number of points</h5>
@@ -29,7 +30,7 @@
             <div class="form-group col-sm-4">
                 <label for="n_lat" class="col-form-label d-block me-auto w-100">Latitude Number:</label>
                 <input autocomplete="off" class="form-control me-auto w-100" name="n_lat"
-                    type="number" min="1" max="5000" required>
+                    type="number" min="1" max="{{ max_points }}" required>
             </div>
         </div>
 
@@ -49,7 +50,7 @@
             <div class="form-group col-sm-4">
                 <label for="n_lon" class="col-form-label d-block me-auto w-100">Longitude Number:</label>
                 <input autocomplete="off" class="form-control me-auto w-100" name="n_lon"
-                    type="number" min="1" max="5000" required>
+                    type="number" min="1" max="{{ max_points }}" required>
             </div>
         </div>
 

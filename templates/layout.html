@@ -33,7 +33,7 @@
                         <li class="nav-item navpages fs-5 mx-2"><a class="nav-link" href="/">Home</a></li>
                         <li class="nav-item navpages fs-5 mx-2"><a class="nav-link" href="/maps">Maps</a></li>
                         <li class="nav-item navpages fs-5 mx-2"><a class="nav-link" href="/locations">Locations</a></li>
-                        {% if session["user_id"] %}
+                        {% if is_admin %}
                         <li class="nav-item navpages fs-5 mx-2"><a class="nav-link" href="/update">Update</a></li>
                         {% endif %}
                         <li class="nav-item navpages fs-5 mx-2"><a class="nav-link" href="/references">References</a></li>
