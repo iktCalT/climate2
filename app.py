@@ -13,7 +13,11 @@ from map_data import viewport_geojson
 SHAPE = (91, 91)
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 START = "1950-01"
-END = "2023-12"
+
+
+def latest_map_month():
+    """Return the newest month the Maps interface is allowed to request."""
+    return datetime.today().strftime("%Y-%m")
 
 # Configure application
 app = Flask(__name__)
@@ -140,20 +144,21 @@ def logout():
 def maps():
     month = request.args.get("month-picker")
     data_type = request.args.get("data-type")
+    latest_month = latest_map_month()
     try:
         imgname = session["imgname"]
     except:
         imgname = None
     if not (month and data_type):
         return render_template("maps.html", imgname=imgname, data_types=DATA_TYPES,
-                               start=START, end=END)
-    elif not is_valid_month(month, start=START, end=END):
+                               start=START, end=latest_month)
+    elif not is_valid_month(month, start=START, end=latest_month):
         return apology("Invalid month", 400)
     elif data_type not in DATA_TYPES:
         return apology(f"This data type ({data_type}) is not supported", 400)
     else:
         return render_template("maps.html", imgname=imgname, data_types=DATA_TYPES, 
-                               data_type=data_type, month=month, start=START, end=END)
+                               data_type=data_type, month=month, start=START, end=latest_month)
 
 @app.route("/api/map-data")
 def map_data():
@@ -163,7 +168,7 @@ def map_data():
         zoom = float(request.args["zoom"])
     except (KeyError, TypeError, ValueError):
         return jsonify(error="Invalid map request"), 400
-    if not is_valid_month(month, start=START, end=END) or climate_type not in DATA_TYPES:
+    if not is_valid_month(month, start=START, end=latest_map_month()) or climate_type not in DATA_TYPES:
         return jsonify(error="Unsupported month or climate type"), 400
     try: return jsonify(viewport_geojson(month, climate_type, south, west, north, east, zoom))
     except ValueError as error: return jsonify(error=str(error)), 400
