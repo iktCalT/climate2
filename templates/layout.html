@@ -79,12 +79,15 @@
         <footer class="mb-5 mt-auto">
             <div class="d-flex justify-content-center align-items-center">
                   
-                <span class="text-end p-0 text-muted"> Data provided by </span> 
+                <span class="text-end p-0 text-muted"> Climate model data: </span>
                 <span class="align-items-center mx-1">
-                    <a href="https://open-meteo.com/" class="d-block me-auto">
+                    <a href="https://open-meteo.com/en/docs/climate-api" class="d-block me-auto" aria-label="Open-Meteo Climate API">
                         <img src="/static/open-meteo.ico" style="height: 18px; bottom: 0;" class="d-block me-auto">
                     </a>
                 </span>
+                <a class="footer-credit" href="https://open-meteo.com/en/docs/climate-api">Open-Meteo</a>
+                <span class="text-muted mx-1">·</span>
+                <a class="footer-credit" href="https://pcmdi.llnl.gov/CMIP6/TermsOfUse">CMIP6</a>
             </div>
             {% block script %}{% endblock %}
         </footer>
