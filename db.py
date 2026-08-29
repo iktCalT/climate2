@@ -14,17 +14,12 @@ except ImportError:  # Lets non-database commands explain the missing dependency
 
 
 CLIMATE_TYPES = ("temp_mean", "temp_max", "temp_min", "precip")
+DEFAULT_DATABASE_URL = "postgresql://localhost/climate"
 
 
 def database_url():
-    """Return the required PostgreSQL connection string."""
-    url = os.environ.get("DATABASE_URL")
-    if not url:
-        raise RuntimeError(
-            "DATABASE_URL is not set. Export it before starting the app; see "
-            "docs/POSTGRESQL.md."
-        )
-    return url
+    """Use an explicit connection string or this project's safe local default."""
+    return os.environ.get("DATABASE_URL", DEFAULT_DATABASE_URL)
 
 
 @contextmanager

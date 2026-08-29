@@ -167,7 +167,9 @@ def map_data():
         return jsonify(error="Unsupported month or climate type"), 400
     try: return jsonify(viewport_geojson(month, climate_type, south, west, north, east, zoom))
     except ValueError as error: return jsonify(error=str(error)), 400
-    except RuntimeError: return jsonify(error="Climate data is temporarily unavailable"), 503
+    except Exception:
+        app.logger.exception("Map data request failed")
+        return jsonify(error="Climate database is unavailable. Start PostgreSQL or set DATABASE_URL."), 503
 
 
 @app.route("/profile", methods=["GET", "POST"])

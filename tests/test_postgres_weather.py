@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from db import database_url, fetch_loc_id, weather_db
+from db import DEFAULT_DATABASE_URL, database_url, fetch_loc_id, weather_db
 from helpers_data import get_location_history, modify_database
 
 
@@ -65,11 +65,10 @@ class PostgreSQLWeatherTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
-    def test_missing_database_url_has_helpful_error(self):
+    def test_missing_database_url_uses_local_default(self):
         original = os.environ.pop("DATABASE_URL", None)
         try:
-            with self.assertRaises(RuntimeError):
-                database_url()
+            self.assertEqual(database_url(), DEFAULT_DATABASE_URL)
         finally:
             if original is not None:
                 os.environ["DATABASE_URL"] = original
