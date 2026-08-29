@@ -14,6 +14,8 @@ from map_data import viewport_geojson
 SHAPE = (91, 91)
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 START = "1950-01"
+LOCATION_HISTORY_START = "1951-01-01"
+LOCATION_CHART_VERSION = "v2"
 MAX_ADMIN_PREFETCH_POINTS = 100
 
 
@@ -110,12 +112,13 @@ def locations():
     
     strlat = "{:.2f}".format(lat)
     strlon = "{:.2f}".format(lon)
-    filename = "location_data/"+strlat+"_"+strlon+".html"
+    filename = f"location_data/{LOCATION_CHART_VERSION}_{strlat}_{strlon}.html"
     try:
         data, fetched = get_location_history(
             location=(lat, lon),
-            date_start="1950-01-01",
+            date_start=LOCATION_HISTORY_START,
             date_end=datetime.today().strftime("%Y-%m-%d"),
+            fields=tuple(DATA_TYPES),
         )
     except RuntimeError:
         return apology("Climate data is temporarily unavailable", 503)

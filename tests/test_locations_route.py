@@ -17,8 +17,13 @@ class LocationsRouteTests(unittest.TestCase):
 
     def test_history_is_drawn_after_a_cache_miss(self):
         history = pd.DataFrame(
-            {"temp_mean": [10.0], "precip": [2.0]},
-            index=pd.to_datetime(["1950-01-01"]),
+            {
+                "temp_mean": [10.0],
+                "temp_max": [15.0],
+                "temp_min": [5.0],
+                "precip": [2.0],
+            },
+            index=pd.to_datetime(["1951-01-01"]),
         )
         with patch("app.get_location_history", return_value=(history, True)) as load:
             with patch("app.draw_chart") as draw:
@@ -26,7 +31,23 @@ class LocationsRouteTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         load.assert_called_once()
+        self.assertEqual(load.call_args.kwargs["date_start"], "1951-01-01")
+        self.assertEqual(
+            load.call_args.kwargs["fields"],
+            ("temp_mean", "temp_max", "temp_min", "precip"),
+        )
+        self.assertEqual(
+            pd.Period(load.call_args.kwargs["date_end"], freq="M"),
+            pd.Timestamp.today().to_period("M"),
+        )
         draw.assert_called_once()
+
+    def test_location_form_describes_the_full_history_range(self):
+        response = self.client.get("/locations")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"from 1951 through the current month", response.data)
+        self.assertIn(b"maximum, and minimum temperature", response.data)
 
     def test_unavailable_history_returns_a_service_error(self):
         with patch(

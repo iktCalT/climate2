@@ -25,7 +25,8 @@
     {% else %}
         <form action="/locations" method="get" class="mx-auto" style="width:60%">
             <div class="mb-3 row">
-                <h5>Please select a latitude and a longitude (Up to two decimal places)</h5>
+                <h5>Explore a location from 1951 through the current month</h5>
+                <p class="text-muted">Enter coordinates to chart modelled mean, maximum, and minimum temperature with precipitation. Missing months are fetched from Open-Meteo and saved in PostgreSQL.</p>
                 <div class="form-group col-sm-6">
                     <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
                     <input autocomplete="off" class="form-control ms-auto w-100" name="latitude"
