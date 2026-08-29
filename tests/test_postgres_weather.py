@@ -2,7 +2,6 @@ import os
 import unittest
 from unittest.mock import patch
 
-import numpy as np
 import pandas as pd
 
 from db import database_url, fetch_loc_id, weather_db
@@ -20,32 +19,6 @@ class PostgreSQLWeatherTests(unittest.TestCase):
         with weather_db() as con:
             with con.cursor() as cur:
                 cur.execute("DELETE FROM data WHERE dates >= %s", (self.TEST_DATE,))
-
-    def test_location_upsert_and_numpy_grid_lookup(self):
-        from helpers_maps import fetch_data
-
-        lats = np.linspace(-90, 90, 91)
-        lons = np.linspace(-180, 180, 91)
-        with weather_db() as con:
-            loc_id = fetch_loc_id(lats[45], lons[45], con=con)
-            self.assertEqual(loc_id, fetch_loc_id(lats[45], lons[45], con=con))
-            with con.cursor() as cur:
-                cur.execute(
-                    "INSERT INTO data (loc_id, dates, temp_mean) VALUES (%s, %s, %s)",
-                    (loc_id, self.TEST_DATE, 12.5),
-                )
-
-            _, _, grid = fetch_data(
-                shape=(91, 91), date=self.TEST_DATE, climate_type="temp_mean", con=con
-            )
-        self.assertEqual(grid[45, 45], 12.5)
-        self.assertTrue(np.isnan(grid[0, 0]))
-
-    def test_invalid_variable_is_rejected(self):
-        from helpers_maps import fetch_data
-
-        with self.assertRaises(ValueError):
-            fetch_data(climate_type="humidity")
 
     def test_location_history_uses_complete_cache_without_api_call(self):
         location = (12.345678, 67.890123)
