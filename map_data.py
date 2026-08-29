@@ -51,4 +51,21 @@ def viewport_geojson(month, climate_type, south, west, north, east, zoom, fetch_
                 with con.cursor() as cur:
                     cur.execute(query, (date, south, north, west, east)); rows = cur.fetchall()
     rows = _display_rows(rows)
-    return {"type":"FeatureCollection", "features":[{"type":"Feature", "id":f"{a:.6f}:{b:.6f}", "geometry":{"type":"Point","coordinates":[float(b),float(a)]}, "properties":{"value":v,"latitude":a,"longitude":b}} for a,b,v in rows if v is not None], "metadata":{"step":step,"fetched":fetched,"missing":max(0,len(missing)-fetched)}}
+    half_step = step / 2
+    features = []
+    for lat, lon, value in rows:
+        if value is None:
+            continue
+        west_edge, east_edge = max(-180, lon - half_step), min(180, lon + half_step)
+        south_edge, north_edge = max(-90, lat - half_step), min(90, lat + half_step)
+        features.append({
+            "type": "Feature",
+            "id": f"{lat:.6f}:{lon:.6f}",
+            "geometry": {"type": "Polygon", "coordinates": [[
+                [west_edge, south_edge], [east_edge, south_edge],
+                [east_edge, north_edge], [west_edge, north_edge],
+                [west_edge, south_edge],
+            ]]},
+            "properties": {"value": value, "latitude": lat, "longitude": lon},
+        })
+    return {"type":"FeatureCollection", "features":features, "metadata":{"step":step,"fetched":fetched,"missing":max(0,len(missing)-fetched)}}
