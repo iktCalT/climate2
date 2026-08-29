@@ -7,7 +7,7 @@ import pandas as pd
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from app import app
-from map_data import MAX_VIEWPORT_POINTS, _display_rows, step_for_zoom
+from map_data import MAX_VIEWPORT_POINTS, _sample_coordinates, step_for_zoom
 
 
 class LocationsRouteTests(unittest.TestCase):
@@ -46,4 +46,5 @@ class LocationsRouteTests(unittest.TestCase):
 
     def test_map_sampling_gets_finer_and_broad_views_are_capped(self):
         self.assertGreater(step_for_zoom(2), step_for_zoom(10))
-        self.assertLessEqual(len(_display_rows(list(range(5000)))), MAX_VIEWPORT_POINTS)
+        samples, _ = _sample_coordinates(-90, -180, 90, 180, 2)
+        self.assertLessEqual(len(samples), MAX_VIEWPORT_POINTS)
