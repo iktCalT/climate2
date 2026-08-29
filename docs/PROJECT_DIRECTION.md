@@ -36,12 +36,9 @@ precision of displayed climate data.
 
 ### Technical direction to evaluate
 
-Folium can be replaced if another library better supports an interactive,
-progressive map. The leading option to evaluate is **MapLibre GL JS** in the
-Flask frontend with JSON or tile-like endpoints served by Flask/PostgreSQL.
-It supports zoom-aware rendering and viewport requests. Leaflet is an
-acceptable lighter alternative; Folium may remain only if it can provide the
-same zoom-aware data loading efficiently.
+The implementation uses **MapLibre GL JS** in the Flask frontend with a
+viewport JSON endpoint served by Flask/PostgreSQL. The legacy Folium renderer
+has been removed.
 
 The implementation should define a small map-data API, such as a request for
 `bounds`, `zoom`, `month`, and `climate_type`. The server should choose a safe

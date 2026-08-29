@@ -8,7 +8,7 @@
 The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. Maps now use **MapLibre GL JS** instead of generated Folium image overlays: the browser requests viewport data at each zoom level, while the Flask API returns cached PostgreSQL points and fetches at most 12 missing samples per request. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
 
 #### Description:
-This program is my CS50 final project, which is composed of a main file (**app.py**), 3 assistant files (**helpers.py**, **helpers_data.py**, and **helpers_maps.py**), and 3 databases (**users.db**, **weather.db**, and **weather_update.db**).
+This program is my CS50 final project, which is composed of a main file (**app.py**), data and presentation helpers, and local databases for users and weather data.
 
 To run this program, please use command `flask run`.
 
@@ -86,28 +86,6 @@ To run this program, please use command `flask run`.
    - `modify_database(data, type="donothing", con=None)`:
    it will modify the database. `data` is a pandas.DataFrame which will be inserted into the database. If `type` is "insert", when a data of the same location and date already exists in the database, it will be skipped. If `type` is "update", such data will be replaced by the one in pandas.DataFrame. `con` is the connection to the database.
 
-4. **helpers_maps.py** contains 7 functions which are used to generate maps.
-   
-   - `add_bounds(map)`:
-   this function is used to add bounds along with latitude ±90° and longitude ±180° to the map. `map` is the map object to be dealt with.
-
-   - `add_legend(map, climate_type)`:
-   it is used to add legend to the map. If `climate_type` is "precip", colormap will be "Blues". If `climate_type` is "temp_*", colormap will be "coolwarm". `map` is the map object to be dealt with. 
-
-   - `draw_multi_layers(start_date, end_date, climate_type)`:
-    it will use `folium.raster_layers.ImageOverlay` multiple times to draw multiple layers on one map. This function is no longer used because I found it's not convenient to compare two maps in this case. So this function is replaced by the following function called `draw_multi_maps()`.
-
-    - `draw_multi_maps(start_date, end_date, climate_type)`:
-    it will generate multiple maps from `start_date` to `end_date` (one map each month) with only two layers, the first one is borders. `climate_type` will be passed to the function `add_legend()` and `fetch_data()`. Functions `add_bounds()`, `add_legend()`, `fetch_data()`, and `normalize_data()` are called.
-
-    - `fetch_data(shape=(91, 91), date="1950-01-01", climate_type="temp_mean")`:
-    it will fetch the data of the grid generated from a list of latitudes and a list of longitudes. `shape` specifies the lists of latitudes and longitudes (For example: `shape = (nlats, nlons)` means `lats = np.linspace(-90, 90, nlats)` and `lons = np.linspace(-180, 180, nlons)`). `date` is the date of interest. `climate_type` is the type of climate data of interest. Currently, there are 4 types stored in the database: mean, maxium, and minimum temperature ("temp_mean", "temp_max", and "temp_min") as well as precipitaion ("precip").
-    
-    - `generate_dates(start_date, end_date)`:
-    it generates a list of the first dates of each month between `start_date` and `end_date`
-
-    - `normalize_data(data, climate_type)`:
-    it normalizes the data to make sure the legend keeps unchanged in different maps. 
-     
+4. **map_data.py** supplies the MapLibre interface with viewport-sized GeoJSON tiles. It samples more finely at higher zoom levels, returns cached PostgreSQL values, and fetches only a bounded number of missing Open-Meteo samples.
 
 [^1]: For example: "EC_Earth3P_HR" means data is provided by EC-Earth consortium, Rossby Center, Swedish Meteorological and Hydrological Institute/SMHI, Norrkoping, Sweden. There are 7 models available: "CMCC_CM2_VHR4", "FGOALS_f3_H", "HiRAM_SIT_HR", "MRI_AGCM3_2_S", "EC_Earth3P_HR", "MPI_ESM1_2_XR", "NICAM16_8S". More information at [open-meteo](https://open-meteo.com/en/docs/climate-api).
