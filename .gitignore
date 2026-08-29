@@ -1,0 +1,31 @@
+.venv/
+.cache
+.cache.sqlite
+.matplotlib/
+flask_session/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Local credentials and personal machine configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.mobileprovision
+id_rsa
+id_ecdsa
+id_ed25519
+.ssh/
+
+# Local user content and databases
+static/users.db
+static/weather.db
+static/weather_update.db
+static/user_img/[0-9]*.png
+static/location_data/*.html

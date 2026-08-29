@@ -1,0 +1,71 @@
+{% extends "layout.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block main %}
+    {% if message %}
+        <div class="alert alert-info alert-dismissible text-center fade show" role="alert">
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <strong>{{ message }}</strong>
+        </div>
+    {% endif %}
+
+    <section class="climate-hero text-start">
+        <div class="climate-hero-copy">
+            <p class="eyebrow">Open climate model explorer</p>
+            <h1>Explore climate history, one place or one map at a time.</h1>
+            <p class="lead-copy">
+                Browse monthly temperature and precipitation from 1950 through the
+                current month. Climate checks begin in the local PostgreSQL cache and
+                fetch missing values from Open-Meteo when needed.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                <a class="btn btn-climate-primary" href="/maps">Open climate maps</a>
+                <a class="btn btn-climate-secondary" href="/locations">Check a location</a>
+            </div>
+        </div>
+        <div class="climate-grid-preview" aria-hidden="true">
+            {% for tone in [1, 1, 2, 3, 4, 4, 1, 2, 2, 3, 4, 5, 2, 2, 3, 4, 5, 5, 2, 3, 4, 4, 5, 5] %}
+                <span class="heat-{{ tone }}"></span>
+            {% endfor %}
+            <div class="grid-caption">A zoom-aware climate tile mesh</div>
+        </div>
+    </section>
+
+    <section class="home-facts" aria-label="Project highlights">
+        <div><strong>1950 → now</strong><span>selectable months</span></div>
+        <div><strong>4 variables</strong><span>temperature and precipitation</span></div>
+        <div><strong>Cache first</strong><span>PostgreSQL before API calls</span></div>
+    </section>
+
+    <section class="feature-grid text-start">
+        <article class="feature-card">
+            <div class="feature-number">01</div>
+            <p class="eyebrow">Maps</p>
+            <h2>See patterns across a region</h2>
+            <p>Pan and zoom a flat interactive map. Tiles become finer as you move closer, while missing samples are fetched within a strict request budget.</p>
+            <a class="feature-link" href="/maps">Choose a month and variable <span aria-hidden="true">→</span></a>
+        </article>
+        <article class="feature-card feature-card-dark">
+            <div class="history-preview" aria-hidden="true">
+                <svg viewBox="0 0 320 110" role="img">
+                    <path d="M8 82 C45 72, 54 38, 88 52 S140 94, 170 62 S220 22, 246 45 S282 78, 312 28" />
+                </svg>
+            </div>
+            <div class="feature-number">02</div>
+            <p class="eyebrow">Locations</p>
+            <h2>Follow one coordinate through time</h2>
+            <p>Enter latitude and longitude to build a monthly history chart. Cached months load locally; gaps are fetched and saved for the next visit.</p>
+            <a class="feature-link" href="/locations">Explore a coordinate <span aria-hidden="true">→</span></a>
+        </article>
+    </section>
+
+    <section class="data-note text-start">
+        <div>
+            <p class="eyebrow">Know the data</p>
+            <h2>Climate-model output, not direct station observations.</h2>
+        </div>
+        <p>Open-Meteo provides downscaled CMIP6 climate-model data. Use this site to explore broad patterns and modelled history, and review the sources and limitations before drawing conclusions.</p>
+        <a class="btn btn-climate-secondary" href="/references">Read references</a>
+    </section>
+{% endblock %}

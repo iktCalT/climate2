@@ -1,0 +1,14 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    username TEXT NOT NULL UNIQUE,
+    hash_pwd TEXT NOT NULL,
+    is_admin INTEGER NOT NULL DEFAULT 0 CHECK (is_admin IN (0, 1))
+);
+
+CREATE TABLE IF NOT EXISTS profiles (
+    user_id INTEGER PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    bio TEXT NOT NULL DEFAULT 'This is a default bio.',
+    img TEXT DEFAULT NULL
+);
