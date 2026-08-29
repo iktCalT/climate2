@@ -101,7 +101,9 @@ def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
         fig.write_html(f"static/location_data/{lat}_{lon}.html")
 
 
-def is_valid_month(month, start="1950-01", end="2023-12"):
+def is_valid_month(month, start="1950-01", end=None):
+    if end is None:
+        end = datetime.datetime.today().strftime("%Y-%m")
     try:
         date = datetime.datetime.strptime(month, "%Y-%m")
         start_date = datetime.datetime.strptime(start, "%Y-%m")

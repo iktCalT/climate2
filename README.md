@@ -5,7 +5,7 @@
 
 ## Refactor roadmap
 
-The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. Maps use **MapLibre GL JS** in a flat Mercator projection: the browser requests a seamless rectangular tile grid at each zoom level, while the Flask API returns cached PostgreSQL values and fetches at most 12 missing samples per request. As a finer grid is being fetched, the remaining cells are displayed as lighter, clearly labelled nearest-cached estimates rather than blank gaps. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
+The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. Maps use **MapLibre GL JS** in a flat Mercator projection: the browser requests a seamless rectangular tile grid at each zoom level, while the Flask API returns cached PostgreSQL values and fetches at most 12 missing samples per request. The month selector and map API both accept January 1950 through the current month. As a finer grid is being fetched, the remaining cells are displayed as lighter, clearly labelled nearest-cached estimates rather than blank gaps. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
 
 #### Description:
 This program is my CS50 final project, which is composed of a main file (**app.py**), data and presentation helpers, and local databases for users and weather data.
@@ -57,7 +57,7 @@ To run this program, please use command `flask run`.
    - `draw_chart(lat, lon, df, filename=None)`: 
     it will draw a chart with a pandas.DataFrame (parameter name: `df`). Other parameters are used to name the chart. `lat`: latitude; `lon`: longitude; `filename`: name of the file to be saved as (if `filename` is None, the default filename will be `f"{lat}_{lon}.html`").
 
-   - `is_valid_month(month, start="1950-01", end="2023-12")`:
+   - `is_valid_month(month, start="1950-01", end=None)`:
     it can check whether the parameter `month` (format: "YYYY-mm") is valid (in between `start` and `end`) or not.
 
    - `is_valid_username(username)`: 

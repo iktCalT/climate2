@@ -44,6 +44,26 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json["type"], "FeatureCollection")
 
+    def test_maps_and_api_accept_the_current_month(self):
+        with patch("app.latest_map_month", return_value="2026-08"):
+            form = self.client.get("/maps")
+            with patch("app.viewport_geojson", return_value={"type": "FeatureCollection", "features": [], "metadata": {}}):
+                page = self.client.get("/maps?month-picker=2026-08&data-type=temp_mean")
+                api = self.client.get("/api/map-data?month=2026-08&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2")
+
+        self.assertEqual(form.status_code, 200)
+        self.assertIn(b'max=2026-08', form.data)
+        self.assertEqual(page.status_code, 200)
+        self.assertEqual(api.status_code, 200)
+
+    def test_maps_and_api_reject_a_future_month(self):
+        with patch("app.latest_map_month", return_value="2026-08"):
+            page = self.client.get("/maps?month-picker=2026-09&data-type=temp_mean")
+            api = self.client.get("/api/map-data?month=2026-09&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2")
+
+        self.assertEqual(page.status_code, 400)
+        self.assertEqual(api.status_code, 400)
+
     def test_map_sampling_gets_finer_and_broad_views_are_capped(self):
         self.assertGreater(step_for_zoom(2)[0], step_for_zoom(10)[0])
         samples, _ = _sample_coordinates(-90, -180, 90, 180, 2)
