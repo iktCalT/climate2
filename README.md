@@ -5,7 +5,7 @@
 
 ## Refactor roadmap
 
-The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. Maps now use **MapLibre GL JS** instead of generated Folium image overlays: the browser requests viewport data at each zoom level, while the Flask API returns cached PostgreSQL points and fetches at most 12 missing samples per request. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
+The current refactor uses PostgreSQL for weather data. Setup and migration instructions are in [docs/POSTGRESQL.md](docs/POSTGRESQL.md). Location history now reads PostgreSQL first, fetches only missing monthly ranges from Open-Meteo, and stores the result before rendering the chart. Maps use **MapLibre GL JS** in a flat Mercator projection: the browser requests a seamless rectangular tile grid at each zoom level, while the Flask API returns cached PostgreSQL values and fetches at most 12 missing samples per request. As a finer grid is being fetched, the remaining cells are displayed as lighter, clearly labelled nearest-cached estimates rather than blank gaps. See [docs/PROJECT_DIRECTION.md](docs/PROJECT_DIRECTION.md) for the privacy, publication, and mapping requirements.
 
 #### Description:
 This program is my CS50 final project, which is composed of a main file (**app.py**), data and presentation helpers, and local databases for users and weather data.
@@ -86,6 +86,6 @@ To run this program, please use command `flask run`.
    - `modify_database(data, type="donothing", con=None)`:
    it will modify the database. `data` is a pandas.DataFrame which will be inserted into the database. If `type` is "insert", when a data of the same location and date already exists in the database, it will be skipped. If `type` is "update", such data will be replaced by the one in pandas.DataFrame. `con` is the connection to the database.
 
-4. **map_data.py** supplies the MapLibre interface with viewport-sized GeoJSON tiles. It samples more finely at higher zoom levels, returns cached PostgreSQL values, and fetches only a bounded number of missing Open-Meteo samples.
+4. **map_data.py** supplies the MapLibre interface with viewport-sized GeoJSON tiles. Its tiles share exact edges, become smaller at higher zoom levels, return cached PostgreSQL values, and fetch only a bounded number of missing Open-Meteo samples. Pending cells use a labelled nearest-cached estimate only for display; fetched values remain the source of truth.
 
 [^1]: For example: "EC_Earth3P_HR" means data is provided by EC-Earth consortium, Rossby Center, Swedish Meteorological and Hydrological Institute/SMHI, Norrkoping, Sweden. There are 7 models available: "CMCC_CM2_VHR4", "FGOALS_f3_H", "HiRAM_SIT_HR", "MRI_AGCM3_2_S", "EC_Earth3P_HR", "MPI_ESM1_2_XR", "NICAM16_8S". More information at [open-meteo](https://open-meteo.com/en/docs/climate-api).
