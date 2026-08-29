@@ -8,6 +8,13 @@ from helpers_data import SHORT_TO_METEO_NAMES, get_data
 MAX_VIEWPORT_POINTS = 600
 MAX_FETCH_PER_VIEWPORT = 12
 
+def _display_rows(rows):
+    """Keep broad views responsive without changing detailed small viewports."""
+    if len(rows) <= MAX_VIEWPORT_POINTS:
+        return rows
+    stride = math.ceil(len(rows) / MAX_VIEWPORT_POINTS)
+    return rows[::stride]
+
 def step_for_zoom(zoom):
     if zoom < 3: return 4.0
     if zoom < 5: return 2.0
@@ -29,7 +36,7 @@ def viewport_geojson(month, climate_type, south, west, north, east, zoom, fetch_
     if not (-90 <= south < north <= 90 and -180 <= west < east <= 180): raise ValueError("Invalid viewport bounds")
     samples, step = _sample_coordinates(south, west, north, east, zoom)
     date = f"{month}-01"
-    query = f"SELECT l.lat, l.lon, d.{climate_type} FROM data d JOIN locations l ON l.loc_id=d.loc_id WHERE d.dates=%s AND l.lat BETWEEN %s AND %s AND l.lon BETWEEN %s AND %s"
+    query = f"SELECT l.lat, l.lon, d.{climate_type} FROM data d JOIN locations l ON l.loc_id=d.loc_id WHERE d.dates=%s AND l.lat BETWEEN %s AND %s AND l.lon BETWEEN %s AND %s ORDER BY l.lat, l.lon"
     with weather_db() as con:
         with con.cursor() as cur:
             cur.execute(query, (date, south, north, west, east)); rows = cur.fetchall()
@@ -43,4 +50,5 @@ def viewport_geojson(month, climate_type, south, west, north, east, zoom, fetch_
             if fetched:
                 with con.cursor() as cur:
                     cur.execute(query, (date, south, north, west, east)); rows = cur.fetchall()
+    rows = _display_rows(rows)
     return {"type":"FeatureCollection", "features":[{"type":"Feature", "id":f"{a:.6f}:{b:.6f}", "geometry":{"type":"Point","coordinates":[float(b),float(a)]}, "properties":{"value":v,"latitude":a,"longitude":b}} for a,b,v in rows if v is not None], "metadata":{"step":step,"fetched":fetched,"missing":max(0,len(missing)-fetched)}}
