@@ -7,6 +7,7 @@ import pandas as pd
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from app import app
+from map_data import MAX_VIEWPORT_POINTS, _display_rows, step_for_zoom
 
 
 class LocationsRouteTests(unittest.TestCase):
