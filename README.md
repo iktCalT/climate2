@@ -7,8 +7,8 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 
 ## Current features
 
-- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month. Tiles form a continuous grid and become finer as the map is enlarged. Each viewport request fetches at most 12 missing Open-Meteo samples; temporary estimates are visibly distinguished from fetched values.
-- **Locations:** charts mean, maximum, and minimum temperature plus precipitation for one latitude/longitude from January 1951 through the current month. PostgreSQL is checked first, and only missing monthly ranges are fetched.
+- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month. Tiles form a continuous grid and become finer as the map is enlarged. A settled viewport progressively requests up to three batches of 12 missing Open-Meteo samples; temporary estimates are visibly distinguished from fetched values.
+- **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
 - **Local-first storage:** weather data uses PostgreSQL 18. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
 

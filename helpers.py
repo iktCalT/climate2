@@ -1,11 +1,9 @@
 import datetime
 import re
-from calendar import month_name
 from functools import wraps
 from pathlib import Path
 
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from flask import redirect, render_template, session
 
@@ -13,6 +11,18 @@ from flask import redirect, render_template, session
 # https://cs50.harvard.edu/x/2024/psets/9/finance/
 
 LOCATION_CHART_DIRECTORY = Path("static/location_data")
+SEASONS = (
+    ("Spring", (3, 4, 5), "#2f855a"),
+    ("Summer", (6, 7, 8), "#d69e2e"),
+    ("Fall", (9, 10, 11), "#dd6b20"),
+    ("Winter", (12, 1, 2), "#3182ce"),
+)
+CHART_METRICS = (
+    ("temp_mean", "Mean temperature", "Temperature (°C)", "#b2182b"),
+    ("temp_min", "Minimum temperature", "Temperature (°C)", "#2166ac"),
+    ("temp_max", "Maximum temperature", "Temperature (°C)", "#d6604d"),
+    ("precip", "Precipitation", "Mean daily precipitation (mm)", "#2166ac"),
+)
 
 
 def apology(message, code=400):
@@ -47,67 +57,101 @@ def apology(message, code=400):
     )
 
 
-# ChatGPT helped me complete this part. https://chatgpt.com/
+def _seasonal_history(df, field):
+    """Aggregate monthly history into four seasonal values per year."""
+    history = df[[field]].copy()
+    month_to_season = {
+        month: season for season, months, _ in SEASONS for month in months
+    }
+    history["season"] = history.index.month.map(month_to_season)
+    history["year"] = history.index.year + (history.index.month == 12).astype(int)
+    return (
+        history.groupby(["year", "season"], observed=True)[field]
+        .mean()
+        .reset_index()
+    )
+
+
 def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
+    """Write an interactive chart with four seasonal lines per selected metric."""
     fig = go.Figure()
-    grouped = df.groupby(df.index.month)
-    
-    color_scale_temp = px.colors.sequential.Hot
-    color_scale_precip = px.colors.sequential.Blues
-    for month, group in grouped:
-        # Line charts for Temperature
-        for temp_type in ["temp_mean", "temp_max", "temp_min"]:
-            if temp_type not in group:
-                continue
+    available_metrics = [metric for metric in CHART_METRICS if metric[0] in df]
+
+    for metric_index, (field, _label, _axis_title, _axis_color) in enumerate(
+        available_metrics
+    ):
+        seasonal = _seasonal_history(df, field)
+        for season, _months, color in SEASONS:
+            values = seasonal[seasonal["season"] == season]
             fig.add_trace(
                 go.Scatter(
-                    x=group.index,
-                    y=group[temp_type],
+                    x=values["year"],
+                    y=values[field],
                     mode="lines+markers",
-                    name=(
-                        f'{temp_type.split("_")[1].title()} Temperature (°C) - '
-                        f"{month_name[month]}"
+                    name=season,
+                    legendgroup=season,
+                    line=dict(color=color, width=2),
+                    marker=dict(color=color, size=6),
+                    visible=metric_index == 0,
+                    hovertemplate=(
+                        f"{season} %{{x}}<br>%{{y:.2f}}<extra></extra>"
                     ),
-                    line=dict(color="red", width=0.5),
-                    marker=dict(
-                        color=group[temp_type], colorscale=color_scale_temp, size=8
-                    ),
-                    yaxis="y1",
                 )
             )
 
-    # Bar chart for precipitation
-    fig.add_trace(
-        go.Bar(
-            x=df.index,
-            y=df["precip"],
-            name="Precipitation per day (mm)",
-            marker=dict(color=df["precip"], colorscale=color_scale_precip),
-            yaxis="y2",
+    buttons = []
+    for metric_index, (_field, label, axis_title, axis_color) in enumerate(
+        available_metrics
+    ):
+        first_trace = metric_index * len(SEASONS)
+        visible = [
+            first_trace <= trace_index < first_trace + len(SEASONS)
+            for trace_index in range(len(fig.data))
+        ]
+        buttons.append(
+            dict(
+                label=label,
+                method="update",
+                args=[
+                    {"visible": visible},
+                    {
+                        "title.text": f"Seasonal {label.lower()} at {lat}, {lon}",
+                        "yaxis.title.text": axis_title,
+                        "yaxis.title.font.color": axis_color,
+                        "yaxis.tickfont.color": axis_color,
+                    },
+                ],
+            )
         )
-    )
 
-    # Layout and legend
+    default_label = available_metrics[0][1] if available_metrics else "Climate data"
+    default_axis_title = available_metrics[0][2] if available_metrics else "Value"
+    default_axis_color = available_metrics[0][3] if available_metrics else "#18342c"
     fig.update_layout(
-        xaxis_title="Date",
+        title=dict(text=f"Seasonal {default_label.lower()} at {lat}, {lon}"),
+        xaxis=dict(title="Year", dtick=5),
         yaxis=dict(
-            title=dict(text="Temperature (°C)", font=dict(color="red")),
-            tickfont=dict(color="red"),
+            title=dict(text=default_axis_title, font=dict(color=default_axis_color)),
+            tickfont=dict(color=default_axis_color),
         ),
-        yaxis2=dict(
-            title=dict(
-                text="Mean daily precipitation (mm)", font=dict(color="blue")
-            ),
-            tickfont=dict(color="blue"),
-            overlaying="y",
-            side="right",
-        ),
-        template="plotly_white",
-    )
-    fig.update_layout(
+        hovermode="x unified",
         legend=dict(
-            orientation="h", yanchor="bottom", y=1.03, xanchor="left", x=0
-        )
+            orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0
+        ),
+        margin=dict(t=130),
+        template="plotly_white",
+        updatemenus=[
+            dict(
+                active=0,
+                buttons=buttons,
+                direction="down",
+                showactive=True,
+                x=0,
+                xanchor="left",
+                y=1.18,
+                yanchor="top",
+            )
+        ],
     )
 
     # Save as HTML
