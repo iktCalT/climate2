@@ -164,4 +164,8 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b'map.setProjection({type: "mercator"})', response.data)
         self.assertIn(b"FullscreenControl", response.data)
         self.assertIn(b"map.addControl(new FullscreenControl())", response.data)
+        self.assertIn(b"MAX_PROGRESSIVE_VIEWPORT_ROUNDS = 3", response.data)
+        self.assertIn(b"metadata.fetched > 0", response.data)
+        self.assertIn(b"loadData(round + 1, generation)", response.data)
+        self.assertIn(b"startViewportLoad", response.data)
         self.assertNotIn(b'projection: "mercator"', response.data)
