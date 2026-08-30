@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 import os
 import unittest
 from unittest.mock import patch
@@ -6,7 +7,7 @@ import pandas as pd
 
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
-from app import app
+from app import app, default_map_month
 from map_data import (
     MAX_VIEWPORT_POINTS,
     _estimated_values,
@@ -74,7 +75,7 @@ class LocationsRouteTests(unittest.TestCase):
 
     def test_maps_and_api_accept_the_current_month(self):
         with patch("app.latest_map_month", return_value="2026-08"):
-            form = self.client.get("/maps")
+            form = self.client.get("/maps?select=1")
             with patch("app.viewport_geojson", return_value={"type": "FeatureCollection", "features": [], "metadata": {}}):
                 page = self.client.get("/maps?month-picker=2026-08&data-type=temp_mean")
                 api = self.client.get("/api/map-data?month=2026-08&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2")
@@ -83,6 +84,25 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b'max="2026-08"', form.data)
         self.assertEqual(page.status_code, 200)
         self.assertEqual(api.status_code, 200)
+
+    def test_maps_opens_the_default_month_and_mean_temperature(self):
+        with patch("app.latest_map_month", return_value="2026-08"):
+            with patch("app.default_map_month", return_value="2026-08"):
+                response = self.client.get("/maps")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"temp_mean for 2026-08", response.data)
+        self.assertIn(b'href="/maps?select=1"', response.data)
+
+    def test_default_map_month_uses_previous_month_early_on_day_one(self):
+        early_new_year = datetime(2027, 1, 1, 5, 59, tzinfo=timezone.utc)
+
+        self.assertEqual(default_map_month(early_new_year), "2026-12")
+
+    def test_default_map_month_switches_to_current_month_after_six_utc(self):
+        ready = datetime(2027, 1, 1, 6, 0, tzinfo=timezone.utc)
+
+        self.assertEqual(default_map_month(ready), "2027-01")
 
     def test_maps_and_api_reject_a_future_month(self):
         with patch("app.latest_map_month", return_value="2026-08"):
@@ -142,4 +162,6 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"Math.max(-180, bounds.getWest())", response.data)
         self.assertIn(b"renderWorldCopies: false", response.data)
         self.assertIn(b'map.setProjection({type: "mercator"})', response.data)
+        self.assertIn(b"FullscreenControl", response.data)
+        self.assertIn(b"map.addControl(new FullscreenControl())", response.data)
         self.assertNotIn(b'projection: "mercator"', response.data)

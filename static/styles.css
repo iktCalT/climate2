@@ -81,6 +81,12 @@ table {
 
 .climate-map { height: 720px; width: 100%; border-radius: 0.5rem; overflow: hidden; }
 
+.climate-map:fullscreen,
+.climate-map:-webkit-full-screen {
+    border-radius: 0;
+    height: 100vh;
+}
+
 .eyebrow {
     color: var(--climate-green);
     font-family: "Space Mono", monospace;

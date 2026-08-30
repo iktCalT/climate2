@@ -3,7 +3,7 @@ import numpy as np
 import sqlite3
 
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
 
@@ -15,6 +15,8 @@ from helpers_data import get_data_locations, get_location_history
 from map_data import viewport_geojson
 
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
+DEFAULT_MAP_DATA_TYPE = "temp_mean"
+FIRST_DAY_MAP_FALLBACK_HOURS = 6
 START = "1950-01"
 LOCATION_HISTORY_START = "1951-01-01"
 LOCATION_CHART_VERSION = "v2"
@@ -22,9 +24,19 @@ MAX_ADMIN_PREFETCH_POINTS = 100
 ALLOWED_PROFILE_IMAGE_EXTENSIONS = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
 
 
-def latest_map_month():
+def latest_map_month(now=None):
     """Return the newest month the Maps interface is allowed to request."""
-    return datetime.today().strftime("%Y-%m")
+    now = now or datetime.now(timezone.utc)
+    return now.strftime("%Y-%m")
+
+
+def default_map_month(now=None):
+    """Choose the newest stable month for the initial Maps page."""
+    now = now or datetime.now(timezone.utc)
+    if now.day == 1 and now.hour < FIRST_DAY_MAP_FALLBACK_HOURS:
+        previous_month = now.replace(day=1) - timedelta(days=1)
+        return previous_month.strftime("%Y-%m")
+    return latest_map_month(now)
 
 # Configure application
 app = Flask(__name__)
@@ -194,7 +206,9 @@ def maps():
     data_type = request.args.get("data-type")
     latest_month = latest_map_month()
     imgname = current_image_name()
-    if not (month and data_type):
+    show_selector = request.args.get("select") == "1"
+
+    if show_selector and not month and not data_type:
         return render_template(
             "maps.html",
             imgname=imgname,
@@ -202,20 +216,26 @@ def maps():
             start=START,
             end=latest_month,
         )
-    elif not is_valid_month(month, start=START, end=latest_month):
+
+    if not month and not data_type:
+        month = default_map_month()
+        data_type = DEFAULT_MAP_DATA_TYPE
+    elif not month or not data_type:
+        return apology("Month and climate data type are both required", 400)
+
+    if not is_valid_month(month, start=START, end=latest_month):
         return apology("Invalid month", 400)
-    elif data_type not in DATA_TYPES:
+    if data_type not in DATA_TYPES:
         return apology(f"This data type ({data_type}) is not supported", 400)
-    else:
-        return render_template(
-            "maps.html",
-            imgname=imgname,
-            data_types=DATA_TYPES,
-            data_type=data_type,
-            month=month,
-            start=START,
-            end=latest_month,
-        )
+    return render_template(
+        "maps.html",
+        imgname=imgname,
+        data_types=DATA_TYPES,
+        data_type=data_type,
+        month=month,
+        start=START,
+        end=latest_month,
+    )
 
 
 @app.route("/api/map-data")
