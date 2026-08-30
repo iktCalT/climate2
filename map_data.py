@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 
 from db import CLIMATE_TYPES, weather_db
-from helpers_data import SHORT_TO_METEO_NAMES, get_data
+from helpers_data import DEFAULT_METEO_TYPES, get_data
 
 MAX_VIEWPORT_POINTS = 600
 MAX_FETCH_PER_VIEWPORT = 12
@@ -174,8 +174,8 @@ def _query_weather_rows(con, date, climate_type, lat_edges, lon_edges):
         return cur.fetchall()
 
 
-def _fetch_missing_cells(con, cells, month, climate_type):
-    """Fetch at most one bounded batch of missing viewport cell centres."""
+def _fetch_missing_cells(con, cells, month):
+    """Fetch one bounded batch and cache every metric for each coordinate."""
     period = pd.Period(month, freq="M")
     fetched = 0
     for cell in cells[:MAX_FETCH_PER_VIEWPORT]:
@@ -184,7 +184,7 @@ def _fetch_missing_cells(con, cells, month, climate_type):
             location=(cell["latitude"], cell["longitude"]),
             date_start=period.start_time.strftime("%Y-%m-%d"),
             date_end=period.end_time.strftime("%Y-%m-%d"),
-            meteo_types=[SHORT_TO_METEO_NAMES[climate_type]],
+            meteo_types=DEFAULT_METEO_TYPES,
             insert_into_database=True,
             force_update_database=True,
         ):
@@ -218,7 +218,7 @@ def viewport_geojson(
         cached_count = len(cells) - len(missing)
         fetched = 0
         if fetch_missing and missing:
-            fetched = _fetch_missing_cells(con, missing, month, climate_type)
+            fetched = _fetch_missing_cells(con, missing, month)
             if fetched:
                 rows = _query_weather_rows(
                     con, date, climate_type, lat_edges, lon_edges

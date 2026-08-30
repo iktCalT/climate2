@@ -8,6 +8,7 @@ from openmeteo_requests import OpenMeteoRequestsError
 
 from db import DEFAULT_DATABASE_URL, database_url, fetch_loc_id, weather_db
 from helpers_data import (
+    OPEN_METEO_HTTP_CACHE_TTL_SECONDS,
     get_data,
     get_data_in_database,
     get_location_history,
@@ -117,6 +118,9 @@ class ConfigurationTests(unittest.TestCase):
         finally:
             if original is not None:
                 os.environ["DATABASE_URL"] = original
+
+    def test_provider_response_cache_tolerates_week_old_climate_requests(self):
+        self.assertEqual(OPEN_METEO_HTTP_CACHE_TTL_SECONDS, 7 * 24 * 60 * 60)
 
 
 class OpenMeteoFailureTests(unittest.TestCase):
