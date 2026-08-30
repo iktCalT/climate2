@@ -9,10 +9,9 @@ os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from app import app, default_map_month
 from map_data import (
+    MAX_FETCH_PER_VIEWPORT,
     MAX_ZOOM,
     MAX_VIEWPORT_POINTS,
-    MIN_VIEWPORT_COLUMNS,
-    MIN_VIEWPORT_ROWS,
     _estimated_values,
     _fetch_missing_cells,
     _nearby_cached_values,
@@ -139,22 +138,29 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(page.status_code, 400)
         self.assertEqual(api.status_code, 400)
 
-    def test_map_sampling_keeps_at_least_a_90_by_90_visible_grid(self):
-        self.assertGreater(step_for_zoom(2)[0], step_for_zoom(10)[0])
+    def test_map_sampling_uses_bounded_resolution_and_fewer_zoomed_cells(self):
+        self.assertEqual(step_for_zoom(2.25), (2.0, 2.0))
+        self.assertAlmostEqual(step_for_zoom(3.25)[0], 4 / 3)
+        self.assertAlmostEqual(step_for_zoom(3.25)[1], 4 / 3)
+        self.assertEqual(step_for_zoom(10), (0.5, 0.5))
         samples, _ = _sample_coordinates(-90, -180, 90, 180, 2)
         self.assertLessEqual(len(samples), MAX_VIEWPORT_POINTS)
-        for bounds in (
-            (-85, -180, 85, 180, 0),
-            (-53.33, -112.85, 53.33, 112.85, 2),
-            (40.4, -74.3, 41.0, -73.6, MAX_ZOOM),
+        overview = _viewport_cells(-53, -90, 53, 90, 2.25)
+        intermediate = _viewport_cells(-26.5, -45, 26.5, 45, 3.25)
+        close = _viewport_cells(40.4, -74.3, 41.0, -73.6, MAX_ZOOM)
+        counts = []
+        for _, lat_edges, lon_edges, _, _ in (
+            overview,
+            intermediate,
+            close,
         ):
-            _, lat_edges, lon_edges, _, _ = _viewport_cells(*bounds)
-            self.assertGreaterEqual(len(lat_edges) - 1, MIN_VIEWPORT_ROWS)
-            self.assertGreaterEqual(len(lon_edges) - 1, MIN_VIEWPORT_COLUMNS)
-            self.assertLessEqual(
-                (len(lat_edges) - 1) * (len(lon_edges) - 1),
-                MAX_VIEWPORT_POINTS,
-            )
+            rows = len(lat_edges) - 1
+            columns = len(lon_edges) - 1
+            self.assertLessEqual(rows, 91)
+            self.assertLessEqual(columns, 91)
+            counts.append(rows * columns)
+        self.assertGreater(counts[0], counts[1])
+        self.assertGreater(counts[1], counts[2])
 
     def test_viewport_tiles_share_exact_edges(self):
         cells, _, _, _, _ = _viewport_cells(-4, 100, 4, 108, 4)
@@ -233,11 +239,11 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertNotIn(cached_cell["index"], fetched_indices)
         self.assertNotIn(cells[1]["index"], fetched_indices)
         self.assertIn(cells[2]["index"], fetched_indices)
-        self.assertEqual(payload["metadata"]["cached"], 4)
+        self.assertEqual(payload["metadata"]["cached"], 2)
         self.assertEqual(payload["metadata"]["direct"], 1)
-        self.assertEqual(payload["metadata"]["reused_nearby"], 3)
+        self.assertEqual(payload["metadata"]["reused_nearby"], 1)
         self.assertEqual(payload["metadata"]["fetched"], 0)
-        self.assertEqual(payload["metadata"]["missing"], len(cells) - 4)
+        self.assertEqual(payload["metadata"]["missing"], len(cells) - 2)
         self.assertAlmostEqual(query.call_args.args[5], lat_step * 1.5)
         self.assertAlmostEqual(query.call_args.args[6], lon_step * 1.5)
         sources = [
@@ -270,8 +276,8 @@ class LocationsRouteTests(unittest.TestCase):
             fetched = _fetch_missing_cells(object(), cells, "2026-08")
 
         locations = [call.kwargs["location"] for call in fetch.call_args_list]
-        self.assertEqual(fetched, 12)
-        self.assertEqual(len(locations), 12)
+        self.assertEqual(fetched, MAX_FETCH_PER_VIEWPORT)
+        self.assertEqual(len(locations), MAX_FETCH_PER_VIEWPORT)
         self.assertEqual(
             locations[0],
             (cells[0]["latitude"], cells[0]["longitude"]),
@@ -284,7 +290,7 @@ class LocationsRouteTests(unittest.TestCase):
             locations,
             [
                 (cell["latitude"], cell["longitude"])
-                for cell in cells[:12]
+                for cell in cells[:MAX_FETCH_PER_VIEWPORT]
             ],
         )
 
@@ -329,6 +335,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"requestController?.abort()", response.data)
         self.assertIn(b"Math.max(-180, bounds.getWest())", response.data)
         self.assertIn(b"renderWorldCopies: false", response.data)
+        self.assertIn(b"zoom: 2.25", response.data)
         self.assertIn(b"maxZoom: 10", response.data)
         self.assertIn(b'map.setProjection({type: "mercator"})', response.data)
         self.assertIn(b"FullscreenControl", response.data)

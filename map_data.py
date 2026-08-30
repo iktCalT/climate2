@@ -8,12 +8,14 @@ import pandas as pd
 from db import CLIMATE_TYPES, weather_db
 from helpers_data import DEFAULT_METEO_TYPES, get_data
 
-MIN_VIEWPORT_ROWS = 90
-MIN_VIEWPORT_COLUMNS = 90
-MAX_VIEWPORT_POINTS = 10_000
-MAX_FETCH_PER_VIEWPORT = 12
+MAX_VIEWPORT_POINTS = 91 * 91
+MAX_FETCH_PER_VIEWPORT = 4
 MIN_ZOOM = 0
 MAX_ZOOM = 10
+OVERVIEW_ZOOM = 2.25
+OVERVIEW_CELL_DEGREES = 2.0
+MIN_CELL_DEGREES = 0.5
+ZOOM_RESOLUTION_FACTOR = 1.5
 NEIGHBOR_REUSE_RADIUS_CELLS = 1.5
 NEIGHBOR_REUSE_CHUNK_SIZE = 128
 NEAREST_VALUE_CHUNK_SIZE = 128
@@ -22,23 +24,16 @@ NEAREST_VALUE_CHUNK_SIZE = 128
 def step_for_zoom(zoom):
     """Return the latitude/longitude tile size for a zoom level.
 
-    The imported climate grid is 2 degrees apart north-to-south and 4 degrees
-    apart east-to-west. Keeping that aspect ratio at low zoom prevents the
-    empty vertical bands that appeared when 4-degree source samples were drawn
-    in 2-degree-wide tiles.  Finer levels ask Open-Meteo for real values at the
-    centre of the smaller cells, subject to the per-request fetch limit.
+    The viewport shrinks by roughly two per zoom level while cells shrink by
+    only 1.5, so fewer cells are needed as the user zooms in. Resolution stops
+    at half a degree rather than implying unsupported precision.
     """
-    if zoom < 3:
-        return 2.0, 4.0
-    if zoom < 5:
-        return 1.0, 2.0
-    if zoom < 7:
-        return 0.5, 1.0
-    if zoom < 9:
-        return 0.25, 0.5
-    if zoom < 11:
-        return 0.1, 0.2
-    return 0.05, 0.1
+    zoom_delta = max(0.0, zoom - OVERVIEW_ZOOM)
+    step = max(
+        MIN_CELL_DEGREES,
+        OVERVIEW_CELL_DEGREES / ZOOM_RESOLUTION_FACTOR**zoom_delta,
+    )
+    return step, step
 
 
 def _grid_edges(low, high, step, lower_limit, upper_limit):
@@ -52,16 +47,8 @@ def _grid_edges(low, high, step, lower_limit, upper_limit):
 
 
 def _viewport_cells(south, west, north, east, zoom):
-    """Return a dense, bounded rectangular mesh covering the visible map."""
-    zoom_lat_step, zoom_lon_step = step_for_zoom(zoom)
-    lat_step = min(
-        zoom_lat_step,
-        (north - south) / MIN_VIEWPORT_ROWS,
-    )
-    lon_step = min(
-        zoom_lon_step,
-        (east - west) / MIN_VIEWPORT_COLUMNS,
-    )
+    """Return a resolution-bounded mesh covering the visible map."""
+    lat_step, lon_step = step_for_zoom(zoom)
     while True:
         lat_edges = _grid_edges(south, north, lat_step, -90, 90)
         lon_edges = _grid_edges(west, east, lon_step, -180, 180)
