@@ -11,6 +11,7 @@ from app import app, default_map_month
 from map_data import (
     MAX_VIEWPORT_POINTS,
     _estimated_values,
+    _fetch_missing_cells,
     _sample_coordinates,
     _viewport_cells,
     step_for_zoom,
@@ -181,6 +182,22 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(payload["metadata"]["cached"], 1)
         self.assertEqual(payload["metadata"]["fetched"], 0)
 
+    def test_one_map_fetch_caches_every_metric_for_a_location(self):
+        cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
+        with patch("map_data.get_data", return_value=True) as fetch:
+            fetched = _fetch_missing_cells(object(), cells[:1], "2026-08")
+
+        self.assertEqual(fetched, 1)
+        self.assertEqual(
+            fetch.call_args.kwargs["meteo_types"],
+            (
+                "temperature_2m_mean",
+                "temperature_2m_max",
+                "temperature_2m_min",
+                "precipitation_sum",
+            ),
+        )
+
     def test_estimates_use_the_nearest_observed_cell(self):
         cells, _, _, _, _ = _viewport_cells(0, 0, 2, 6, 4)
         west = cells[0]
@@ -213,9 +230,8 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b'map.setProjection({type: "mercator"})', response.data)
         self.assertIn(b"FullscreenControl", response.data)
         self.assertIn(b"map.addControl(new FullscreenControl())", response.data)
-        self.assertIn(b"MAX_PROGRESSIVE_VIEWPORT_ROUNDS = 3", response.data)
-        self.assertIn(b"metadata.fetched > 0", response.data)
         self.assertIn(b"loaded from PostgreSQL before this batch", response.data)
-        self.assertIn(b"loadData(round + 1, generation)", response.data)
         self.assertIn(b"startViewportLoad", response.data)
+        self.assertEqual(response.data.count(b"fetch(`/api/map-data?${query}`"), 1)
+        self.assertNotIn(b"fetching another batch", response.data)
         self.assertNotIn(b'projection: "mercator"', response.data)

@@ -71,15 +71,11 @@
             const color = climateType === "precip"
                 ? ["interpolate", ["linear"], ["get", "value"], 0, "#f7fbff", 5, "#6baed6", 10, "#08306b"]
                 : ["interpolate", ["linear"], ["get", "value"], -20, "#2166ac", 10, "#f7f7f7", 40, "#b2182b"];
-            const MAX_PROGRESSIVE_VIEWPORT_ROUNDS = 3;
-            const PROGRESSIVE_REFRESH_DELAY_MS = 750;
-
             let moveTimer;
-            let refreshTimer;
             let requestController;
             let viewportGeneration = 0;
 
-            async function loadData(round, generation) {
+            async function loadData(generation) {
                 const bounds = map.getBounds();
                 const south = Math.max(-85, bounds.getSouth());
                 const west = Math.max(-180, bounds.getWest());
@@ -100,7 +96,7 @@
                 });
                 const controller = new AbortController();
                 requestController = controller;
-                status.textContent = `Loading viewport data… batch ${round} of ${MAX_PROGRESSIVE_VIEWPORT_ROUNDS}`;
+                status.textContent = "Loading viewport data…";
 
                 try {
                     const response = await fetch(`/api/map-data?${query}`, {
@@ -116,11 +112,6 @@
 
                     map.getSource("climate").setData(data);
                     const metadata = data.metadata;
-                    const shouldContinue = (
-                        metadata.missing > 0
-                        && metadata.fetched > 0
-                        && round < MAX_PROGRESSIVE_VIEWPORT_ROUNDS
-                    );
                     status.textContent = [
                         `${metadata.tiles} cells`,
                         `${metadata.latitude_step.toFixed(2)}° × ${metadata.longitude_step.toFixed(2)}°`,
@@ -128,14 +119,7 @@
                         `${metadata.observed} stored observations now`,
                         `${metadata.fetched} newly fetched from Open-Meteo`,
                         `${metadata.missing} pending`,
-                        shouldContinue ? "fetching another batch…" : null,
                     ].filter(Boolean).join(" · ");
-                    if (shouldContinue) {
-                        refreshTimer = setTimeout(
-                            () => loadData(round + 1, generation),
-                            PROGRESSIVE_REFRESH_DELAY_MS,
-                        );
-                    }
                 } catch (error) {
                     if (error.name !== "AbortError") {
                         status.textContent = `Map data unavailable: ${error.message}`;
@@ -148,10 +132,9 @@
             }
 
             function startViewportLoad() {
-                clearTimeout(refreshTimer);
                 requestController?.abort();
                 viewportGeneration += 1;
-                loadData(1, viewportGeneration);
+                loadData(viewportGeneration);
             }
 
             map.on("load", () => {
@@ -199,7 +182,6 @@
             });
             map.on("remove", () => {
                 clearTimeout(moveTimer);
-                clearTimeout(refreshTimer);
                 requestController?.abort();
             });
         </script>

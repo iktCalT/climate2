@@ -27,6 +27,7 @@ DEFAULT_METEO_TYPES = (
     "temperature_2m_min",
     "precipitation_sum",
 )
+OPEN_METEO_HTTP_CACHE_TTL_SECONDS = 7 * 24 * 60 * 60
 
 _openmeteo_client = None
 
@@ -39,7 +40,9 @@ def get_openmeteo_client():
     """Reuse one cached Open-Meteo client for a process."""
     global _openmeteo_client
     if _openmeteo_client is None:
-        cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
+        cache_session = requests_cache.CachedSession(
+            ".cache", expire_after=OPEN_METEO_HTTP_CACHE_TTL_SECONDS
+        )
         retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
         _openmeteo_client = openmeteo_requests.Client(session=retry_session)
     return _openmeteo_client
