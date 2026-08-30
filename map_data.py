@@ -8,11 +8,15 @@ import pandas as pd
 from db import CLIMATE_TYPES, weather_db
 from helpers_data import DEFAULT_METEO_TYPES, get_data
 
-MAX_VIEWPORT_POINTS = 600
+MIN_VIEWPORT_ROWS = 90
+MIN_VIEWPORT_COLUMNS = 90
+MAX_VIEWPORT_POINTS = 10_000
 MAX_FETCH_PER_VIEWPORT = 12
 MIN_ZOOM = 0
+MAX_ZOOM = 10
 NEIGHBOR_REUSE_RADIUS_CELLS = 1.5
 NEIGHBOR_REUSE_CHUNK_SIZE = 128
+NEAREST_VALUE_CHUNK_SIZE = 128
 
 
 def step_for_zoom(zoom):
@@ -48,8 +52,16 @@ def _grid_edges(low, high, step, lower_limit, upper_limit):
 
 
 def _viewport_cells(south, west, north, east, zoom):
-    """Return a bounded rectangular mesh covering the visible map area."""
-    lat_step, lon_step = step_for_zoom(zoom)
+    """Return a dense, bounded rectangular mesh covering the visible map."""
+    zoom_lat_step, zoom_lon_step = step_for_zoom(zoom)
+    lat_step = min(
+        zoom_lat_step,
+        (north - south) / MIN_VIEWPORT_ROWS,
+    )
+    lon_step = min(
+        zoom_lon_step,
+        (east - west) / MIN_VIEWPORT_COLUMNS,
+    )
     while True:
         lat_edges = _grid_edges(south, north, lat_step, -90, 90)
         lon_edges = _grid_edges(west, east, lon_step, -180, 180)
@@ -172,18 +184,26 @@ def _estimated_values(cells, cell_values):
     observed_values = np.array(
         [np.mean(cell_values[cell["index"]]) for cell in observed_cells], dtype=float
     )
-    missing_coordinates = np.array(
-        [(cell["latitude"], cell["longitude"]) for cell in missing_cells],
-        dtype=float,
-    )
-    coordinate_deltas = missing_coordinates[:, np.newaxis, :] - observed_coordinates
-    nearest_indices = np.argmin(
-        np.sum(np.square(coordinate_deltas), axis=2), axis=1
-    )
-    return {
-        cell["index"]: float(observed_values[nearest_index])
-        for cell, nearest_index in zip(missing_cells, nearest_indices)
-    }
+    estimates = {}
+    for start in range(0, len(missing_cells), NEAREST_VALUE_CHUNK_SIZE):
+        chunk = missing_cells[start : start + NEAREST_VALUE_CHUNK_SIZE]
+        missing_coordinates = np.asarray(
+            [(cell["latitude"], cell["longitude"]) for cell in chunk],
+            dtype=float,
+        )
+        coordinate_deltas = (
+            missing_coordinates[:, np.newaxis, :] - observed_coordinates
+        )
+        nearest_indices = np.argmin(
+            np.sum(np.square(coordinate_deltas), axis=2), axis=1
+        )
+        estimates.update(
+            {
+                cell["index"]: float(observed_values[nearest_index])
+                for cell, nearest_index in zip(chunk, nearest_indices)
+            }
+        )
+    return estimates
 
 
 def _validate_viewport(climate_type, south, west, north, east, zoom):
@@ -194,6 +214,8 @@ def _validate_viewport(climate_type, south, west, north, east, zoom):
         raise ValueError("Viewport values must be finite")
     if zoom < MIN_ZOOM:
         raise ValueError("Zoom must be non-negative")
+    if zoom > MAX_ZOOM:
+        raise ValueError(f"Zoom must not exceed {MAX_ZOOM}")
     if not (-90 <= south < north <= 90 and -180 <= west < east <= 180):
         raise ValueError("Invalid viewport bounds")
 
@@ -234,7 +256,19 @@ def _fetch_missing_cells(con, cells, month):
     """Fetch one bounded batch and cache every metric for each coordinate."""
     period = pd.Period(month, freq="M")
     fetched = 0
-    for cell in cells[:MAX_FETCH_PER_VIEWPORT]:
+    fetch_count = min(len(cells), MAX_FETCH_PER_VIEWPORT)
+    if fetch_count == len(cells):
+        selected_cells = cells
+    else:
+        selected_indices = np.linspace(
+            0,
+            len(cells) - 1,
+            num=fetch_count,
+            dtype=int,
+        )
+        selected_cells = [cells[index] for index in selected_indices]
+
+    for cell in selected_cells:
         if get_data(
             con=con,
             location=(cell["latitude"], cell["longitude"]),
@@ -365,6 +399,8 @@ def viewport_geojson(
             "observed": len(satisfied),
             "direct": len(cell_values),
             "reused_nearby": len(reused_values),
+            "rows": len(lat_edges) - 1,
+            "columns": len(lon_edges) - 1,
             "tiles": len(cells),
         },
     }

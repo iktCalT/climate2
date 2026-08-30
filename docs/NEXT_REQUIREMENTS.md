@@ -57,6 +57,28 @@ and distinguish reused/estimated values from direct observations in map
 metadata. Only call Open-Meteo when no cached observation is close enough for
 the current zoom level. Keep the existing bounded request budget.
 
+## 7. Dense viewport grid and city-scale zoom limit
+
+**Status:** Implemented on 2026-08-30; recorded before implementation.
+
+The current safety cap can enlarge map cells until a typical viewport contains
+only a few dozen rows and columns. Instead, render at least **90 latitude rows
+by 90 longitude columns** for every normal visible viewport so the climate
+surface remains visually fine-grained before and after zooming.
+
+Keep PostgreSQL and nearby-cache reuse as the primary data sources. Increasing
+the display grid must not cause thousands of Open-Meteo calls: retain the
+existing maximum of 12 cache-miss fetches per settled viewport, and use chunked
+NumPy nearest-neighbor work so an 8,100-plus-cell response does not allocate an
+unbounded distance matrix. Distribute that bounded fetch batch across the
+missing viewport cells instead of taking 12 adjacent row-major cells from one
+edge, so each provider call improves a different part of the visible map.
+
+Cap both the browser map and API at zoom level 10. This keeps a large-city area,
+such as New York City, within roughly two ordinary map screens while still
+allowing the adaptive 90-by-90 grid to provide small cells at the closest
+supported scale.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -65,3 +87,4 @@ the current zoom level. Keep the existing bounded request budget.
 4. User roles and administrator ingest.
 5. Home and References redesign.
 6. Neighbor-aware cache reuse before further map API expansion.
+7. Dense 90-by-90 viewport grid with a city-scale zoom limit.

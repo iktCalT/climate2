@@ -66,6 +66,7 @@
                 style: "https://demotiles.maplibre.org/style.json",
                 center: [0, 0],
                 zoom: 2,
+                maxZoom: 10,
                 renderWorldCopies: false,
             });
             const color = climateType === "precip"
@@ -74,6 +75,16 @@
             let moveTimer;
             let requestController;
             let viewportGeneration = 0;
+
+            function formatStep(value) {
+                if (value >= 1) {
+                    return value.toFixed(2);
+                }
+                if (value >= 0.01) {
+                    return value.toFixed(3);
+                }
+                return value.toFixed(4);
+            }
 
             async function loadData(generation) {
                 const bounds = map.getBounds();
@@ -114,7 +125,8 @@
                     const metadata = data.metadata;
                     status.textContent = [
                         `${metadata.tiles} cells`,
-                        `${metadata.latitude_step.toFixed(2)}° × ${metadata.longitude_step.toFixed(2)}°`,
+                        `${metadata.rows} × ${metadata.columns} grid`,
+                        `${formatStep(metadata.latitude_step)}° × ${formatStep(metadata.longitude_step)}°`,
                         `${metadata.cached} loaded from PostgreSQL before this batch`,
                         `${metadata.direct} direct cells`,
                         `${metadata.reused_nearby} nearby-cache cells`,

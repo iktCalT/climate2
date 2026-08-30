@@ -9,7 +9,10 @@ os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from app import app, default_map_month
 from map_data import (
+    MAX_ZOOM,
     MAX_VIEWPORT_POINTS,
+    MIN_VIEWPORT_COLUMNS,
+    MIN_VIEWPORT_ROWS,
     _estimated_values,
     _fetch_missing_cells,
     _nearby_cached_values,
@@ -136,10 +139,22 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(page.status_code, 400)
         self.assertEqual(api.status_code, 400)
 
-    def test_map_sampling_gets_finer_and_broad_views_are_capped(self):
+    def test_map_sampling_keeps_at_least_a_90_by_90_visible_grid(self):
         self.assertGreater(step_for_zoom(2)[0], step_for_zoom(10)[0])
         samples, _ = _sample_coordinates(-90, -180, 90, 180, 2)
         self.assertLessEqual(len(samples), MAX_VIEWPORT_POINTS)
+        for bounds in (
+            (-85, -180, 85, 180, 0),
+            (-53.33, -112.85, 53.33, 112.85, 2),
+            (40.4, -74.3, 41.0, -73.6, MAX_ZOOM),
+        ):
+            _, lat_edges, lon_edges, _, _ = _viewport_cells(*bounds)
+            self.assertGreaterEqual(len(lat_edges) - 1, MIN_VIEWPORT_ROWS)
+            self.assertGreaterEqual(len(lon_edges) - 1, MIN_VIEWPORT_COLUMNS)
+            self.assertLessEqual(
+                (len(lat_edges) - 1) * (len(lon_edges) - 1),
+                MAX_VIEWPORT_POINTS,
+            )
 
     def test_viewport_tiles_share_exact_edges(self):
         cells, _, _, _, _ = _viewport_cells(-4, 100, 4, 108, 4)
@@ -180,7 +195,13 @@ class LocationsRouteTests(unittest.TestCase):
         cells, _, _, lat_step, lon_step = _viewport_cells(0, 0, 0.5, 1, 5)
         reused = _nearby_cached_values(
             cells,
-            [(cells[0]["latitude"], -0.5, 12.0)],
+            [
+                (
+                    cells[0]["latitude"],
+                    cells[0]["longitude"] - lon_step,
+                    12.0,
+                )
+            ],
             {},
             lat_step,
             lon_step,
@@ -189,7 +210,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(reused[cells[0]["index"]], 12.0)
 
     def test_map_cache_excludes_direct_and_nearby_cells_from_provider_batch(self):
-        cells, _, _, _, _ = _viewport_cells(0, 0, 0.5, 3, 5)
+        cells, _, _, lat_step, lon_step = _viewport_cells(0, 0, 0.5, 3, 5)
         cached_cell = cells[0]
         cached_row = (
             cached_cell["latitude"],
@@ -212,18 +233,18 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertNotIn(cached_cell["index"], fetched_indices)
         self.assertNotIn(cells[1]["index"], fetched_indices)
         self.assertIn(cells[2]["index"], fetched_indices)
-        self.assertEqual(payload["metadata"]["cached"], 2)
+        self.assertEqual(payload["metadata"]["cached"], 4)
         self.assertEqual(payload["metadata"]["direct"], 1)
-        self.assertEqual(payload["metadata"]["reused_nearby"], 1)
+        self.assertEqual(payload["metadata"]["reused_nearby"], 3)
         self.assertEqual(payload["metadata"]["fetched"], 0)
-        self.assertEqual(payload["metadata"]["missing"], 1)
-        self.assertEqual(query.call_args.args[5], 0.75)
-        self.assertEqual(query.call_args.args[6], 1.5)
+        self.assertEqual(payload["metadata"]["missing"], len(cells) - 4)
+        self.assertAlmostEqual(query.call_args.args[5], lat_step * 1.5)
+        self.assertAlmostEqual(query.call_args.args[6], lon_step * 1.5)
         sources = [
             feature["properties"]["source"] for feature in payload["features"]
         ]
         self.assertEqual(
-            sources,
+            sources[:3],
             ["direct_cache", "nearby_cache", "display_estimate"],
         )
 
@@ -241,6 +262,30 @@ class LocationsRouteTests(unittest.TestCase):
                 "temperature_2m_min",
                 "precipitation_sum",
             ),
+        )
+
+    def test_map_fetch_batch_is_spread_across_the_missing_viewport(self):
+        cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
+        with patch("map_data.get_data", return_value=True) as fetch:
+            fetched = _fetch_missing_cells(object(), cells, "2026-08")
+
+        locations = [call.kwargs["location"] for call in fetch.call_args_list]
+        self.assertEqual(fetched, 12)
+        self.assertEqual(len(locations), 12)
+        self.assertEqual(
+            locations[0],
+            (cells[0]["latitude"], cells[0]["longitude"]),
+        )
+        self.assertEqual(
+            locations[-1],
+            (cells[-1]["latitude"], cells[-1]["longitude"]),
+        )
+        self.assertNotEqual(
+            locations,
+            [
+                (cell["latitude"], cell["longitude"])
+                for cell in cells[:12]
+            ],
         )
 
     def test_estimates_use_the_nearest_observed_cell(self):
@@ -262,6 +307,18 @@ class LocationsRouteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Zoom must be non-negative"):
             viewport_geojson("2026-08", "temp_mean", -10, -10, 10, 10, -1)
 
+    def test_map_data_rejects_zoom_above_city_scale_limit(self):
+        with self.assertRaisesRegex(ValueError, "Zoom must not exceed 10"):
+            viewport_geojson(
+                "2026-08",
+                "temp_mean",
+                40.4,
+                -74.3,
+                41.0,
+                -73.6,
+                MAX_ZOOM + 0.1,
+            )
+
     def test_map_page_cancels_stale_requests_and_clips_world_bounds(self):
         with patch("app.latest_map_month", return_value="2026-08"):
             response = self.client.get(
@@ -272,11 +329,13 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"requestController?.abort()", response.data)
         self.assertIn(b"Math.max(-180, bounds.getWest())", response.data)
         self.assertIn(b"renderWorldCopies: false", response.data)
+        self.assertIn(b"maxZoom: 10", response.data)
         self.assertIn(b'map.setProjection({type: "mercator"})', response.data)
         self.assertIn(b"FullscreenControl", response.data)
         self.assertIn(b"map.addControl(new FullscreenControl())", response.data)
         self.assertIn(b"loaded from PostgreSQL before this batch", response.data)
         self.assertIn(b"nearby-cache cells", response.data)
+        self.assertIn(b"metadata.rows", response.data)
         self.assertIn(b"Reused nearby PostgreSQL observation", response.data)
         self.assertIn(b"startViewportLoad", response.data)
         self.assertEqual(response.data.count(b"fetch(`/api/map-data?${query}`"), 1)
