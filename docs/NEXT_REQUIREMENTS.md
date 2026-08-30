@@ -79,6 +79,31 @@ such as New York City, within roughly two ordinary map screens while still
 allowing the adaptive 90-by-90 grid to provide small cells at the closest
 supported scale.
 
+## 8. Bounded map resolution and faster foreground fetches
+
+**Status:** Implemented on 2026-08-30; recorded before implementation.
+
+This requirement corrects and supersedes the always-dense 90-by-90 behavior in
+requirement 7. The initial on-screen overview should contain no more than 91
+rows or 91 columns and use square 2-degree latitude by 2-degree longitude
+cells. An entire 360-degree world cannot simultaneously use 2-degree-wide
+cells and fit within 91 columns, so "whole map" means the normal initial
+on-screen overview rather than all longitudes in one viewport.
+
+As the user zooms in, use a smooth square-cell resolution curve instead of
+preserving 90 rows and columns. Start with 2-degree cells at overview scale,
+reduce cell size by a factor of 1.5 per added zoom level while the geographic
+viewport shrinks by roughly a factor of 2, and stop permanently at 0.5-degree
+cells. This makes the number of visible cells trend downward at every zoom
+level while never implying resolution finer than 0.5 degrees. Keep the
+city-scale maximum zoom of 10.
+
+The measured response delay is dominated by synchronous Open-Meteo cache-miss
+work, not PostgreSQL grid generation. Reduce the foreground cache-miss batch
+from 12 to at most 4 distributed locations per settled viewport. Continue to
+cache every fetched metric in PostgreSQL; larger intentional cache population
+belongs in the administrator pre-fetch flow.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -88,3 +113,4 @@ supported scale.
 5. Home and References redesign.
 6. Neighbor-aware cache reuse before further map API expansion.
 7. Dense 90-by-90 viewport grid with a city-scale zoom limit.
+8. Bounded 2-to-0.5-degree map resolution and faster foreground fetches.
