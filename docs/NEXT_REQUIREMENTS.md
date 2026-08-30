@@ -43,6 +43,20 @@ Refresh the **Home** and **References** pages after the map, location, current
 month, and user-role work is complete. Treat this as a reminder, not current
 implementation scope.
 
+## 6. Neighbor-aware map cache reuse
+
+**Status:** Planned; record created before implementation on 2026-08-30.
+
+Reduce Open-Meteo usage by allowing a map tile to reuse a sufficiently nearby
+PostgreSQL observation. A cached observation does not need to match the tile
+center or the map's zooming center exactly.
+
+The acceptable neighbor distance must shrink as zoom increases. Query a small
+padded area around the viewport so edge tiles can reuse nearby cached points,
+and distinguish reused/estimated values from direct observations in map
+metadata. Only call Open-Meteo when no cached observation is close enough for
+the current zoom level. Keep the existing bounded request budget.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -50,3 +64,4 @@ implementation scope.
 3. Newest-month support.
 4. User roles and administrator ingest.
 5. Home and References redesign.
+6. Neighbor-aware cache reuse before further map API expansion.
