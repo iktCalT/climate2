@@ -2,6 +2,7 @@ import datetime
 import re
 from calendar import month_name
 from functools import wraps
+from pathlib import Path
 
 import pandas as pd
 import plotly.express as px
@@ -10,6 +11,8 @@ from flask import redirect, render_template, session
 
 # Some assistance functions are written by CS50 staff.
 # https://cs50.harvard.edu/x/2024/psets/9/finance/
+
+LOCATION_CHART_DIRECTORY = Path("static/location_data")
 
 
 def apology(message, code=400):
@@ -86,15 +89,15 @@ def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
 
     # Layout and legend
     fig.update_layout(
-        xaxis_title='Date',
+        xaxis_title="Date",
         yaxis=dict(
-            title="Temperature (°C)",
-            titlefont=dict(color="red"),
+            title=dict(text="Temperature (°C)", font=dict(color="red")),
             tickfont=dict(color="red"),
         ),
         yaxis2=dict(
-            title="Precipitation per day (mm)",
-            titlefont=dict(color="blue"),
+            title=dict(
+                text="Mean daily precipitation (mm)", font=dict(color="blue")
+            ),
             tickfont=dict(color="blue"),
             overlaying="y",
             side="right",
@@ -108,10 +111,10 @@ def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
     )
 
     # Save as HTML
-    if filename:
-        fig.write_html(f"static/location_data/{filename}")
-    else:
-        fig.write_html(f"static/location_data/{lat}_{lon}.html")
+    LOCATION_CHART_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    output_name = Path(filename).name if filename else f"{lat}_{lon}.html"
+    fig.write_html(str(LOCATION_CHART_DIRECTORY / output_name))
+    return fig
 
 
 def is_valid_month(month, start="1950-01", end=None):
