@@ -139,11 +139,12 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(api.status_code, 400)
 
     def test_map_sampling_uses_bounded_resolution_and_fewer_zoomed_cells(self):
-        self.assertEqual(step_for_zoom(2.25), (2.0, 2.0))
+        self.assertEqual(step_for_zoom(2.25), (2.0, 4.0))
         self.assertAlmostEqual(step_for_zoom(3.25)[0], 4 / 3)
-        self.assertAlmostEqual(step_for_zoom(3.25)[1], 4 / 3)
-        self.assertEqual(step_for_zoom(10), (0.5, 0.5))
+        self.assertAlmostEqual(step_for_zoom(3.25)[1], 8 / 3)
+        self.assertEqual(step_for_zoom(10), (0.5, 1.0))
         samples, _ = _sample_coordinates(-90, -180, 90, 180, 2)
+        self.assertEqual(len(samples), 90 * 90)
         self.assertLessEqual(len(samples), MAX_VIEWPORT_POINTS)
         overview = _viewport_cells(-53, -90, 53, 90, 2.25)
         intermediate = _viewport_cells(-26.5, -45, 26.5, 45, 3.25)
