@@ -7,8 +7,9 @@ supplements, but does not replace or edit, `docs/REFACTOR.md`.
 
 - The refactor is an **AI-assisted derivative** made with **OpenAI Codex
   (GPT-5)**.
-- The original, purely human-authored project is
-  [iktCalT/climate](https://github.com/iktCalT/climate).
+- The original project, [iktCalT/climate](https://github.com/iktCalT/climate),
+  was implemented by its human author as a CS50 final project with substantial
+  guidance from ChatGPT.
 - The user owns every remote, push, pull request, and merge. Codex may use
   remote Git or GitHub operations only for `iktCalT/climate2`, as explicitly
   authorized by the user.

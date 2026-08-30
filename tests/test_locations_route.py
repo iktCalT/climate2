@@ -50,6 +50,28 @@ class LocationsRouteTests(unittest.TestCase):
         )
         draw.assert_called_once()
 
+    def test_cached_history_reuses_the_existing_chart_on_refresh(self):
+        history = pd.DataFrame(
+            {
+                "temp_mean": [10.0],
+                "temp_max": [15.0],
+                "temp_min": [5.0],
+                "precip": [2.0],
+            },
+            index=pd.to_datetime(["2026-01-01"]),
+        )
+        with patch("app.get_location_history", return_value=(history, False)) as load:
+            with patch("app.os.path.isfile", return_value=True):
+                with patch("app.draw_chart") as draw:
+                    response = self.client.get(
+                        "/locations?latitude=10&longitude=10"
+                    )
+
+        self.assertEqual(response.status_code, 200)
+        load.assert_called_once()
+        draw.assert_not_called()
+        self.assertIn(b"Refreshing rechecks PostgreSQL", response.data)
+
     def test_location_form_describes_the_full_history_range(self):
         response = self.client.get("/locations")
 
