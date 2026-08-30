@@ -45,7 +45,7 @@ implementation scope.
 
 ## 6. Neighbor-aware map cache reuse
 
-**Status:** Planned; record created before implementation on 2026-08-30.
+**Status:** Implemented on 2026-08-30; recorded before implementation.
 
 Reduce Open-Meteo usage by allowing a map tile to reuse a sufficiently nearby
 PostgreSQL observation. A cached observation does not need to match the tile

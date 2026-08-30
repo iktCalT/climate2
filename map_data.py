@@ -11,6 +11,8 @@ from helpers_data import DEFAULT_METEO_TYPES, get_data
 MAX_VIEWPORT_POINTS = 600
 MAX_FETCH_PER_VIEWPORT = 12
 MIN_ZOOM = 0
+NEIGHBOR_REUSE_RADIUS_CELLS = 1.5
+NEIGHBOR_REUSE_CHUNK_SIZE = 128
 
 
 def step_for_zoom(zoom):
@@ -87,7 +89,13 @@ def _sample_coordinates(south, west, north, east, zoom):
 
 def _bucket_rows(rows, lat_edges, lon_edges):
     """Aggregate cached source points into their containing rectangular tile."""
-    rows = [(lat, lon, value) for lat, lon, value in rows if value is not None]
+    rows = [
+        (lat, lon, value)
+        for lat, lon, value in rows
+        if value is not None
+        and lat_edges[0] <= lat <= lat_edges[-1]
+        and lon_edges[0] <= lon <= lon_edges[-1]
+    ]
     if not rows:
         return {}
 
@@ -103,6 +111,46 @@ def _bucket_rows(rows, lat_edges, lon_edges):
     ):
         values.setdefault((lat_index, lon_index), []).append(float(value))
     return values
+
+
+def _nearby_cached_values(cells, rows, cell_values, lat_step, lon_step):
+    """Reuse a cached point in this or a neighboring zoom-scaled cell."""
+    cached_rows = [
+        (lat, lon, value) for lat, lon, value in rows if value is not None
+    ]
+    missing_cells = [cell for cell in cells if cell["index"] not in cell_values]
+    if not cached_rows or not missing_cells:
+        return {}
+
+    scale = np.array([lat_step, lon_step], dtype=float)
+    cached_coordinates = (
+        np.asarray([(lat, lon) for lat, lon, _ in cached_rows], dtype=float) / scale
+    )
+    cached_values = np.asarray([value for _, _, value in cached_rows], dtype=float)
+    reused = {}
+    maximum_distance_squared = NEIGHBOR_REUSE_RADIUS_CELLS**2
+
+    for start in range(0, len(missing_cells), NEIGHBOR_REUSE_CHUNK_SIZE):
+        chunk = missing_cells[start : start + NEIGHBOR_REUSE_CHUNK_SIZE]
+        chunk_coordinates = (
+            np.asarray(
+                [(cell["latitude"], cell["longitude"]) for cell in chunk],
+                dtype=float,
+            )
+            / scale
+        )
+        deltas = chunk_coordinates[:, np.newaxis, :] - cached_coordinates
+        distances_squared = np.sum(np.square(deltas), axis=2)
+        nearest_indices = np.argmin(distances_squared, axis=1)
+        nearest_distances = distances_squared[
+            np.arange(len(chunk)), nearest_indices
+        ]
+        for cell, nearest_index, distance_squared in zip(
+            chunk, nearest_indices, nearest_distances
+        ):
+            if distance_squared <= maximum_distance_squared:
+                reused[cell["index"]] = float(cached_values[nearest_index])
+    return reused
 
 
 def _estimated_values(cells, cell_values):
@@ -150,7 +198,15 @@ def _validate_viewport(climate_type, south, west, north, east, zoom):
         raise ValueError("Invalid viewport bounds")
 
 
-def _query_weather_rows(con, date, climate_type, lat_edges, lon_edges):
+def _query_weather_rows(
+    con,
+    date,
+    climate_type,
+    lat_edges,
+    lon_edges,
+    latitude_padding=0,
+    longitude_padding=0,
+):
     query = f"""
         SELECT l.lat, l.lon, d.{climate_type}
         FROM data AS d
@@ -165,10 +221,10 @@ def _query_weather_rows(con, date, climate_type, lat_edges, lon_edges):
             query,
             (
                 date,
-                lat_edges[0],
-                lat_edges[-1],
-                lon_edges[0],
-                lon_edges[-1],
+                max(-90, lat_edges[0] - latitude_padding),
+                min(90, lat_edges[-1] + latitude_padding),
+                max(-180, lon_edges[0] - longitude_padding),
+                min(180, lon_edges[-1] + longitude_padding),
             ),
         )
         return cur.fetchall()
@@ -208,29 +264,65 @@ def viewport_geojson(
         south, west, north, east, zoom
     )
     date = f"{month}-01"
+    latitude_padding = lat_step * NEIGHBOR_REUSE_RADIUS_CELLS
+    longitude_padding = lon_step * NEIGHBOR_REUSE_RADIUS_CELLS
 
     with weather_db() as con:
         rows = _query_weather_rows(
-            con, date, climate_type, lat_edges, lon_edges
+            con,
+            date,
+            climate_type,
+            lat_edges,
+            lon_edges,
+            latitude_padding,
+            longitude_padding,
         )
         cell_values = _bucket_rows(rows, lat_edges, lon_edges)
-        missing = [cell for cell in cells if cell["index"] not in cell_values]
-        cached_count = len(cells) - len(missing)
+        reused_values = _nearby_cached_values(
+            cells, rows, cell_values, lat_step, lon_step
+        )
+        satisfied = set(cell_values) | set(reused_values)
+        missing = [cell for cell in cells if cell["index"] not in satisfied]
+        cached_count = len(satisfied)
         fetched = 0
         if fetch_missing and missing:
             fetched = _fetch_missing_cells(con, missing, month)
             if fetched:
                 rows = _query_weather_rows(
-                    con, date, climate_type, lat_edges, lon_edges
+                    con,
+                    date,
+                    climate_type,
+                    lat_edges,
+                    lon_edges,
+                    latitude_padding,
+                    longitude_padding,
                 )
                 cell_values = _bucket_rows(rows, lat_edges, lon_edges)
+                reused_values = _nearby_cached_values(
+                    cells, rows, cell_values, lat_step, lon_step
+                )
 
-    estimates = _estimated_values(cells, cell_values)
+    displayed_values = dict(cell_values)
+    displayed_values.update(
+        {index: [value] for index, value in reused_values.items()}
+    )
+    estimates = _estimated_values(cells, displayed_values)
     features = []
     for cell in cells:
         values = cell_values.get(cell["index"])
-        estimated = not values
-        value = estimates.get(cell["index"]) if estimated else sum(values) / len(values)
+        reused_value = reused_values.get(cell["index"])
+        if values:
+            value = sum(values) / len(values)
+            source = "direct_cache"
+            source_count = len(values)
+        elif reused_value is not None:
+            value = reused_value
+            source = "nearby_cache"
+            source_count = 1
+        else:
+            value = estimates.get(cell["index"])
+            source = "display_estimate"
+            source_count = 0
         if value is None:
             continue
         features.append(
@@ -253,12 +345,14 @@ def viewport_geojson(
                     "value": value,
                     "latitude": cell["latitude"],
                     "longitude": cell["longitude"],
-                    "source_count": len(values or []),
-                    "estimated": estimated,
+                    "source_count": source_count,
+                    "source": source,
+                    "estimated": source != "direct_cache",
                 },
             }
         )
-    missing_count = sum(1 for cell in cells if cell["index"] not in cell_values)
+    satisfied = set(cell_values) | set(reused_values)
+    missing_count = len(cells) - len(satisfied)
     return {
         "type": "FeatureCollection",
         "features": features,
@@ -268,7 +362,9 @@ def viewport_geojson(
             "cached": cached_count,
             "fetched": fetched,
             "missing": missing_count,
-            "observed": len(cells) - missing_count,
+            "observed": len(satisfied),
+            "direct": len(cell_values),
+            "reused_nearby": len(reused_values),
             "tiles": len(cells),
         },
     }

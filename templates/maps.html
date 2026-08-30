@@ -116,7 +116,8 @@
                         `${metadata.tiles} cells`,
                         `${metadata.latitude_step.toFixed(2)}° × ${metadata.longitude_step.toFixed(2)}°`,
                         `${metadata.cached} loaded from PostgreSQL before this batch`,
-                        `${metadata.observed} stored observations now`,
+                        `${metadata.direct} direct cells`,
+                        `${metadata.reused_nearby} nearby-cache cells`,
                         `${metadata.fetched} newly fetched from Open-Meteo`,
                         `${metadata.missing} pending`,
                     ].filter(Boolean).join(" · ");
@@ -162,9 +163,12 @@
                 });
                 map.on("click", "climate-cells", (event) => {
                     const properties = event.features[0].properties;
-                    const label = properties.estimated === "true" || properties.estimated === true
-                        ? "Estimated from the nearest cached observation (refresh pending)"
-                        : "Cached or fetched observation";
+                    const labels = {
+                        direct_cache: "Direct PostgreSQL observation",
+                        nearby_cache: "Reused nearby PostgreSQL observation",
+                        display_estimate: "Display-only nearest estimate (refresh pending)",
+                    };
+                    const label = labels[properties.source] || "Climate observation";
                     new Popup()
                         .setLngLat(event.lngLat)
                         .setHTML(
