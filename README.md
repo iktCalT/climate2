@@ -1,13 +1,13 @@
 # Climate
 
 > [!IMPORTANT]
-> This repository is an AI-assisted refactor produced with **OpenAI Codex (GPT-5)**. It is derived from [iktCalT/climate](https://github.com/iktCalT/climate), whose original version was written purely by a human. Keep this work in the `climate2` fork; do not push these commits to the original repository.
+> This repository is an AI-assisted refactor produced with **OpenAI Codex (GPT-5)**. It is derived from [iktCalT/climate](https://github.com/iktCalT/climate), which its human author implemented as a CS50 final project with substantial guidance from ChatGPT. Keep this work in the `climate2` fork; do not push these commits to the original repository.
 
 Climate is a Flask website for exploring modelled historical climate data. It reads weather values from a local PostgreSQL cache and asks the [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) for missing data before saving and displaying it.
 
 ## Current features
 
-- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month. Tiles form a continuous grid and become finer as the map is enlarged. A settled viewport progressively requests up to three batches of 12 missing Open-Meteo samples; temporary estimates are visibly distinguished from fetched values.
+- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month. Tiles form a continuous grid and become finer as the map is enlarged. A settled viewport progressively requests up to three batches of 12 missing Open-Meteo samples and persists them in PostgreSQL. Refreshing a still-incomplete viewport can fetch another bounded batch; cached cells are reused, and temporary estimates are visibly distinguished from fetched values.
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
 - **Local-first storage:** weather data uses PostgreSQL 18. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
@@ -107,7 +107,7 @@ The route tests use temporary account databases and do not modify personal accou
 
 ## Attribution
 
-The original project was created as a CS50 final project. Parts of its authentication and error-page helpers originated from CS50 course material. Climate data is supplied by Open-Meteo and its listed climate-model providers; the application uses Flask, NumPy, pandas, Plotly, PostgreSQL, psycopg, and MapLibre GL JS.
+The original project was implemented by its human author as a CS50 final project with substantial guidance from ChatGPT. Parts of its authentication and error-page helpers originated from CS50 course material. Climate data is supplied by Open-Meteo and its listed climate-model providers; the application uses Flask, NumPy, pandas, Plotly, PostgreSQL, psycopg, and MapLibre GL JS.
 
 ## License
 

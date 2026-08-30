@@ -12,6 +12,7 @@
             <div class="col">
                 <p class="text-center fs-3">Latitude: {{ lat }}°N</p>
                 <p class="text-center fs-3">Longitude: {{ lon }}°E</p>
+                <p class="text-center text-muted small">Refreshing rechecks PostgreSQL and only contacts Open-Meteo if a month or field is missing.</p>
             </div>
             <div class="col my-auto">
                 <form action="/locations" method="get">
@@ -26,7 +27,7 @@
         <form action="/locations" method="get" class="mx-auto" style="width:60%">
             <div class="mb-3 row">
                 <h5>Explore a location from 1951 through the current month</h5>
-                <p class="text-muted">Enter coordinates to chart modelled mean, maximum, and minimum temperature with precipitation. Missing months are fetched from Open-Meteo and saved in PostgreSQL.</p>
+                <p class="text-muted">Enter coordinates to chart modelled mean, maximum, and minimum temperature with precipitation. PostgreSQL is checked first; only missing months or fields are fetched from Open-Meteo and saved.</p>
                 <div class="form-group col-sm-6">
                     <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
                     <input autocomplete="off" class="form-control ms-auto w-100" name="latitude"

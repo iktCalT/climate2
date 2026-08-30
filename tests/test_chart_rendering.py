@@ -43,6 +43,9 @@ class ChartRenderingTests(unittest.TestCase):
         self.assertEqual(
             figure.layout.title.text, "Seasonal mean temperature at 1, 2"
         )
+        self.assertEqual(figure.layout.title.y, 0.80)
+        self.assertEqual(figure.layout.title.yanchor, "middle")
+        self.assertEqual(figure.layout.height, 680)
         self.assertEqual(figure.layout.yaxis.title.text, "Temperature (°C)")
         self.assertFalse("yaxis2" in figure.layout)
 
@@ -51,6 +54,8 @@ class ChartRenderingTests(unittest.TestCase):
         self.assertEqual(list(spring.y), [4.0, 16.0])
 
         buttons = figure.layout.updatemenus[0].buttons
+        self.assertEqual(figure.layout.updatemenus[0].y, 1.38)
+        self.assertGreater(figure.layout.updatemenus[0].y, figure.layout.title.y)
         self.assertEqual(
             [button.label for button in buttons],
             [

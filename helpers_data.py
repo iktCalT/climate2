@@ -375,10 +375,10 @@ def modify_database(data, type="donothing", con=None):
                     INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
                     VALUES (%s, %s, %s, %s, %s, %s)
                     ON CONFLICT (loc_id, dates) DO UPDATE SET
-                        temp_mean = EXCLUDED.temp_mean,
-                        temp_max = EXCLUDED.temp_max,
-                        temp_min = EXCLUDED.temp_min,
-                        precip = EXCLUDED.precip
+                        temp_mean = COALESCE(EXCLUDED.temp_mean, data.temp_mean),
+                        temp_max = COALESCE(EXCLUDED.temp_max, data.temp_max),
+                        temp_min = COALESCE(EXCLUDED.temp_min, data.temp_min),
+                        precip = COALESCE(EXCLUDED.precip, data.precip)
                     """,
                     rows,
                 )

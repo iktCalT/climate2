@@ -34,14 +34,19 @@ class PostgreSQLWeatherTests(unittest.TestCase):
             with con.cursor() as cur:
                 cur.execute(
                     """
-                    INSERT INTO data (loc_id, dates, temp_mean, precip)
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO data
+                        (loc_id, dates, temp_mean, temp_max, temp_min, precip)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     """,
-                    (loc_id, self.TEST_DATE, 10.0, 2.0),
+                    (loc_id, self.TEST_DATE, 10.0, 15.0, 5.0, 2.0),
                 )
             with patch("helpers_data.get_data") as fetch:
                 history, fetched = get_location_history(
-                    location, self.TEST_DATE, self.TEST_DATE, con=con
+                    location,
+                    self.TEST_DATE,
+                    self.TEST_DATE,
+                    fields=("temp_mean", "temp_max", "temp_min", "precip"),
+                    con=con,
                 )
 
         self.assertFalse(fetched)
@@ -69,6 +74,39 @@ class PostgreSQLWeatherTests(unittest.TestCase):
         self.assertTrue(fetched)
         self.assertEqual(fetch.call_count, 1)
         self.assertEqual(history.loc[pd.Timestamp(missing_month), "precip"], 3.0)
+
+    def test_partial_metric_upsert_preserves_other_cached_fields(self):
+        location = (23.456789, 78.901234)
+        with weather_db() as con:
+            loc_id = fetch_loc_id(*location, con=con)
+            complete = pd.DataFrame(
+                {
+                    "loc_id": [loc_id],
+                    "temp_mean": [10.0],
+                    "temp_max": [15.0],
+                    "temp_min": [5.0],
+                    "precip": [2.0],
+                },
+                index=pd.to_datetime([self.TEST_DATE]),
+            )
+            partial = pd.DataFrame(
+                {"loc_id": [loc_id], "temp_mean": [11.0]},
+                index=pd.to_datetime([self.TEST_DATE]),
+            )
+            modify_database(complete, type="update", con=con)
+            modify_database(partial, type="update", con=con)
+            with con.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT temp_mean, temp_max, temp_min, precip
+                    FROM data
+                    WHERE loc_id = %s AND dates = %s
+                    """,
+                    (loc_id, self.TEST_DATE),
+                )
+                values = cur.fetchone()
+
+        self.assertEqual(values, (11.0, 15.0, 5.0, 2.0))
 
 
 class ConfigurationTests(unittest.TestCase):

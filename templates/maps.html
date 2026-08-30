@@ -124,8 +124,8 @@
                     status.textContent = [
                         `${metadata.tiles} cells`,
                         `${metadata.latitude_step.toFixed(2)}° × ${metadata.longitude_step.toFixed(2)}°`,
-                        `${metadata.observed} observed`,
-                        `${metadata.fetched} fetched`,
+                        `${metadata.observed} stored observations`,
+                        `${metadata.fetched} newly fetched from Open-Meteo`,
                         `${metadata.missing} pending`,
                         shouldContinue ? "fetching another batch…" : null,
                     ].filter(Boolean).join(" · ");

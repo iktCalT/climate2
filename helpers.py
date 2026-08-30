@@ -128,7 +128,14 @@ def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
     default_axis_title = available_metrics[0][2] if available_metrics else "Value"
     default_axis_color = available_metrics[0][3] if available_metrics else "#18342c"
     fig.update_layout(
-        title=dict(text=f"Seasonal {default_label.lower()} at {lat}, {lon}"),
+        title=dict(
+            text=f"Seasonal {default_label.lower()} at {lat}, {lon}",
+            x=0.5,
+            xanchor="center",
+            y=0.80,
+            yanchor="middle",
+            font=dict(size=24),
+        ),
         xaxis=dict(title="Year", dtick=5),
         yaxis=dict(
             title=dict(text=default_axis_title, font=dict(color=default_axis_color)),
@@ -138,7 +145,8 @@ def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
         legend=dict(
             orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0
         ),
-        margin=dict(t=130),
+        height=680,
+        margin=dict(t=210),
         template="plotly_white",
         updatemenus=[
             dict(
@@ -148,7 +156,7 @@ def draw_chart(lat: float, lon: float, df: pd.DataFrame, filename=None):
                 showactive=True,
                 x=0,
                 xanchor="left",
-                y=1.18,
+                y=1.38,
                 yanchor="top",
             )
         ],
