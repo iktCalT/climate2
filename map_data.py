@@ -13,8 +13,10 @@ MAX_FETCH_PER_VIEWPORT = 4
 MIN_ZOOM = 0
 MAX_ZOOM = 10
 OVERVIEW_ZOOM = 2.25
-OVERVIEW_CELL_DEGREES = 2.0
-MIN_CELL_DEGREES = 0.5
+OVERVIEW_LATITUDE_STEP = 2.0
+OVERVIEW_LONGITUDE_STEP = 4.0
+MIN_LATITUDE_STEP = 0.5
+MIN_LONGITUDE_STEP = 1.0
 ZOOM_RESOLUTION_FACTOR = 1.5
 NEIGHBOR_REUSE_RADIUS_CELLS = 1.5
 NEIGHBOR_REUSE_CHUNK_SIZE = 128
@@ -26,14 +28,20 @@ def step_for_zoom(zoom):
 
     The viewport shrinks by roughly two per zoom level while cells shrink by
     only 1.5, so fewer cells are needed as the user zooms in. Resolution stops
-    at half a degree rather than implying unsupported precision.
+    at 0.5 degrees latitude by 1 degree longitude rather than implying
+    unsupported precision.
     """
     zoom_delta = max(0.0, zoom - OVERVIEW_ZOOM)
-    step = max(
-        MIN_CELL_DEGREES,
-        OVERVIEW_CELL_DEGREES / ZOOM_RESOLUTION_FACTOR**zoom_delta,
+    scale = ZOOM_RESOLUTION_FACTOR**zoom_delta
+    latitude_step = max(
+        MIN_LATITUDE_STEP,
+        OVERVIEW_LATITUDE_STEP / scale,
     )
-    return step, step
+    longitude_step = max(
+        MIN_LONGITUDE_STEP,
+        OVERVIEW_LONGITUDE_STEP / scale,
+    )
+    return latitude_step, longitude_step
 
 
 def _grid_edges(low, high, step, lower_limit, upper_limit):
