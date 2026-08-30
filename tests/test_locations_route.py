@@ -12,6 +12,7 @@ from map_data import (
     MAX_VIEWPORT_POINTS,
     _estimated_values,
     _fetch_missing_cells,
+    _nearby_cached_values,
     _sample_coordinates,
     _viewport_cells,
     step_for_zoom,
@@ -155,8 +156,40 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(len(estimates), len(cells) - 1)
         self.assertTrue(all(value == 17.5 for value in estimates.values()))
 
-    def test_map_cache_excludes_observed_cells_from_provider_batch(self):
-        cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
+    def test_nearby_cache_reuse_is_limited_by_the_current_tile_step(self):
+        cells, _, _, lat_step, lon_step = _viewport_cells(0, 0, 0.5, 3, 5)
+        cached_cell = cells[0]
+        cached_row = (
+            cached_cell["latitude"],
+            cached_cell["longitude"],
+            17.5,
+        )
+
+        reused = _nearby_cached_values(
+            cells,
+            [cached_row],
+            {cached_cell["index"]: [17.5]},
+            lat_step,
+            lon_step,
+        )
+
+        self.assertEqual(reused[cells[1]["index"]], 17.5)
+        self.assertNotIn(cells[2]["index"], reused)
+
+    def test_cache_just_outside_viewport_can_satisfy_an_edge_tile(self):
+        cells, _, _, lat_step, lon_step = _viewport_cells(0, 0, 0.5, 1, 5)
+        reused = _nearby_cached_values(
+            cells,
+            [(cells[0]["latitude"], -0.5, 12.0)],
+            {},
+            lat_step,
+            lon_step,
+        )
+
+        self.assertEqual(reused[cells[0]["index"]], 12.0)
+
+    def test_map_cache_excludes_direct_and_nearby_cells_from_provider_batch(self):
+        cells, _, _, _, _ = _viewport_cells(0, 0, 0.5, 3, 5)
         cached_cell = cells[0]
         cached_row = (
             cached_cell["latitude"],
@@ -166,21 +199,33 @@ class LocationsRouteTests(unittest.TestCase):
         with patch("map_data.weather_db"):
             with patch(
                 "map_data._query_weather_rows", return_value=[cached_row]
-            ):
+            ) as query:
                 with patch(
                     "map_data._fetch_missing_cells", return_value=0
                 ) as fetch:
                     payload = viewport_geojson(
-                        "2026-08", "temp_mean", -2, 100, 2, 104, 5
+                        "2026-08", "temp_mean", 0, 0, 0.5, 3, 5
                     )
 
         fetched_cells = fetch.call_args.args[1]
-        self.assertNotIn(
-            cached_cell["index"],
-            [cell["index"] for cell in fetched_cells],
-        )
-        self.assertEqual(payload["metadata"]["cached"], 1)
+        fetched_indices = [cell["index"] for cell in fetched_cells]
+        self.assertNotIn(cached_cell["index"], fetched_indices)
+        self.assertNotIn(cells[1]["index"], fetched_indices)
+        self.assertIn(cells[2]["index"], fetched_indices)
+        self.assertEqual(payload["metadata"]["cached"], 2)
+        self.assertEqual(payload["metadata"]["direct"], 1)
+        self.assertEqual(payload["metadata"]["reused_nearby"], 1)
         self.assertEqual(payload["metadata"]["fetched"], 0)
+        self.assertEqual(payload["metadata"]["missing"], 1)
+        self.assertEqual(query.call_args.args[5], 0.75)
+        self.assertEqual(query.call_args.args[6], 1.5)
+        sources = [
+            feature["properties"]["source"] for feature in payload["features"]
+        ]
+        self.assertEqual(
+            sources,
+            ["direct_cache", "nearby_cache", "display_estimate"],
+        )
 
     def test_one_map_fetch_caches_every_metric_for_a_location(self):
         cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
@@ -231,6 +276,8 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"FullscreenControl", response.data)
         self.assertIn(b"map.addControl(new FullscreenControl())", response.data)
         self.assertIn(b"loaded from PostgreSQL before this batch", response.data)
+        self.assertIn(b"nearby-cache cells", response.data)
+        self.assertIn(b"Reused nearby PostgreSQL observation", response.data)
         self.assertIn(b"startViewportLoad", response.data)
         self.assertEqual(response.data.count(b"fetch(`/api/map-data?${query}`"), 1)
         self.assertNotIn(b"fetching another batch", response.data)
