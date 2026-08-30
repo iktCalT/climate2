@@ -7,7 +7,14 @@ import pandas as pd
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from app import app
-from map_data import MAX_VIEWPORT_POINTS, _estimated_values, _sample_coordinates, _viewport_cells, step_for_zoom
+from map_data import (
+    MAX_VIEWPORT_POINTS,
+    _estimated_values,
+    _sample_coordinates,
+    _viewport_cells,
+    step_for_zoom,
+    viewport_geojson,
+)
 
 
 class LocationsRouteTests(unittest.TestCase):
@@ -73,7 +80,7 @@ class LocationsRouteTests(unittest.TestCase):
                 api = self.client.get("/api/map-data?month=2026-08&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2")
 
         self.assertEqual(form.status_code, 200)
-        self.assertIn(b'max=2026-08', form.data)
+        self.assertIn(b'max="2026-08"', form.data)
         self.assertEqual(page.status_code, 200)
         self.assertEqual(api.status_code, 200)
 
@@ -104,3 +111,35 @@ class LocationsRouteTests(unittest.TestCase):
         estimates = _estimated_values(cells, {cells[0]["index"]: [17.5]})
         self.assertEqual(len(estimates), len(cells) - 1)
         self.assertTrue(all(value == 17.5 for value in estimates.values()))
+
+    def test_estimates_use_the_nearest_observed_cell(self):
+        cells, _, _, _, _ = _viewport_cells(0, 0, 2, 6, 4)
+        west = cells[0]
+        east = cells[-1]
+        estimates = _estimated_values(
+            cells,
+            {
+                west["index"]: [5.0],
+                east["index"]: [25.0],
+            },
+        )
+
+        self.assertEqual(estimates[cells[1]["index"]], 5.0)
+        self.assertEqual(estimates[cells[-2]["index"]], 25.0)
+
+    def test_map_data_rejects_negative_zoom_before_opening_database(self):
+        with self.assertRaisesRegex(ValueError, "Zoom must be non-negative"):
+            viewport_geojson("2026-08", "temp_mean", -10, -10, 10, 10, -1)
+
+    def test_map_page_cancels_stale_requests_and_clips_world_bounds(self):
+        with patch("app.latest_map_month", return_value="2026-08"):
+            response = self.client.get(
+                "/maps?month-picker=2026-08&data-type=temp_mean"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"requestController?.abort()", response.data)
+        self.assertIn(b"Math.max(-180, bounds.getWest())", response.data)
+        self.assertIn(b"renderWorldCopies: false", response.data)
+        self.assertIn(b'map.setProjection({type: "mercator"})', response.data)
+        self.assertNotIn(b'projection: "mercator"', response.data)
