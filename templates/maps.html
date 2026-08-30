@@ -1,21 +1,179 @@
 {% extends "layout.html" %}
+
 {% block title %}Maps{% endblock %}
-{% block styles %}<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">{% endblock %}
-{% block main %}
-{% if month and data_type %}
-<div class="d-flex justify-content-between align-items-center mb-3"><h2 class="fs-4 mb-0">{{ data_type }} for {{ month }}</h2><a class="btn btn-success" href="/maps">Change selection</a></div>
-<p id="map-status" class="text-muted">Loading viewport data…</p><div id="climate-map" class="climate-map"></div>
-{% else %}
-<form action="/maps" method="get"><div class="mb-3"><label for="month-picker"><h5>Select Year and Month:</h5></label><input class="form-control mx-auto w-auto" name="month-picker" type="month" min={{ start }} max={{ end }} required></div><label for="data-type"><h5>Select a Type of Data:</h5></label><div class="mb-3"><select id="data-type" class="form-select mx-auto w-auto" name="data-type" required>{% for item in data_types %}<option value="{{ item }}">{{ item }}</option>{% endfor %}</select></div><button class="btn btn-success" type="submit">Open interactive map</button></form>
-{% endif %}
+
+{% block styles %}
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.css">
 {% endblock %}
-{% block script %}{% if month and data_type %}
-<script type="module">
-import {Map, NavigationControl, Popup} from 'https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs';
-const month={{ month|tojson }}, climateType={{ data_type|tojson }}, status=document.getElementById('map-status');
-const map=new Map({container:'climate-map',style:'https://demotiles.maplibre.org/style.json',projection:'mercator',center:[0,0],zoom:2}); let timer;
-const color = climateType === 'precip' ? ['interpolate',['linear'],['get','value'],0,'#f7fbff',5,'#6baed6',10,'#08306b'] : ['interpolate',['linear'],['get','value'],-20,'#2166ac',10,'#f7f7f7',40,'#b2182b'];
-async function loadData(){const b=map.getBounds(),q=new URLSearchParams({month,climate_type:climateType,south:b.getSouth(),west:b.getWest(),north:b.getNorth(),east:b.getEast(),zoom:map.getZoom()});status.textContent='Loading viewport data…';try{const r=await fetch(`/api/map-data?${q}`),d=await r.json();if(!r.ok)throw Error(d.error);map.getSource('climate').setData(d);const m=d.metadata;status.textContent=`${d.features.length} tiles · ${m.latitude_step.toFixed(2)}° × ${m.longitude_step.toFixed(2)}° · ${m.fetched} fetched · ${m.missing} pending`;}catch(e){status.textContent=`Map data unavailable: ${e.message}`;}}
-map.on('load',()=>{map.addControl(new NavigationControl());map.addSource('climate',{type:'geojson',data:{type:'FeatureCollection',features:[]}});map.addLayer({id:'climate-cells',type:'fill',source:'climate',paint:{'fill-color':color,'fill-opacity':['case',['boolean',['get','estimated'],false],0.5,0.72],'fill-antialias':false}});map.on('click','climate-cells',e=>{const p=e.features[0].properties,label=p.estimated==='true'||p.estimated===true?'Estimated from the nearest cached observation (refresh pending)':'Cached or fetched observation';new Popup().setLngLat(e.lngLat).setHTML(`<strong>${p.value}</strong><br>${label}<br>${p.latitude}, ${p.longitude}`).addTo(map);});loadData();});
-map.on('moveend',()=>{clearTimeout(timer);timer=setTimeout(loadData,350);});
-</script>{% endif %}{% endblock %}
+
+{% block main %}
+    {% if month and data_type %}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="fs-4 mb-0">{{ data_type }} for {{ month }}</h2>
+            <a class="btn btn-success" href="/maps">Change selection</a>
+        </div>
+        <p id="map-status" class="text-muted" aria-live="polite">
+            Loading viewport data…
+        </p>
+        <div id="climate-map" class="climate-map"></div>
+    {% else %}
+        <form action="/maps" method="get">
+            <div class="mb-3">
+                <label for="month-picker"><h5>Select Year and Month:</h5></label>
+                <input
+                    class="form-control mx-auto w-auto"
+                    id="month-picker"
+                    name="month-picker"
+                    type="month"
+                    min="{{ start }}"
+                    max="{{ end }}"
+                    required
+                >
+            </div>
+            <div class="mb-3">
+                <label for="data-type"><h5>Select a Type of Data:</h5></label>
+                <select
+                    class="form-select mx-auto w-auto"
+                    id="data-type"
+                    name="data-type"
+                    required
+                >
+                    {% for item in data_types %}
+                        <option value="{{ item }}">{{ item }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="btn btn-success" type="submit">Open interactive map</button>
+        </form>
+    {% endif %}
+{% endblock %}
+
+{% block script %}
+    {% if month and data_type %}
+        <script type="module">
+            import {
+                Map,
+                NavigationControl,
+                Popup,
+            } from "https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs";
+
+            const month = {{ month | tojson }};
+            const climateType = {{ data_type | tojson }};
+            const status = document.getElementById("map-status");
+            const map = new Map({
+                container: "climate-map",
+                style: "https://demotiles.maplibre.org/style.json",
+                center: [0, 0],
+                zoom: 2,
+                renderWorldCopies: false,
+            });
+            const color = climateType === "precip"
+                ? ["interpolate", ["linear"], ["get", "value"], 0, "#f7fbff", 5, "#6baed6", 10, "#08306b"]
+                : ["interpolate", ["linear"], ["get", "value"], -20, "#2166ac", 10, "#f7f7f7", 40, "#b2182b"];
+
+            let moveTimer;
+            let requestController;
+
+            async function loadData() {
+                requestController?.abort();
+                const controller = new AbortController();
+                requestController = controller;
+
+                const bounds = map.getBounds();
+                const south = Math.max(-85, bounds.getSouth());
+                const west = Math.max(-180, bounds.getWest());
+                const north = Math.min(85, bounds.getNorth());
+                const east = Math.min(180, bounds.getEast());
+                if (south >= north || west >= east) {
+                    status.textContent = "Move the map back toward the visible world.";
+                    return;
+                }
+                const query = new URLSearchParams({
+                    month,
+                    climate_type: climateType,
+                    south,
+                    west,
+                    north,
+                    east,
+                    zoom: map.getZoom(),
+                });
+                status.textContent = "Loading viewport data…";
+
+                try {
+                    const response = await fetch(`/api/map-data?${query}`, {
+                        signal: controller.signal,
+                    });
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || "Unknown map-data error");
+                    }
+                    if (controller.signal.aborted) {
+                        return;
+                    }
+
+                    map.getSource("climate").setData(data);
+                    const metadata = data.metadata;
+                    status.textContent = [
+                        `${metadata.tiles} cells`,
+                        `${metadata.latitude_step.toFixed(2)}° × ${metadata.longitude_step.toFixed(2)}°`,
+                        `${metadata.observed} observed`,
+                        `${metadata.fetched} fetched`,
+                        `${metadata.missing} pending`,
+                    ].join(" · ");
+                } catch (error) {
+                    if (error.name !== "AbortError") {
+                        status.textContent = `Map data unavailable: ${error.message}`;
+                    }
+                } finally {
+                    if (requestController === controller) {
+                        requestController = undefined;
+                    }
+                }
+            }
+
+            map.on("load", () => {
+                map.setProjection({type: "mercator"});
+                map.addControl(new NavigationControl());
+                map.addSource("climate", {
+                    type: "geojson",
+                    data: {type: "FeatureCollection", features: []},
+                });
+                map.addLayer({
+                    id: "climate-cells",
+                    type: "fill",
+                    source: "climate",
+                    paint: {
+                        "fill-color": color,
+                        "fill-opacity": [
+                            "case",
+                            ["boolean", ["get", "estimated"], false],
+                            0.5,
+                            0.72,
+                        ],
+                        "fill-antialias": false,
+                    },
+                });
+                map.on("click", "climate-cells", (event) => {
+                    const properties = event.features[0].properties;
+                    const label = properties.estimated === "true" || properties.estimated === true
+                        ? "Estimated from the nearest cached observation (refresh pending)"
+                        : "Cached or fetched observation";
+                    new Popup()
+                        .setLngLat(event.lngLat)
+                        .setHTML(
+                            `<strong>${properties.value}</strong><br>${label}<br>`
+                            + `${properties.latitude}, ${properties.longitude}`
+                        )
+                        .addTo(map);
+                });
+                loadData();
+            });
+
+            map.on("moveend", () => {
+                clearTimeout(moveTimer);
+                moveTimer = setTimeout(loadData, 350);
+            });
+            map.on("remove", () => requestController?.abort());
+        </script>
+    {% endif %}
+{% endblock %}
