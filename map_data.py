@@ -215,6 +215,7 @@ def viewport_geojson(
         )
         cell_values = _bucket_rows(rows, lat_edges, lon_edges)
         missing = [cell for cell in cells if cell["index"] not in cell_values]
+        cached_count = len(cells) - len(missing)
         fetched = 0
         if fetch_missing and missing:
             fetched = _fetch_missing_cells(con, missing, month, climate_type)
@@ -264,6 +265,7 @@ def viewport_geojson(
         "metadata": {
             "latitude_step": lat_step,
             "longitude_step": lon_step,
+            "cached": cached_count,
             "fetched": fetched,
             "missing": missing_count,
             "observed": len(cells) - missing_count,

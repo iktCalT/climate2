@@ -124,7 +124,8 @@
                     status.textContent = [
                         `${metadata.tiles} cells`,
                         `${metadata.latitude_step.toFixed(2)}° × ${metadata.longitude_step.toFixed(2)}°`,
-                        `${metadata.observed} stored observations`,
+                        `${metadata.cached} loaded from PostgreSQL before this batch`,
+                        `${metadata.observed} stored observations now`,
                         `${metadata.fetched} newly fetched from Open-Meteo`,
                         `${metadata.missing} pending`,
                         shouldContinue ? "fetching another batch…" : null,

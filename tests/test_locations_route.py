@@ -154,6 +154,33 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(len(estimates), len(cells) - 1)
         self.assertTrue(all(value == 17.5 for value in estimates.values()))
 
+    def test_map_cache_excludes_observed_cells_from_provider_batch(self):
+        cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
+        cached_cell = cells[0]
+        cached_row = (
+            cached_cell["latitude"],
+            cached_cell["longitude"],
+            17.5,
+        )
+        with patch("map_data.weather_db"):
+            with patch(
+                "map_data._query_weather_rows", return_value=[cached_row]
+            ):
+                with patch(
+                    "map_data._fetch_missing_cells", return_value=0
+                ) as fetch:
+                    payload = viewport_geojson(
+                        "2026-08", "temp_mean", -2, 100, 2, 104, 5
+                    )
+
+        fetched_cells = fetch.call_args.args[1]
+        self.assertNotIn(
+            cached_cell["index"],
+            [cell["index"] for cell in fetched_cells],
+        )
+        self.assertEqual(payload["metadata"]["cached"], 1)
+        self.assertEqual(payload["metadata"]["fetched"], 0)
+
     def test_estimates_use_the_nearest_observed_cell(self):
         cells, _, _, _, _ = _viewport_cells(0, 0, 2, 6, 4)
         west = cells[0]
@@ -188,6 +215,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"map.addControl(new FullscreenControl())", response.data)
         self.assertIn(b"MAX_PROGRESSIVE_VIEWPORT_ROUNDS = 3", response.data)
         self.assertIn(b"metadata.fetched > 0", response.data)
+        self.assertIn(b"loaded from PostgreSQL before this batch", response.data)
         self.assertIn(b"loadData(round + 1, generation)", response.data)
         self.assertIn(b"startViewportLoad", response.data)
         self.assertNotIn(b'projection: "mercator"', response.data)
