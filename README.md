@@ -76,6 +76,19 @@ If you still have the legacy weather database, its non-personal climate rows can
 
 The migration is optional and safe to rerun. Otherwise, the application gradually fills PostgreSQL from Open-Meteo as data is requested. PostgreSQL climate rows do not expire automatically, so a value cached yesterday is reused today; administrators can deliberately force an update. As a secondary safeguard, identical Open-Meteo HTTP responses are cached locally for seven days.
 
+To resumably fill the canonical global grid for 1950–1953 and 2023–2026,
+run a bounded batch repeatedly:
+
+```sh
+.venv/bin/python prefetch_climate.py --dry-run
+.venv/bin/python prefetch_climate.py
+```
+
+PostgreSQL is the checkpoint. Complete locations are skipped, missing
+contiguous month ranges are fetched, and every successful range is committed
+independently. Each run checks at most 100 incomplete locations; use a smaller
+batch with `--limit NUMBER` when needed.
+
 ## Administrator setup
 
 Registration always creates a normal user. Promote or demote an existing local account with:
