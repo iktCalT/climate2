@@ -87,7 +87,11 @@ run a bounded batch repeatedly:
 PostgreSQL is the checkpoint. Complete locations are skipped, missing
 contiguous month ranges are fetched, and every successful range is committed
 independently. Each run checks at most 100 incomplete locations; use a smaller
-batch with `--limit NUMBER` when needed.
+batch with `--limit NUMBER` when needed. Provider requests start at least 30
+seconds apart by default because Climate API usage is weighted by time span,
+variables, and models. The batch stops on its first provider failure and can be
+resumed later. Use `--delay-seconds NUMBER` only when a different pacing policy
+is appropriate for the available Open-Meteo plan.
 
 ## Administrator setup
 
