@@ -102,6 +102,24 @@ from 12 to at most 4 distributed locations per settled viewport. Continue to
 cache every fetched metric in PostgreSQL; larger intentional cache population
 belongs in the administrator pre-fetch flow.
 
+## 9. Resumable edge-period PostgreSQL prefetch
+
+**Status:** Implemented on 2026-09-02; recorded before implementation.
+
+Populate the canonical 91-by-91 global map grid for the edge periods
+**1950–1953** and **2023–2026** without refetching already complete climate
+months. PostgreSQL must be the durable checkpoint: each run determines which
+locations and months already contain all four metrics, fetches only missing
+contiguous ranges, and commits successful ranges independently so an
+interruption does not discard earlier progress.
+
+Provide a command-line prefetch job with a conservative per-run location cap,
+stable traversal order, progress reporting, and a dry-run mode. Re-running the
+same command must safely resume from PostgreSQL, including after a provider
+failure. Keep the canonical 2-degree latitude by 4-degree longitude grid and
+the existing Open-Meteo model/metric choices; do not store a separate mutable
+checkpoint file or contact Open-Meteo for complete locations.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -112,3 +130,4 @@ belongs in the administrator pre-fetch flow.
 6. Neighbor-aware cache reuse before further map API expansion.
 7. Dense 90-by-90 viewport grid with a city-scale zoom limit.
 8. Bounded 2°×4° to 0.5°×1° map resolution and faster foreground fetches.
+9. Resumable PostgreSQL prefetch for the 1950–1953 and 2023–2026 edge periods.

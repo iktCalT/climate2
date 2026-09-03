@@ -247,6 +247,23 @@ def _missing_month_ranges(history, expected_months, fields):
     ]
 
 
+def missing_location_ranges(
+    location,
+    date_start,
+    date_end,
+    fields=("temp_mean", "temp_max", "temp_min", "precip"),
+    con=None,
+):
+    """Return missing or incomplete monthly ranges for one cached location."""
+    fields = tuple(fields)
+    history = load_location_history(location, date_start, date_end, fields, con=con)
+    return _missing_month_ranges(
+        history,
+        _expected_months(date_start, date_end),
+        fields,
+    )
+
+
 def get_location_history(
     location,
     date_start,

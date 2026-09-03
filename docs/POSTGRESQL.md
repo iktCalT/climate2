@@ -30,3 +30,18 @@ export DATABASE_URL='postgresql://localhost/climate'
 The migration is safe to re-run: it upserts locations and weather rows. Do not
 commit a real connection string or credentials; `.env` remains ignored if you
 choose to keep one for personal reference.
+
+## Resumable edge-period prefetch
+
+The canonical 91-by-91 global grid can be filled for 1950–1953 and 2023–2026
+in bounded, resumable batches:
+
+```sh
+.venv/bin/python prefetch_climate.py --dry-run
+.venv/bin/python prefetch_climate.py --limit 100
+```
+
+The database is the only checkpoint. The command counts a period as complete
+only when every month has all four climate metrics, fetches missing contiguous
+ranges, and commits each successful range separately. An interrupted or
+partially failed batch can therefore be resumed with the same command.
