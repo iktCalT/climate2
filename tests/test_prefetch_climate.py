@@ -2,7 +2,7 @@ from contextlib import redirect_stderr
 from datetime import date
 from io import StringIO
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, call, patch
 
 import prefetch_climate
 
@@ -41,26 +41,56 @@ class ResumablePrefetchTests(unittest.TestCase):
             [((0.0, 4.0), (1,)), ((0.0, 8.0), (0, 1))],
         )
 
+    def test_request_pacer_spaces_request_starts(self):
+        pacer = prefetch_climate.RequestPacer(30)
+        with patch("prefetch_climate.time.monotonic", side_effect=[10, 12]), patch(
+            "prefetch_climate.time.sleep"
+        ) as sleep:
+            pacer.wait()
+            pacer.wait()
+
+        sleep.assert_called_once_with(28)
+
     def test_prefetch_period_commits_each_missing_range_independently(self):
         ranges = [("1953-01-01", "1953-12-31"), ("1952-02-01", "1952-02-28")]
+        pacer = Mock()
         with patch(
             "prefetch_climate.missing_location_ranges", return_value=ranges
-        ), patch("prefetch_climate.get_data", side_effect=[True, False]) as fetch:
+        ), patch("prefetch_climate.get_data", side_effect=[True, True]) as fetch:
+            result = prefetch_climate.prefetch_period(
+                (2.0, 4.0),
+                prefetch_climate.PREFETCH_PERIODS[0],
+                pacer=pacer,
+            )
+
+        self.assertEqual(result, (2, 2))
+        self.assertEqual(fetch.call_count, 2)
+        self.assertEqual(pacer.wait.call_args_list, [call(), call()])
+        for fetch_call in fetch.call_args_list:
+            self.assertNotIn("con", fetch_call.kwargs)
+            self.assertTrue(fetch_call.kwargs["insert_into_database"])
+            self.assertTrue(fetch_call.kwargs["force_update_database"])
+
+    def test_prefetch_period_stops_after_first_failure(self):
+        ranges = [("1953-01-01", "1953-12-31"), ("2023-01-01", "2026-12-31")]
+        with patch(
+            "prefetch_climate.missing_location_ranges", return_value=ranges
+        ), patch("prefetch_climate.get_data", return_value=False) as fetch:
             result = prefetch_climate.prefetch_period(
                 (2.0, 4.0), prefetch_climate.PREFETCH_PERIODS[0]
             )
 
-        self.assertEqual(result, (1, 2))
-        self.assertEqual(fetch.call_count, 2)
-        for call in fetch.call_args_list:
-            self.assertNotIn("con", call.kwargs)
-            self.assertTrue(call.kwargs["insert_into_database"])
-            self.assertTrue(call.kwargs["force_update_database"])
+        self.assertEqual(result, (0, 1))
+        fetch.assert_called_once()
 
     def test_limit_is_bounded_to_provider_safe_batch(self):
-        self.assertEqual(prefetch_climate.parse_args([]).limit, 100)
+        args = prefetch_climate.parse_args([])
+        self.assertEqual(args.limit, 100)
+        self.assertEqual(args.delay_seconds, 30)
         with redirect_stderr(StringIO()), self.assertRaises(SystemExit):
             prefetch_climate.parse_args(["--limit", "101"])
+        with redirect_stderr(StringIO()), self.assertRaises(SystemExit):
+            prefetch_climate.parse_args(["--delay-seconds", "-1"])
 
 
 if __name__ == "__main__":

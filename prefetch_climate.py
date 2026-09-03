@@ -6,6 +6,7 @@ are skipped and every successful missing date range is committed separately.
 
 import argparse
 from datetime import date
+import time
 
 import numpy as np
 
@@ -20,6 +21,24 @@ PREFETCH_PERIODS = (
 PREFETCH_FIELDS = ("temp_mean", "temp_max", "temp_min", "precip")
 DEFAULT_LOCATION_LIMIT = 100
 MAX_LOCATION_LIMIT = 100
+DEFAULT_REQUEST_DELAY_SECONDS = 30.0
+
+
+class RequestPacer:
+    """Keep provider request starts separated by a minimum delay."""
+
+    def __init__(self, delay_seconds):
+        self.delay_seconds = delay_seconds
+        self._last_request_started = None
+
+    def wait(self):
+        now = time.monotonic()
+        if self._last_request_started is not None:
+            remaining = self.delay_seconds - (now - self._last_request_started)
+            if remaining > 0:
+                time.sleep(remaining)
+                now += remaining
+        self._last_request_started = now
 
 
 def canonical_grid():
@@ -92,7 +111,7 @@ def select_candidates(locations, completion, limit, periods=PREFETCH_PERIODS):
     return candidates
 
 
-def prefetch_period(location, period):
+def prefetch_period(location, period, pacer=None):
     """Fetch each missing range independently so successful work is durable."""
     _, start, end = period
     ranges = missing_location_ranges(
@@ -102,19 +121,28 @@ def prefetch_period(location, period):
         fields=PREFETCH_FIELDS,
     )
     succeeded = 0
+    attempted = 0
     for range_start, range_end in ranges:
-        if get_data(
+        if pacer is not None:
+            pacer.wait()
+        attempted += 1
+        if not get_data(
             location=location,
             date_start=range_start,
             date_end=range_end,
             insert_into_database=True,
             force_update_database=True,
         ):
-            succeeded += 1
-    return succeeded, len(ranges)
+            return succeeded, attempted
+        succeeded += 1
+    return succeeded, attempted
 
 
-def run(limit=DEFAULT_LOCATION_LIMIT, dry_run=False):
+def run(
+    limit=DEFAULT_LOCATION_LIMIT,
+    dry_run=False,
+    delay_seconds=DEFAULT_REQUEST_DELAY_SECONDS,
+):
     """Run one bounded prefetch batch and return a process exit status."""
     locations = canonical_grid()
     with weather_db() as con:
@@ -137,6 +165,8 @@ def run(limit=DEFAULT_LOCATION_LIMIT, dry_run=False):
         print(f"Dry run: the next batch contains {len(candidates)} locations.")
         return 0
 
+    print(f"Provider request starts will be at least {delay_seconds:g} seconds apart.")
+    pacer = RequestPacer(delay_seconds)
     successful_requests = 0
     total_requests = 0
     for number, (location, period_indexes) in enumerate(candidates, start=1):
@@ -144,9 +174,19 @@ def run(limit=DEFAULT_LOCATION_LIMIT, dry_run=False):
         labels = ", ".join(PREFETCH_PERIODS[index][0] for index in period_indexes)
         print(f"[{number}/{len(candidates)}] {lat:g}, {lon:g}: checking {labels}")
         for index in period_indexes:
-            succeeded, attempted = prefetch_period(location, PREFETCH_PERIODS[index])
+            succeeded, attempted = prefetch_period(
+                location,
+                PREFETCH_PERIODS[index],
+                pacer=pacer,
+            )
             successful_requests += succeeded
             total_requests += attempted
+            if succeeded != attempted:
+                print(
+                    "Provider request failed; stopping this batch. "
+                    "Run the same command later to resume from PostgreSQL."
+                )
+                return 1
 
     failures = total_requests - successful_requests
     print(
@@ -174,15 +214,30 @@ def parse_args(argv=None):
         action="store_true",
         help="show database progress without contacting Open-Meteo",
     )
+    parser.add_argument(
+        "--delay-seconds",
+        type=float,
+        default=DEFAULT_REQUEST_DELAY_SECONDS,
+        help=(
+            "minimum delay between provider request starts "
+            f"(default: {DEFAULT_REQUEST_DELAY_SECONDS:g})"
+        ),
+    )
     args = parser.parse_args(argv)
     if not 1 <= args.limit <= MAX_LOCATION_LIMIT:
         parser.error(f"--limit must be between 1 and {MAX_LOCATION_LIMIT}")
+    if args.delay_seconds < 0:
+        parser.error("--delay-seconds must not be negative")
     return args
 
 
 def main(argv=None):
     args = parse_args(argv)
-    return run(limit=args.limit, dry_run=args.dry_run)
+    return run(
+        limit=args.limit,
+        dry_run=args.dry_run,
+        delay_seconds=args.delay_seconds,
+    )
 
 
 if __name__ == "__main__":

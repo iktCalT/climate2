@@ -79,12 +79,12 @@ def get_data(
             "https://climate-api.open-meteo.com/v1/climate",
             params=params,
         )
-    except OpenMeteoRequestsError:
+    except OpenMeteoRequestsError as error:
         logger.warning(
-            "Open-Meteo request failed for latitude=%s longitude=%s",
+            "Open-Meteo request failed for latitude=%s longitude=%s: %s",
             lat,
             lon,
-            exc_info=True,
+            error,
         )
         return False
 

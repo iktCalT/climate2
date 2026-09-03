@@ -44,4 +44,7 @@ in bounded, resumable batches:
 The database is the only checkpoint. The command counts a period as complete
 only when every month has all four climate metrics, fetches missing contiguous
 ranges, and commits each successful range separately. An interrupted or
-partially failed batch can therefore be resumed with the same command.
+partially failed batch can therefore be resumed with the same command. Live
+requests start at least 30 seconds apart by default, and the command stops on
+the first provider failure rather than consuming the rest of a batch while a
+rate limit is active.

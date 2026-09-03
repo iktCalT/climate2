@@ -120,6 +120,23 @@ failure. Keep the canonical 2-degree latitude by 4-degree longitude grid and
 the existing Open-Meteo model/metric choices; do not store a separate mutable
 checkpoint file or contact Open-Meteo for complete locations.
 
+## 10. Rate-aware prefetch pacing and fail-fast behavior
+
+**Status:** Implemented on 2026-09-02; recorded before implementation.
+
+The first live 100-location prefetch reached Open-Meteo's weighted minutely
+limit after roughly 15 successful requests. A location count alone is not an
+adequate request budget because the Climate API also weighs the requested time
+span, variables, and models.
+
+Pace all provider requests in the command-line prefetch with a conservative
+default delay shared across locations and periods. Stop the batch immediately
+when any provider request fails instead of rapidly attempting the remaining
+locations; already committed ranges remain resumable through PostgreSQL.
+Allow an explicit delay override for controlled operation and tests, display
+the pacing policy before a live batch, and keep expected provider-limit errors
+concise instead of printing full tracebacks.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -131,3 +148,4 @@ checkpoint file or contact Open-Meteo for complete locations.
 7. Dense 90-by-90 viewport grid with a city-scale zoom limit.
 8. Bounded 2°×4° to 0.5°×1° map resolution and faster foreground fetches.
 9. Resumable PostgreSQL prefetch for the 1950–1953 and 2023–2026 edge periods.
+10. Rate-aware pacing and fail-fast handling for the resumable prefetch.
