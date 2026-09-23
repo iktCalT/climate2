@@ -29,6 +29,23 @@ information is available. Do not present third-party data or assets as original
 project work, and do not leave externally sourced material credited in only
 one of the two required locations.
 
+## Secret and private-data protection
+
+Never commit or push credentials, secrets, private keys, authentication tokens,
+passwords, populated databases, personal account data, or machine-specific
+configuration to GitHub. This includes `.env` variants, PostgreSQL connection
+strings containing passwords, CDS or other API tokens, SSH/TLS private keys,
+cloud service credentials, session files, and SQLite/PostgreSQL data exports.
+
+Keep sensitive values outside the repository and load them from ignored local
+configuration or environment variables. Provide only clearly fake,
+non-functional placeholders in documented example files. Before every commit
+and push, inspect the staged file list and scan staged content for likely
+secrets; stop and remove or rotate any exposed credential before publication.
+Ignore common secret and database filename patterns as a backstop, while
+recognizing that `.gitignore` does not make an already tracked or staged secret
+safe.
+
 ## Progressive, data-driven maps
 
 The fixed 91×91 global grid and pre-rendered Folium image overlays are not the

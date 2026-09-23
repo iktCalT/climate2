@@ -22,10 +22,34 @@ id_rsa
 id_ecdsa
 id_ed25519
 .ssh/
+.netrc
+.pypirc
+.pgpass
+pgpass.conf
+.pg_service.conf
+.cdsapirc
+credentials.json
+credentials.*.json
+service-account*.json
+secrets.*
+*.secrets.*
+*.der
+*.jks
+*.keystore
+*.ovpn
+*.tfstate
+*.tfstate.*
 
 # Local user content and databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
 static/users.db
 static/weather.db
 static/weather_update.db
 static/user_img/[0-9]*.png
 static/location_data/*.html
+instance/
