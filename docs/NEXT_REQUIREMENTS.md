@@ -139,7 +139,9 @@ concise instead of printing full tracebacks.
 
 ## 11. Research a higher-capacity monthly climate data provider
 
-**Status:** Planned; recorded on 2026-09-23 before implementation.
+**Status:** Provider research completed on 2026-09-23; integration is deferred
+until a CDS account accepts the dataset licence and the change from CMIP6
+climate-model output to ERA5 reanalysis is explicitly approved.
 
 Evaluate alternatives to the current Open-Meteo Climate API before committing
 to the remaining global prefetch. The preferred provider must offer a genuinely
@@ -155,6 +157,18 @@ monthly aggregation semantics, spatial resolution, rate limits, attribution,
 long-term reliability, and compatibility with the PostgreSQL cache. Do not
 replace Open-Meteo until the selected source and any differences in modelled
 values have been documented and verified.
+
+The evaluation selected Copernicus Climate Data Store ERA5 as the preferred
+bulk-source candidate. ERA5 is global, covers 1940 to the present, is licensed
+under CC BY, and supports queued API retrievals that are much better suited to
+bulk work than thousands of point-by-point HTTP calls. It is not a drop-in
+replacement: monthly mean temperature and precipitation can come from the
+monthly product, but each month's highest and lowest daily temperature must be
+derived from daily statistics based on hourly 2 m temperature. ERA5 is
+also a reanalysis rather than the current two-model CMIP6 average. See
+[`CLIMATE_PROVIDER_EVALUATION.md`](CLIMATE_PROVIDER_EVALUATION.md) for the
+candidate comparison, field definitions, conversions, safeguards, and staged
+integration plan. Open-Meteo remains the only active provider.
 
 ## 12. User-controlled map color scales
 

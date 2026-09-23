@@ -16,7 +16,7 @@ The displayed values are climate-model output, not direct station observations. 
 
 ## Planned next features
 
-- **Monthly data-provider review:** evaluate safe, well-documented climate APIs or datasets with a genuinely free, higher-capacity tier. Monthly temperature and precipitation are sufficient; Open-Meteo remains the active source until a replacement is verified for coverage, licensing, units, aggregation, reliability, and PostgreSQL compatibility.
+- **ERA5 bulk-provider path:** provider research selected Copernicus CDS ERA5 as the preferred safe, free, global bulk-source candidate. Integration is deliberately deferred until the owner accepts the CDS licence, supplies a token outside Git, and approves the change from averaged CMIP6 projections to reanalysis. Open-Meteo remains active. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 - **Manual map scales:** add temperature- and precipitation-specific presets plus validated custom value/color stops. The active scale and legend will stay fixed while panning, zooming, changing dates, or loading data; only the user will change it.
 - **Same-scale comparisons:** let users choose two or more months and compare synchronized maps side by side. Every panel will use the same metric, numeric bounds, colors, and legend so visual differences remain meaningful.
 
@@ -127,6 +127,7 @@ The route tests use temporary account databases and do not modify personal accou
 - [User roles](docs/USER_ROLES.md)
 - [Project direction and publication boundaries](docs/PROJECT_DIRECTION.md)
 - [Recorded follow-up requirements](docs/NEXT_REQUIREMENTS.md)
+- [Climate provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md)
 
 ## Attribution
 
