@@ -15,6 +15,50 @@
         <p id="map-status" class="text-muted" aria-live="polite">
             Loading viewport data…
         </p>
+        <section class="map-scale-panel" aria-labelledby="map-scale-heading">
+            <div class="map-scale-header">
+                <div>
+                    <p class="eyebrow mb-1">Manual color scale</p>
+                    <h3 id="map-scale-heading" class="h5 mb-1">Keep colors consistent</h3>
+                    <p class="text-muted mb-0">The scale stays fixed while you pan, zoom, load data, or change dates.</p>
+                </div>
+                <label class="map-scale-picker" for="scale-preset">
+                    <span>Preset</span>
+                    <select class="form-select" id="scale-preset"></select>
+                </label>
+            </div>
+            <div id="custom-scale-fields" class="custom-scale-fields" hidden>
+                <label>
+                    Minimum
+                    <input class="form-control" id="scale-min" type="number" required>
+                </label>
+                <label>
+                    Maximum
+                    <input class="form-control" id="scale-max" type="number" required>
+                </label>
+                <label>
+                    Low color
+                    <input class="form-control form-control-color" id="scale-low-color" type="color">
+                </label>
+                <label>
+                    Middle color
+                    <input class="form-control form-control-color" id="scale-mid-color" type="color">
+                </label>
+                <label>
+                    High color
+                    <input class="form-control form-control-color" id="scale-high-color" type="color">
+                </label>
+                <button class="btn btn-climate-primary align-self-end" id="apply-custom-scale" type="button">
+                    Apply custom scale
+                </button>
+            </div>
+            <p id="scale-error" class="map-scale-error" role="alert" hidden></p>
+            <div class="map-scale-summary">
+                <strong id="scale-summary"></strong>
+                <span>Fixed until you change it</span>
+            </div>
+            <div id="scale-legend" class="map-scale-legend" aria-label="Active color scale"></div>
+        </section>
         <div id="climate-map" class="climate-map"></div>
     {% else %}
         <form action="/maps" method="get">
@@ -45,9 +89,9 @@
             </div>
             <button class="btn btn-success" type="submit">Open interactive map</button>
             <p class="text-muted mt-3">
-                Planned: choose a temperature- or precipitation-specific scale preset,
-                define a custom fixed color range, and compare two or more months side
-                by side with one shared scale. Scales will never change automatically.
+                Choose a temperature- or precipitation-specific scale preset or define
+                a custom fixed color range after opening the map. Your choice will not
+                change automatically. Same-scale comparison for multiple months is planned.
             </p>
         </form>
     {% endif %}
@@ -62,10 +106,33 @@
                 NavigationControl,
                 Popup,
             } from "https://unpkg.com/maplibre-gl@6.6.0/dist/maplibre-gl.mjs";
+            import {
+                SCALE_PRESETS,
+                colorExpression,
+                createCustomScale,
+                customScaleFromScale,
+                loadScale,
+                presetScale,
+                saveScale,
+                scaleFamily,
+            } from "/static/map_scales.js";
 
             const month = {{ month | tojson }};
             const climateType = {{ data_type | tojson }};
             const status = document.getElementById("map-status");
+            const family = scaleFamily(climateType);
+            const presetPicker = document.getElementById("scale-preset");
+            const customFields = document.getElementById("custom-scale-fields");
+            const minimumInput = document.getElementById("scale-min");
+            const maximumInput = document.getElementById("scale-max");
+            const lowColorInput = document.getElementById("scale-low-color");
+            const middleColorInput = document.getElementById("scale-mid-color");
+            const highColorInput = document.getElementById("scale-high-color");
+            const applyCustomButton = document.getElementById("apply-custom-scale");
+            const scaleError = document.getElementById("scale-error");
+            const scaleSummary = document.getElementById("scale-summary");
+            const scaleLegend = document.getElementById("scale-legend");
+            let activeScale = loadScale(family);
             const map = new Map({
                 container: "climate-map",
                 style: "https://demotiles.maplibre.org/style.json",
@@ -74,12 +141,90 @@
                 maxZoom: 10,
                 renderWorldCopies: false,
             });
-            const color = climateType === "precip"
-                ? ["interpolate", ["linear"], ["get", "value"], 0, "#f7fbff", 5, "#6baed6", 10, "#08306b"]
-                : ["interpolate", ["linear"], ["get", "value"], -20, "#2166ac", 10, "#f7f7f7", 40, "#b2182b"];
             let moveTimer;
             let requestController;
             let viewportGeneration = 0;
+
+            function formatScaleValue(value) {
+                return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+            }
+
+            function fillCustomInputs(scale) {
+                const custom = customScaleFromScale(family, scale);
+                minimumInput.value = custom.min;
+                maximumInput.value = custom.max;
+                lowColorInput.value = custom.colors[0];
+                middleColorInput.value = custom.colors[1];
+                highColorInput.value = custom.colors[2];
+            }
+
+            function renderScale(scale) {
+                presetPicker.value = scale.id;
+                customFields.hidden = scale.id !== "custom";
+                scaleSummary.textContent = `${scale.label}: ${formatScaleValue(scale.min)} to ${formatScaleValue(scale.max)} ${scale.unit}`;
+                const legendStops = scale.stops.map(([value, color]) => {
+                    const stop = document.createElement("span");
+                    stop.className = "map-scale-stop";
+
+                    const swatch = document.createElement("span");
+                    swatch.className = "map-scale-swatch";
+                    swatch.style.backgroundColor = color;
+
+                    const label = document.createElement("span");
+                    label.textContent = `${formatScaleValue(value)} ${scale.unit}`;
+                    stop.append(swatch, label);
+                    return stop;
+                });
+                scaleLegend.replaceChildren(...legendStops);
+            }
+
+            function setActiveScale(scale) {
+                activeScale = scale;
+                saveScale(family, scale);
+                scaleError.hidden = true;
+                if (scale.id === "custom") {
+                    fillCustomInputs(scale);
+                }
+                renderScale(scale);
+                if (map.getLayer("climate-cells")) {
+                    map.setPaintProperty(
+                        "climate-cells",
+                        "fill-color",
+                        colorExpression(activeScale)
+                    );
+                }
+            }
+
+            Object.values(SCALE_PRESETS[family]).forEach((scale) => {
+                presetPicker.add(new Option(scale.label, scale.id));
+            });
+            presetPicker.add(new Option("Custom range", "custom"));
+            minimumInput.step = family === "temperature" ? "1" : "0.1";
+            maximumInput.step = minimumInput.step;
+            fillCustomInputs(activeScale);
+            renderScale(activeScale);
+
+            presetPicker.addEventListener("change", () => {
+                const scale = presetPicker.value === "custom"
+                    ? customScaleFromScale(family, activeScale)
+                    : presetScale(family, presetPicker.value);
+                setActiveScale(scale);
+            });
+
+            applyCustomButton.addEventListener("click", () => {
+                try {
+                    setActiveScale(createCustomScale(family, {
+                        min: minimumInput.value,
+                        max: maximumInput.value,
+                        lowColor: lowColorInput.value,
+                        midColor: middleColorInput.value,
+                        highColor: highColorInput.value,
+                    }));
+                } catch (error) {
+                    scaleError.textContent = error.message;
+                    scaleError.hidden = false;
+                }
+            });
 
             function formatStep(value) {
                 if (value >= 1) {
@@ -168,7 +313,7 @@
                     type: "fill",
                     source: "climate",
                     paint: {
-                        "fill-color": color,
+                        "fill-color": colorExpression(activeScale),
                         "fill-opacity": [
                             "case",
                             ["boolean", ["get", "estimated"], false],
@@ -189,7 +334,7 @@
                     new Popup()
                         .setLngLat(event.lngLat)
                         .setHTML(
-                            `<strong>${properties.value}</strong><br>${label}<br>`
+                            `<strong>${properties.value} ${activeScale.unit}</strong><br>${label}<br>`
                             + `${properties.latitude}, ${properties.longitude}`
                         )
                         .addTo(map);

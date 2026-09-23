@@ -172,7 +172,7 @@ integration plan. Open-Meteo remains the only active provider.
 
 ## 12. User-controlled map color scales
 
-**Status:** Planned; recorded on 2026-09-23 before implementation.
+**Status:** Implemented on 2026-09-23; recorded before implementation.
 
 Allow users to choose a color scale independently for temperature and
 precipitation maps. Provide several understandable presets, including a broad
@@ -185,15 +185,26 @@ Every rendered map must show the active units, numeric range, color stops, and
 legend. Temperature and precipitation need metric-appropriate presets and
 validation; a precipitation scale must not silently reuse temperature bounds.
 
+The map now provides four temperature presets (global extremes, temperate,
+cold, and warm) and three precipitation presets (global daily mean, dry, and
+wet). Custom scales accept minimum and maximum values plus low, middle, and
+high colors, with separate safe bounds for each measurement family. The active
+range, units, and every color stop remain visible above the map.
+
 ## 13. Manual-only scale changes
 
-**Status:** Planned; recorded on 2026-09-23 before implementation.
+**Status:** Implemented on 2026-09-23; recorded before implementation.
 
 Never rescale colors automatically in response to panning, zooming, changing a
 date, or loading new data. Keep the selected scale fixed until the user chooses
 another preset or edits the custom scale. Preserve the choice while the user is
 working so identical colors retain identical meanings and the map does not
 become visually misleading.
+
+Scale selection is stored separately for temperature and precipitation in the
+browser. Map movement and data responses never write or recalculate it; only a
+preset selection or a successful custom-scale submission changes the active
+scale. The saved choice survives date changes and page reloads.
 
 ## 14. Same-scale multi-date comparison
 
