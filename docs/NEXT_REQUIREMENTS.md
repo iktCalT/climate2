@@ -137,6 +137,62 @@ Allow an explicit delay override for controlled operation and tests, display
 the pacing policy before a live batch, and keep expected provider-limit errors
 concise instead of printing full tracebacks.
 
+## 11. Research a higher-capacity monthly climate data provider
+
+**Status:** Planned; recorded on 2026-09-23 before implementation.
+
+Evaluate alternatives to the current Open-Meteo Climate API before committing
+to the remaining global prefetch. The preferred provider must offer a genuinely
+free tier with a materially higher usable request or data-volume limit, use
+HTTPS, have clear ownership and licensing, publish dependable documentation,
+and be suitable for a public student project without unsafe credential or data
+handling.
+
+Fine-grained daily or hourly data is not required when monthly values can be
+obtained directly. Compare candidates on global coverage, the 1950-to-present
+window, mean/minimum/maximum temperature and precipitation availability,
+monthly aggregation semantics, spatial resolution, rate limits, attribution,
+long-term reliability, and compatibility with the PostgreSQL cache. Do not
+replace Open-Meteo until the selected source and any differences in modelled
+values have been documented and verified.
+
+## 12. User-controlled map color scales
+
+**Status:** Planned; recorded on 2026-09-23 before implementation.
+
+Allow users to choose a color scale independently for temperature and
+precipitation maps. Provide several understandable presets, including a broad
+global scale and narrower regional scales, and allow a custom scale with
+validated value bounds and colors. Use the existing map colors and previously
+defined temperature/precipitation stops as the starting reference when
+designing the presets rather than inventing unrelated defaults.
+
+Every rendered map must show the active units, numeric range, color stops, and
+legend. Temperature and precipitation need metric-appropriate presets and
+validation; a precipitation scale must not silently reuse temperature bounds.
+
+## 13. Manual-only scale changes
+
+**Status:** Planned; recorded on 2026-09-23 before implementation.
+
+Never rescale colors automatically in response to panning, zooming, changing a
+date, or loading new data. Keep the selected scale fixed until the user chooses
+another preset or edits the custom scale. Preserve the choice while the user is
+working so identical colors retain identical meanings and the map does not
+become visually misleading.
+
+## 14. Same-scale multi-date comparison
+
+**Status:** Planned; recorded on 2026-09-23 before implementation.
+
+Add a comparison mode in which users select two or more months and view the
+same temperature or precipitation metric side by side. Comparison panels must
+share one user-selected color scale and legend; do not allow individual panels
+to auto-scale or use different bounds. Keep viewports synchronized where
+practical, label every date clearly, and preserve the existing distinction
+between direct, nearby-cache, and pending/missing values so apparent
+differences are not created by inconsistent rendering.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -149,3 +205,7 @@ concise instead of printing full tracebacks.
 8. Bounded 2°×4° to 0.5°×1° map resolution and faster foreground fetches.
 9. Resumable PostgreSQL prefetch for the 1950–1953 and 2023–2026 edge periods.
 10. Rate-aware pacing and fail-fast handling for the resumable prefetch.
+11. Research and select a safe, free, higher-capacity monthly climate provider.
+12. Add temperature and precipitation scale presets plus validated custom scales.
+13. Keep color-scale changes entirely manual and stable across map interactions.
+14. Add synchronized, same-scale side-by-side comparison for two or more dates.
