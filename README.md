@@ -1,7 +1,7 @@
 # Climate
 
 > [!IMPORTANT]
-> This repository is an AI-assisted refactor produced with **OpenAI Codex (GPT-5)**. It is derived from [iktCalT/climate](https://github.com/iktCalT/climate), which its human author implemented as a CS50 final project with substantial guidance from ChatGPT. Keep this work in the `climate2` fork; do not push these commits to the original repository.
+> This repository is an AI-assisted refactor produced with [OpenAI Codex](https://openai.com/codex/) (GPT-5). It is derived from [iktCalT/climate](https://github.com/iktCalT/climate), which its human author implemented as a CS50 final project with substantial guidance from [ChatGPT](https://chatgpt.com/). Keep this work in the `climate2` fork; do not push these commits to the original repository.
 
 Climate is a Flask website for exploring modelled historical climate data. It reads weather values from a local PostgreSQL cache and asks the [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) for missing data before saving and displaying it.
 
@@ -129,9 +129,36 @@ The route tests use temporary account databases and do not modify personal accou
 - [Recorded follow-up requirements](docs/NEXT_REQUIREMENTS.md)
 - [Climate provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md)
 
-## Attribution
+## External sources and attribution
 
-The original project was implemented by its human author as a CS50 final project with substantial guidance from ChatGPT. Parts of its authentication and error-page helpers originated from CS50 course material. Climate data is supplied by Open-Meteo and its listed climate-model providers; the application uses Flask, NumPy, pandas, Plotly, PostgreSQL, psycopg, and MapLibre GL JS.
+Every external package, service, dataset, webpage, image, font, code source, or
+other third-party resource used by this project must be credited here and on
+the in-app References page in the same change that introduces it. Prefer a
+canonical provider link and record the purpose and licence requirements when
+available.
+
+Current data and evaluated providers:
+
+- [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) supplies the active downscaled climate-model data; its underlying models follow the [CMIP6 terms](https://pcmdi.llnl.gov/CMIP6/TermsOfUse).
+- [Copernicus CDS ERA5 monthly data](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview) and [ERA5 daily statistics](https://cds.climate.copernicus.eu/datasets/derived-era5-single-levels-daily-statistics?tab=overview) are the preferred future bulk-source candidates under CC BY, but are not active providers.
+- [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/) and [CRU gridded datasets](https://crudata.uea.ac.uk/cru/data/hrg/) were evaluated as documented alternatives but are not active providers.
+
+Current application software and delivery services:
+
+- [Flask](https://flask.palletsprojects.com/en/stable/) and [Flask-Session](https://flask-session.readthedocs.io/en/latest/) provide the web application and server-side sessions.
+- [PostgreSQL](https://www.postgresql.org/docs/18/) and [Psycopg](https://www.psycopg.org/psycopg3/docs/) provide climate storage and Python database access.
+- [NumPy](https://numpy.org/doc/stable/), [pandas](https://pandas.pydata.org/docs/), and [Plotly Python](https://plotly.com/python/) provide numerical work, monthly aggregation, and charts.
+- [Open-Meteo's Python client](https://github.com/open-meteo/python-requests), [requests-cache](https://requests-cache.readthedocs.io/en/stable/), and [retry-requests](https://github.com/MazeMap/retry-requests) provide API transport, local response caching, and bounded retries.
+- [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) renders maps using the [MapLibre demo style and tiles](https://github.com/maplibre/demotiles).
+- [Bootstrap 5](https://getbootstrap.com/docs/5.3/) is delivered through [jsDelivr](https://www.jsdelivr.com/), and the interface loads Audiowide, Space Mono, and Muli through [Google Fonts](https://fonts.google.com/).
+
+Project, learning, and visual sources:
+
+- The original [iktCalT/climate](https://github.com/iktCalT/climate) project was implemented by its human author as a [CS50x](https://cs50.harvard.edu/x/) final project with substantial [ChatGPT](https://chatgpt.com/) guidance. Authentication and error-page helper patterns were adapted from CS50 course material.
+- The climate favicon is sourced from [Iconfinder](https://www.iconfinder.com/icons/9079087/global_warming_climate_change_hot_heat_temperature_icon).
+- Error images use [Memegen](https://github.com/jacebrowning/memegen) with an inherited Grumpy Cat background; the cultural reference is documented by [Know Your Meme](https://knowyourmeme.com/memes/grumpy-cat). The inherited background's original image licence is not established and should be replaced before broader publication.
+- Inactive legacy generated map HTML files under `static/weather_data/` embed [Folium](https://python-visualization.github.io/folium/), [Leaflet](https://leafletjs.com/), [jQuery](https://jquery.com/), [Leaflet.awesome-markers](https://github.com/lennardv2/Leaflet.awesome-markers), [Font Awesome](https://fontawesome.com/), [OpenStreetMap](https://www.openstreetmap.org/copyright), and [CARTO basemaps](https://carto.com/attributions). They are retained only as historical artifacts and are not used by the current MapLibre pages.
+- This refactor is produced with [OpenAI Codex](https://openai.com/codex/) under the human owner's direction and review.
 
 ## License
 

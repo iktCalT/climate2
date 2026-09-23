@@ -1,0 +1,19 @@
+---
+description: Require dual attribution for every external resource used by climate2
+alwaysApply: true
+---
+
+# External-source attribution
+
+When adding or using an external package, API, webpage, dataset, image, icon,
+font, code sample, media file, service, or other third-party resource:
+
+- cite the canonical source in both `README.md` and
+  `templates/references.html` in the same change;
+- state what the resource contributes;
+- record its licence or required attribution when available; and
+- do not add resources with unknown ownership or unclear reuse terms.
+
+Prefer original provider and project documentation over aggregators. Clearly
+label incomplete provenance for inherited resources until they are replaced or
+fully attributed.
