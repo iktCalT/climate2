@@ -14,6 +14,12 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 
 The displayed values are climate-model output, not direct station observations. See the in-app References page for data and software attribution.
 
+## Planned next features
+
+- **Monthly data-provider review:** evaluate safe, well-documented climate APIs or datasets with a genuinely free, higher-capacity tier. Monthly temperature and precipitation are sufficient; Open-Meteo remains the active source until a replacement is verified for coverage, licensing, units, aggregation, reliability, and PostgreSQL compatibility.
+- **Manual map scales:** add temperature- and precipitation-specific presets plus validated custom value/color stops. The active scale and legend will stay fixed while panning, zooming, changing dates, or loading data; only the user will change it.
+- **Same-scale comparisons:** let users choose two or more months and compare synchronized maps side by side. Every panel will use the same metric, numeric bounds, colors, and legend so visual differences remain meaningful.
+
 ## Architecture
 
 ```text
