@@ -120,6 +120,21 @@ With the virtual environment and local PostgreSQL available:
 
 The route tests use temporary account databases and do not modify personal account data.
 
+## Repository privacy
+
+Never commit or push `.env` files, database passwords, API tokens, private
+keys, populated databases, session data, personal account data, or
+machine-specific configuration. Keep sensitive values in ignored local files
+or environment variables; documented examples may contain only clearly fake,
+non-functional placeholders.
+
+The repository ignores common secret, credential, key, and database filename
+patterns as a backstop. Before every commit and push, inspect the staged file
+list and scan staged content for likely secrets because `.gitignore` cannot
+protect a file that is already tracked or staged. If a real credential is ever
+exposed, remove it from the change without repeating its value and rotate or
+revoke it before publishing.
+
 ## Refactor documentation
 
 - [Refactor plan](docs/REFACTOR.md) — the agreed, unchanged source plan.
