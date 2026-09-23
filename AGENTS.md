@@ -13,3 +13,15 @@
   idea. Do not backfill the record only after the code is complete.
 - Do not edit `docs/REFACTOR.md`; it remains the fixed source plan.
 
+## Cite every external resource
+
+- Whenever a change adds or uses an external package, API, webpage, dataset,
+  image, icon, font, code sample, media file, service, or other third-party
+  resource, cite it in both `README.md` and `templates/references.html` in the
+  same change.
+- Prefer the original provider or canonical project page. State what the
+  resource contributes and include its licence or required attribution when
+  available.
+- Do not ship a new external resource with unknown ownership or unclear reuse
+  terms. If an inherited resource has incomplete provenance, label that
+  limitation honestly until it can be replaced or fully attributed.

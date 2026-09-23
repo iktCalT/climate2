@@ -29,8 +29,13 @@ class ContentPageTests(unittest.TestCase):
             b"CMIP6 Terms of Use",
             b"PostgreSQL 18",
             b"MapLibre GL JS",
+            b"Flask-Session",
+            b"Bootstrap 5",
+            b"NASA POWER monthly API",
+            b"Inactive generated-map dependencies",
             b"iktCalT/climate",
             b"OpenAI Codex (GPT-5)",
+            b"must be credited both here and in the repository README",
         ):
             self.assertIn(expected, response.data)
 

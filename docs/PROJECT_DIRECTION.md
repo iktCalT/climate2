@@ -14,6 +14,21 @@ supplements, but does not replace or edit, `docs/REFACTOR.md`.
   remote Git or GitHub operations only for `iktCalT/climate2`, as explicitly
   authorized by the user.
 
+## External-source attribution
+
+Whenever the project uses or depends on an external package, API, webpage,
+dataset, image, icon, font, code sample, media file, or other third-party
+resource, cite it in both the repository `README.md` and the website's
+References page. Add or update those citations in the same change that
+introduces the external resource.
+
+Prefer the original creator, provider, package documentation, or canonical
+project page over an aggregator. Include a direct link, explain what the
+resource contributes, and record its licence or required attribution when that
+information is available. Do not present third-party data or assets as original
+project work, and do not leave externally sourced material credited in only
+one of the two required locations.
+
 ## Progressive, data-driven maps
 
 The fixed 91×91 global grid and pre-rendered Folium image overlays are not the

@@ -6,7 +6,7 @@
     <header class="references-header text-start">
         <p class="eyebrow">Sources, software, and credit</p>
         <h1>References</h1>
-        <p>This project combines public climate-model data with open-source software. Links below point to the primary documentation used by the current refactor.</p>
+        <p>This project combines public climate-model data with open-source software. Every external package, service, dataset, webpage, image, font, code source, or other third-party resource must be credited both here and in the repository README.</p>
     </header>
 
     <section class="reference-section text-start" aria-labelledby="climate-sources">
@@ -42,6 +42,18 @@
                 <p>Required to derive monthly daily-temperature extremes consistently; this is not yet connected to the site.</p>
                 <span class="external-link">cds.climate.copernicus.eu ↗</span>
             </a>
+            <a class="reference-card" href="https://power.larc.nasa.gov/docs/services/api/temporal/monthly/" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Evaluated source</span>
+                <strong>NASA POWER monthly API</strong>
+                <p>Safe documented global source evaluated but not selected because meteorological coverage starts in 1981.</p>
+                <span class="external-link">power.larc.nasa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://crudata.uea.ac.uk/cru/data/hrg/" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Evaluated source</span>
+                <strong>CRU gridded datasets</strong>
+                <p>Historical land-only climate data evaluated but not selected as the global active provider.</p>
+                <span class="external-link">crudata.uea.ac.uk ↗</span>
+            </a>
         </div>
         <aside class="reference-callout">
             Open-Meteo states that past and recent values from this Climate API are model output used for validation—not direct measurements. Results should be treated as modelled climate information.
@@ -66,11 +78,17 @@
         <div class="reference-grid reference-grid-three">
             {% set software = [
                 ("Flask", "Python web framework", "https://flask.palletsprojects.com/en/stable/"),
+                ("Flask-Session", "Server-side user sessions", "https://flask-session.readthedocs.io/en/latest/"),
                 ("PostgreSQL 18", "Climate cache and queries", "https://www.postgresql.org/docs/18/"),
+                ("Psycopg", "Python PostgreSQL access", "https://www.psycopg.org/psycopg3/docs/"),
                 ("MapLibre GL JS", "Interactive flat maps", "https://maplibre.org/maplibre-gl-js/docs/"),
+                ("MapLibre demo tiles", "Current demonstration basemap style and tiles", "https://github.com/maplibre/demotiles"),
                 ("NumPy", "Grid and numerical operations", "https://numpy.org/doc/stable/"),
-                ("pandas", "Daily-to-monthly resampling", "https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.resample.html"),
-                ("Plotly Python", "Location history charts", "https://plotly.com/python/")
+                ("pandas", "Daily-to-monthly resampling", "https://pandas.pydata.org/docs/"),
+                ("Plotly Python", "Location history charts", "https://plotly.com/python/"),
+                ("Open-Meteo Python client", "Climate API transport", "https://github.com/open-meteo/python-requests"),
+                ("requests-cache", "Local HTTP response caching", "https://requests-cache.readthedocs.io/en/stable/"),
+                ("retry-requests", "Bounded HTTP retries", "https://github.com/MazeMap/retry-requests")
             ] %}
             {% for name, purpose, url in software %}
                 <a class="reference-card compact" href="{{ url }}" target="_blank" rel="noopener noreferrer">
@@ -82,19 +100,81 @@
         </div>
     </section>
 
-    <section class="reference-section text-start" aria-labelledby="project-credit">
+    <section class="reference-section text-start" aria-labelledby="browser-sources">
         <div class="reference-heading">
             <span>03</span>
+            <div>
+                <p class="eyebrow">Browser resources</p>
+                <h2 id="browser-sources">Styles, fonts, and external services</h2>
+            </div>
+        </div>
+        <div class="reference-grid reference-grid-three">
+            {% set browser_sources = [
+                ("Bootstrap 5", "Responsive interface components", "https://getbootstrap.com/docs/5.3/"),
+                ("jsDelivr", "Bootstrap content delivery", "https://www.jsdelivr.com/"),
+                ("Google Fonts", "Audiowide, Space Mono, and Muli web fonts", "https://fonts.google.com/"),
+                ("Memegen", "Generated application error images", "https://github.com/jacebrowning/memegen"),
+                ("Know Your Meme", "Grumpy Cat cultural-reference documentation", "https://knowyourmeme.com/memes/grumpy-cat"),
+                ("Iconfinder", "Climate favicon source", "https://www.iconfinder.com/icons/9079087/global_warming_climate_change_hot_heat_temperature_icon")
+            ] %}
+            {% for name, purpose, url in browser_sources %}
+                <a class="reference-card compact" href="{{ url }}" target="_blank" rel="noopener noreferrer">
+                    <strong>{{ name }}</strong>
+                    <p>{{ purpose }}</p>
+                    <span class="external-link">Source ↗</span>
+                </a>
+            {% endfor %}
+        </div>
+        <aside class="reference-callout">
+            The inherited Grumpy Cat background used by the Memegen error image
+            does not have an established original-image licence in this repository.
+            It should be replaced before broader publication.
+        </aside>
+    </section>
+
+    <section class="reference-section text-start" aria-labelledby="legacy-sources">
+        <div class="reference-heading">
+            <span>04</span>
+            <div>
+                <p class="eyebrow">Historical artifacts</p>
+                <h2 id="legacy-sources">Inactive generated-map dependencies</h2>
+            </div>
+        </div>
+        <p>The unused generated HTML files under <code>static/weather_data/</code> are retained as historical artifacts. They embed the following external projects and map services:</p>
+        <div class="reference-grid reference-grid-three">
+            {% set legacy_sources = [
+                ("Folium", "Generated legacy map HTML", "https://python-visualization.github.io/folium/"),
+                ("Leaflet", "Legacy interactive maps", "https://leafletjs.com/"),
+                ("jQuery", "Legacy generated-map runtime", "https://jquery.com/"),
+                ("Leaflet.awesome-markers", "Legacy map markers", "https://github.com/lennardv2/Leaflet.awesome-markers"),
+                ("Font Awesome", "Legacy marker icons", "https://fontawesome.com/"),
+                ("OpenStreetMap", "Legacy map attribution", "https://www.openstreetmap.org/copyright"),
+                ("CARTO", "Legacy basemap tiles", "https://carto.com/attributions")
+            ] %}
+            {% for name, purpose, url in legacy_sources %}
+                <a class="reference-card compact" href="{{ url }}" target="_blank" rel="noopener noreferrer">
+                    <strong>{{ name }}</strong>
+                    <p>{{ purpose }}</p>
+                    <span class="external-link">Source ↗</span>
+                </a>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="reference-section text-start" aria-labelledby="project-credit">
+        <div class="reference-heading">
+            <span>05</span>
             <div>
                 <p class="eyebrow">Project</p>
                 <h2 id="project-credit">Origin and acknowledgement</h2>
             </div>
         </div>
         <div class="credit-panel">
-            <p><strong>Original project:</strong> <a href="https://github.com/iktCalT/climate" target="_blank" rel="noopener noreferrer">iktCalT/climate</a>, implemented by its human author as a CS50 final project with substantial guidance from ChatGPT.</p>
-            <p><strong>This fork:</strong> an AI-assisted refactor produced with OpenAI Codex (GPT-5), under the human owner’s direction and review.</p>
+            <p><strong>Original project:</strong> <a href="https://github.com/iktCalT/climate" target="_blank" rel="noopener noreferrer">iktCalT/climate</a>, implemented by its human author as a CS50 final project with substantial guidance from <a href="https://chatgpt.com/" target="_blank" rel="noopener noreferrer">ChatGPT</a>.</p>
+            <p><strong>This fork:</strong> an AI-assisted refactor produced with <a href="https://openai.com/codex/" target="_blank" rel="noopener noreferrer">OpenAI Codex (GPT-5)</a>, under the human owner’s direction and review.</p>
             <p><strong>Learning foundation:</strong> <a href="https://cs50.harvard.edu/x/" target="_blank" rel="noopener noreferrer">Harvard CS50x</a>, including adapted helper patterns from its Flask exercises.</p>
             <p><strong>Project icon:</strong> sourced from <a href="https://www.iconfinder.com/icons/9079087/global_warming_climate_change_hot_heat_temperature_icon" target="_blank" rel="noopener noreferrer">Iconfinder</a>.</p>
+            <p><strong>Attribution policy:</strong> every external resource must be cited in both this page and the repository README in the same change that introduces it.</p>
         </div>
     </section>
 {% endblock %}
