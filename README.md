@@ -12,12 +12,13 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
 - **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future NOAA CORe reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
 - **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. PostgreSQL is the checkpoint, and the default batch is one month.
+- **Read-only provider review:** `compare_climate_providers.py` compares up to 12 imported months against the active Open-Meteo rows already in PostgreSQL. It reports canonical-grid coverage, per-metric deltas, and stable land, ocean, polar, and dateline samples as Markdown without contacting either provider, writing the database, or switching the website.
 
 The displayed values are climate-model output, not direct station observations. See the in-app References page for data and software attribution.
 
 ## Planned next features
 
-- **NOAA CORe activation review:** the anonymous bulk importer is implemented and live validation covered January 1950 and August 2026. Open-Meteo remains active until representative CORe-versus-current-series comparisons are reviewed and an explicit provider switch is recorded. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **NOAA CORe activation review:** the anonymous bulk importer and read-only comparison report are implemented. January 1950 has complete paired coverage, while leap-year, recent-year, and newest-month samples still need to be imported and reviewed before any explicit provider switch. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
@@ -38,6 +39,7 @@ The main modules are:
 - `helpers_data.py` — Open-Meteo requests, monthly aggregation, cache lookup, and PostgreSQL upserts.
 - `noaa_core.py` — anonymous indexed NOAA retrieval, GRIB2 validation, canonical-grid sampling, and provider-scoped monthly upserts.
 - `import_noaa_core.py` — bounded command-line batch, validation-only mode, and PostgreSQL resume checkpoint.
+- `compare_climate_providers.py` — read-only canonical coverage, metric-delta, and representative-point Markdown report.
 - `map_data.py` — bounded, zoom-aware MapLibre GeoJSON viewport tiles.
 - `helpers.py` — charts, validators, and authentication helpers.
 - `schema.sql` — PostgreSQL weather schema.
@@ -120,6 +122,22 @@ and all four metrics in the separate `noaa_core` family. An interrupted month
 is retried in full, while a completed month is skipped. These rows do not
 change website output because all current reads still select
 `open_meteo_cmip6`.
+
+Compare only rows already stored in PostgreSQL after importing review months:
+
+```sh
+.venv/bin/python compare_climate_providers.py --month 1950-01
+.venv/bin/python compare_climate_providers.py --month 1952-02 --month 2023-07
+```
+
+At most 12 distinct complete months may be requested. With no `--month`, the
+command selects the latest 12 available CORe months. It opens a read-only
+transaction, ignores non-canonical user-entered coordinates, and prints a
+Markdown report to standard output. `COMPLETE` means both providers contain
+all required comparison values for the selected canonical grid; it is not an
+activation decision. CORe and the active two-model CMIP6 average are different
+products, so a human review across the recorded historical, leap-year, recent,
+polar, ocean, and dateline cases is still required.
 
 ## Administrator setup
 

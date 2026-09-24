@@ -110,9 +110,14 @@
             records, validates every field with ECMWF ecCodes, and writes a
             separate <code>noaa_core</code> family. January 1950 and August 2026
             passed live no-write validation, and the PostgreSQL resume checkpoint
-            was verified with January 1950. Open-Meteo and
-            <code>open_meteo_cmip6</code> remain active until representative
-            cross-provider comparisons are reviewed.
+            was verified with January 1950. A read-only PostgreSQL report also
+            compared all 8,281 January 1950 canonical rows, including land,
+            ocean, polar, and both dateline-edge samples. This comparison does
+            not treat differences between reanalysis and the two-model CMIP6
+            average as automatic pass/fail thresholds. Open-Meteo and
+            <code>open_meteo_cmip6</code> remain active until leap-year, recent,
+            and newest-month evidence is reviewed and a separate provider
+            decision is recorded.
         </aside>
     </section>
 

@@ -83,3 +83,20 @@ retried; complete months are skipped. For a no-write live check, use:
 ```sh
 .venv/bin/python import_noaa_core.py --month 1950-01 --validate-only
 ```
+
+## Read-only provider comparison
+
+After the same month exists under both provider identities, generate a
+deterministic Markdown review from PostgreSQL only:
+
+```sh
+.venv/bin/python compare_climate_providers.py --month 1950-01
+.venv/bin/python compare_climate_providers.py --month 1952-02 --month 2023-07
+```
+
+The command begins a read-only transaction and never calls NOAA or Open-Meteo.
+It filters to the 8,281 canonical map coordinates, reports missing and complete
+coverage explicitly, calculates `noaa_core - open_meteo_cmip6` differences for
+all four metrics, and prints land, ocean, polar, and both dateline-edge samples.
+It accepts at most 12 complete months. A complete report means the selected
+database evidence is present, not that CORe has been approved or activated.

@@ -99,9 +99,21 @@ Read-only live checks succeeded for January 1950 and August 2026. January 1950
 was then written as 8,281 provider-scoped rows and an immediate dry run reported
 the month complete without contacting NOAA. This verifies retrieval, decoding,
 unit conversion, canonical dateline/pole sampling, transactional storage, and
-the resume checkpoint. It does not yet approve switching website reads: the
-remaining activation gate is a documented comparison between representative
-CORe and current Open-Meteo values.
+the resume checkpoint.
+
+The read-only `compare_climate_providers.py` command now makes the activation
+evidence reproducible without contacting a provider or modifying PostgreSQL. A
+live January 1950 report found 8,281 complete canonical rows for each provider
+and 8,281 paired rows. Across that grid, the CORe-minus-Open-Meteo signed mean
+difference was -1.889 °C for monthly mean temperature, -2.456 °C for monthly
+maximum temperature, -1.145 °C for monthly minimum temperature, and +0.341
+mm/day for precipitation. Mean absolute differences were 3.652 °C, 3.919 °C,
+4.037 °C, and 0.950 mm/day respectively. These are different climate products,
+so those differences are evidence to review rather than pass/fail thresholds.
+
+Website reads are still not approved to switch. Representative leap-year,
+recent complete-year, and newest-month CORe imports and reports remain part of
+the activation gate, followed by a separately recorded human decision.
 
 ## Alternatives not selected
 
@@ -149,8 +161,10 @@ or near-real-time global coverage used by this map.
    precipitation, and upsert only a complete validated month.
 5. Use PostgreSQL as the resume checkpoint. A rerun must skip complete
    `noaa_core` rows and never infer completion from temporary files alone.
-6. Compare representative land, ocean, polar, and dateline points across 1950,
-   recent complete years, leap years, and the newest available month.
+6. Use the read-only comparison report for representative land, ocean, polar,
+   and dateline points across 1950, recent complete years, leap years, and the
+   newest available month. January 1950 is complete; the remaining periods
+   still require review.
 7. Activate CORe only after a separate review documents sample differences and
    explicitly switches site reads from `open_meteo_cmip6` to `noaa_core`.
 

@@ -312,6 +312,42 @@ January 1950 and August 2026. A January 1950 write followed by an immediate
 dry run confirmed that PostgreSQL recognizes and skips the complete month.
 Website reads remain explicitly scoped to `open_meteo_cmip6`.
 
+## 17. Read-only provider comparison report
+
+**Status:** Implemented and live-validated on 2026-09-24; recorded before
+implementation.
+
+Add a deterministic command-line report that compares provider-scoped NOAA
+CORe and active Open-Meteo rows already present in PostgreSQL. The report must
+not contact either provider, mutate the database, infer approval from a numeric
+threshold, or change the website's active provider. It is evidence for a
+separate human activation decision, not an automatic migration.
+
+For each explicitly requested complete month, report each provider's canonical
+grid coverage, the count of coordinate/month pairs available from both, and
+signed and absolute differences for all four monthly metrics. Include
+representative canonical land, ocean, polar, and both sides of the dateline so
+coordinate handling and missing samples remain visible. A missing provider,
+month, metric, or representative row must appear as incomplete evidence rather
+than being silently omitted.
+
+Keep the comparison bounded to at most 12 months per run, use stable ordering
+and machine-testable pure formatting/statistics helpers, and print Markdown to
+standard output so a reviewer can save a report deliberately without adding
+generated database contents to Git. The report must explain that CORe
+reanalysis and the Open-Meteo two-model CMIP6 average are different products;
+differences are expected and do not by themselves prove that either source is
+incorrect. CORe activation still requires a separately recorded review and an
+explicit provider switch.
+
+The `compare_climate_providers.py` command now opens a read-only PostgreSQL
+transaction, filters out non-canonical user locations, and prints deterministic
+Markdown for up to 12 complete months. Coverage, per-metric signed and absolute
+deltas, missing evidence, and land, ocean, polar, and dateline samples are all
+visible. A January 1950 live run compared 8,281 complete rows from each
+provider; this validates the reporting path but does not activate CORe or
+complete the required multi-period review.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -330,3 +366,4 @@ Website reads remain explicitly scoped to `open_meteo_cmip6`.
 14. Add synchronized, same-scale side-by-side comparison for two or more dates.
 15. Scope every climate cache row and read to an explicit provider before reanalysis integration.
 16. Add and validate a resumable NOAA CORe bulk importer without changing the active provider.
+17. Generate a bounded, read-only CORe-versus-Open-Meteo comparison report before any activation decision.
