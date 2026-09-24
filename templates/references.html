@@ -30,16 +30,58 @@
                 <p>Licensing and acknowledgement requirements for the underlying CMIP6 model data.</p>
                 <span class="external-link">pcmdi.llnl.gov ↗</span>
             </a>
-            <a class="reference-card" href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview" target="_blank" rel="noopener noreferrer">
-                <span class="reference-type">Evaluated bulk source</span>
-                <strong>Copernicus CDS ERA5 monthly data</strong>
-                <p>Preferred future candidate for global mean temperature and precipitation from 1940 onward.</p>
-                <span class="external-link">cds.climate.copernicus.eu ↗</span>
+            <a class="reference-card" href="https://www.cpc.ncep.noaa.gov/products/CORe/index.html" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Selected future bulk source</span>
+                <strong>NOAA Conventional Observation Reanalysis (CORe)</strong>
+                <p>Official global reanalysis from 1950 to near real time, available anonymously and documented as public domain.</p>
+                <span class="external-link">cpc.ncep.noaa.gov ↗</span>
             </a>
-            <a class="reference-card" href="https://cds.climate.copernicus.eu/datasets/derived-era5-single-levels-daily-statistics?tab=overview" target="_blank" rel="noopener noreferrer">
-                <span class="reference-type">Evaluated daily source</span>
-                <strong>Copernicus CDS ERA5 daily statistics</strong>
-                <p>Required to derive monthly daily-temperature extremes consistently; this is not yet connected to the site.</p>
+            <a class="reference-card" href="https://www.cpc.ncep.noaa.gov/products/CORe/archive.html" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Public data archive</span>
+                <strong>NOAA CORe NODD archive</strong>
+                <p>Anonymous HTTPS access to monthly, daily, and 3-hourly CORe files without an account or API key.</p>
+                <span class="external-link">cpc.ncep.noaa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Field documentation</span>
+                <strong>NOAA CORe retrieval guide</strong>
+                <p>File layout, indexed record selection, variable definitions, timing semantics, and public-domain notice.</p>
+                <span class="external-link">ftp.cpc.ncep.noaa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Data policy</span>
+                <strong>NOAA NCEI open-data policy</strong>
+                <p>NOAA policy for public-domain data in the United States and CC0 dedication where rights may otherwise exist.</p>
+                <span class="external-link">ncei.noaa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://www.cpc.ncep.noaa.gov/products/CORe/regridding.html" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Grid documentation</span>
+                <strong>NOAA CORe regridding guidance</strong>
+                <p>Documents the native 512-by-256 Gaussian grid and supported approaches for conversion to a regular grid.</p>
+                <span class="external-link">cpc.ncep.noaa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://psl.noaa.gov/data/coreinfo.html" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Technical overview</span>
+                <strong>NOAA Physical Sciences Laboratory CORe overview</strong>
+                <p>Explains CORe's reanalysis role, atmospheric representation, and operational file family.</p>
+                <span class="external-link">psl.noaa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://wpo.noaa.gov/ncep-introduces-operational-reanalysis-for-climate-monitoring-core/" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Operational announcement</span>
+                <strong>NOAA Weather Program Office CORe announcement</strong>
+                <p>Records NOAA's operational transition to CORe for climate monitoring.</p>
+                <span class="external-link">wpo.noaa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://psl.noaa.gov/news/2026/r1datanotice.html" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Evaluated predecessor</span>
+                <strong>NCEP/NCAR Reanalysis 1 update notice</strong>
+                <p>Explains the end of operational updates, which is why the retired predecessor was not selected.</p>
+                <span class="external-link">psl.noaa.gov ↗</span>
+            </a>
+            <a class="reference-card" href="https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview" target="_blank" rel="noopener noreferrer">
+                <span class="reference-type">Evaluated alternative</span>
+                <strong>Copernicus CDS ERA5 monthly data</strong>
+                <p>Authoritative global source not selected because API use requires an account, licence acceptance, and token.</p>
                 <span class="external-link">cds.climate.copernicus.eu ↗</span>
             </a>
             <a class="reference-card" href="https://power.larc.nasa.gov/docs/services/api/temporal/monthly/" target="_blank" rel="noopener noreferrer">
@@ -59,14 +101,15 @@
             Open-Meteo states that past and recent values from this Climate API are model output used for validation—not direct measurements. Results should be treated as modelled climate information.
         </aside>
         <aside class="reference-callout">
-            Provider research selected Copernicus CDS ERA5 as the preferred future
-            bulk source. It is global, free under CC BY, and covers 1940 onward, but
-            it is reanalysis rather than the site's current CMIP6 model output.
-            Open-Meteo remains active until the CDS licence, private API token,
-            aggregation checks, provenance, and owner approval are in place.
-            PostgreSQL rows and current application reads are already scoped to
-            the <code>open_meteo_cmip6</code> provider family so a later ERA5
-            importer cannot silently mix reanalysis with the current series.
+            Provider research selected NOAA CORe as the preferred future bulk
+            source. It is global from 1950 to near real time, available through
+            anonymous HTTPS, and documented by NOAA as public domain. It is a
+            reanalysis rather than the site's current CMIP6 model output, and its
+            convenient monthly high/low fields are averages of daily extrema.
+            The planned importer will therefore derive monthly extremes from
+            daily CORe records and write a separate <code>noaa_core</code> family.
+            Open-Meteo and <code>open_meteo_cmip6</code> remain active until field,
+            unit, coordinate, and representative-value checks are complete.
         </aside>
     </section>
 

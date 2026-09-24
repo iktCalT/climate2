@@ -139,9 +139,9 @@ concise instead of printing full tracebacks.
 
 ## 11. Research a higher-capacity monthly climate data provider
 
-**Status:** Provider research completed on 2026-09-23; integration is deferred
-until a CDS account accepts the dataset licence and the change from CMIP6
-climate-model output to ERA5 reanalysis is explicitly approved.
+**Status:** Initial research completed on 2026-09-23 and updated on 2026-09-24.
+The initial ERA5 choice is superseded by the anonymous NOAA CORe selection in
+requirement 16; integration remains deferred pending importer validation.
 
 Evaluate alternatives to the current Open-Meteo Climate API before committing
 to the remaining global prefetch. The preferred provider must offer a genuinely
@@ -158,17 +158,16 @@ long-term reliability, and compatibility with the PostgreSQL cache. Do not
 replace Open-Meteo until the selected source and any differences in modelled
 values have been documented and verified.
 
-The evaluation selected Copernicus Climate Data Store ERA5 as the preferred
-bulk-source candidate. ERA5 is global, covers 1940 to the present, is licensed
-under CC BY, and supports queued API retrievals that are much better suited to
-bulk work than thousands of point-by-point HTTP calls. It is not a drop-in
-replacement: monthly mean temperature and precipitation can come from the
-monthly product, but each month's highest and lowest daily temperature must be
-derived from daily statistics based on hourly 2 m temperature. ERA5 is
-also a reanalysis rather than the current two-model CMIP6 average. See
-[`CLIMATE_PROVIDER_EVALUATION.md`](CLIMATE_PROVIDER_EVALUATION.md) for the
-candidate comparison, field definitions, conversions, safeguards, and staged
-integration plan. Open-Meteo remains the only active provider.
+The initial evaluation selected Copernicus Climate Data Store ERA5, but it
+requires an account, dataset-licence acceptance, and private API token. The
+2026-09-24 update instead selected NOAA CORe, an official global reanalysis
+available anonymously over HTTPS from 1950 to near real time and documented by
+NOAA as public domain. It is still not a drop-in replacement: temperature
+extrema must be derived from daily records, units and Gaussian-grid coordinates
+must be validated, and reanalysis values must remain separate from the current
+two-model CMIP6 average. See [`CLIMATE_PROVIDER_EVALUATION.md`](CLIMATE_PROVIDER_EVALUATION.md)
+for the candidate comparison, field definitions, conversions, safeguards, and
+staged integration plan. Open-Meteo remains the only active provider.
 
 ## 12. User-controlled map color scales
 
@@ -236,10 +235,11 @@ same final viewport.
 
 **Status:** Implemented on 2026-09-24; recorded before implementation.
 
-Prepare the PostgreSQL climate cache for a future ERA5 bulk-import path without
-changing the active website provider. Every stored monthly climate row must
-identify its provider and product family so ERA5 reanalysis cannot be silently
-mixed with the existing Open-Meteo CMIP6 model average.
+Prepare the PostgreSQL climate cache for a future reanalysis bulk-import path
+without changing the active website provider. Every stored monthly climate row
+must identify its provider and product family so NOAA CORe or another
+reanalysis cannot be silently mixed with the existing Open-Meteo CMIP6 model
+average.
 
 Existing rows and every current Open-Meteo write must be labelled consistently.
 All current website, map, location-history, administrator, migration, and
@@ -264,6 +264,43 @@ provider can coexist without affecting active-site results. The schema upgrade
 was run twice successfully to verify repeatability; no CDS request, token, or
 ERA5 value was introduced.
 
+## 16. Anonymous NOAA CORe bulk source
+
+**Status:** NOAA CORe selected on 2026-09-24; importer implementation remains
+planned and Open-Meteo remains the active website provider.
+
+Replace the deferred, account-gated ERA5 bulk-source plan with NOAA's
+Conventional Observation Reanalysis (CORe) archive on the NOAA Open Data
+Dissemination Program. The selected source must require no user account, API
+key, private token, or click-through dataset-licence acceptance. Use only the
+official NOAA HTTPS archive and document the dataset's public-domain status,
+operational limitations, attribution, and retrieval behavior in both the
+README and website References page.
+
+CORe is suitable because its global reanalysis spans 1950 to near real time,
+offers monthly and daily ensemble-mean products, and can be retrieved as
+individual indexed GRIB records rather than thousands of point API calls. The
+application does not need CORe's full native spatial precision: an importer
+must explicitly map its Gaussian grid onto the existing canonical 2-degree by
+4-degree points, validate longitude and pole handling, and avoid presenting
+the downsampled result as station observations.
+
+Preserve the existing four-metric monthly contract. Use monthly 2 m
+temperature and surface precipitation-rate records for `temp_mean` and
+`precip`. CORe's monthly high/low records are averages of daily extrema, not
+the application's monthly highest and lowest daily values, so derive
+`temp_max` and `temp_min` from the daily CORe extrema records before writing a
+month. Convert and validate units explicitly, store rows under a new
+`noaa_core` provider family, and never mix them with `open_meteo_cmip6` rows.
+
+PostgreSQL remains the resumable checkpoint. Import bounded date chunks, use
+NOAA index byte ranges to avoid downloading unrelated fields, commit only
+validated complete months, and make reruns skip existing complete
+provider-scoped rows. Do not activate CORe for foreground cache misses or site
+reads until a separately reviewed sample confirms field selection, units,
+coordinates, missing-value handling, and representative land, ocean, polar,
+and dateline results.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -280,4 +317,5 @@ ERA5 value was introduced.
 12. Add temperature and precipitation scale presets plus validated custom scales.
 13. Keep color-scale changes entirely manual and stable across map interactions.
 14. Add synchronized, same-scale side-by-side comparison for two or more dates.
-15. Scope every climate cache row and read to an explicit provider before ERA5 integration.
+15. Scope every climate cache row and read to an explicit provider before reanalysis integration.
+16. Add and validate a resumable NOAA CORe bulk importer without changing the active provider.

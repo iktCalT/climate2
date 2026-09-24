@@ -1,127 +1,151 @@
 # Climate provider evaluation
 
-This document records the result of requirement 11 in
-[`NEXT_REQUIREMENTS.md`](NEXT_REQUIREMENTS.md). Research was completed on
-2026-09-23 using provider-owned documentation. It does not change the active
-application provider.
+This document records the result of requirements 11 and 16 in
+[`NEXT_REQUIREMENTS.md`](NEXT_REQUIREMENTS.md). Research was updated on
+2026-09-24 using provider-owned documentation and direct inspection of NOAA's
+public file indexes. It does not change the active application provider.
 
 ## Decision
 
-Use the **Copernicus Climate Data Store (CDS) ERA5 family** as the preferred
-candidate for a future bulk-ingest path. Keep Open-Meteo active until the
-project owner:
+Use **NOAA Conventional Observation Reanalysis (CORe)** from the NOAA Open
+Data Dissemination Program (NODD) as the preferred future bulk source. It is
+operated by NOAA/NCEP, is available anonymously over HTTPS, and requires no
+account, API key, private token, or click-through dataset-licence acceptance.
+NOAA describes the analyses and retrieval program as public domain; NOAA's
+open-data policy places eligible NOAA data in the public domain in the United
+States and targets a CC0 dedication for data that may otherwise have rights.
 
-1. creates a free CDS account and accepts the ERA5 dataset licence in the CDS
-   web interface;
-2. provides the API token outside the repository;
-3. approves replacing the current averaged CMIP6 climate projections with
-   ERA5 reanalysis values; and
-4. approves a sampled comparison showing that the new monthly aggregation and
-   units are correct.
+CORe is global from 1950 to near real time and provides 3-hourly, daily, and
+monthly ensemble-mean files. Its public archive is designed for indexed GRIB
+record retrieval, so the importer can fetch only the fields it needs rather
+than make one HTTP request per map point. This is a better match for the
+project's deliberately coarse 2-degree by 4-degree grid than Open-Meteo's
+point-by-point request model.
 
-No API token, downloaded climate archive, or generated credential file belongs
-in Git. PostgreSQL remains the durable checkpoint and public data source for
-the application.
+Open-Meteo remains the only active website provider while the CORe importer is
+built and validated. No archive, credential, generated data file, or database
+export belongs in Git. PostgreSQL remains the durable checkpoint and public
+data source for the application.
 
 ## Required data contract
 
-The PostgreSQL cache stores one row per location and month with:
+The PostgreSQL cache stores one row per location, month, and provider with:
 
 - `temp_mean`: mean of daily mean 2 m temperatures, in degrees Celsius;
-- `temp_max`: maximum daily 2 m temperature observed during the month, in
-  degrees Celsius;
-- `temp_min`: minimum daily 2 m temperature observed during the month, in
-  degrees Celsius; and
-- `precip`: the current application uses the mean of daily precipitation sums,
-  in millimetres per day, rather than the total precipitation for the month.
+- `temp_max`: maximum daily 2 m temperature during the month, in degrees
+  Celsius;
+- `temp_min`: minimum daily 2 m temperature during the month, in degrees
+  Celsius; and
+- `precip`: mean of daily precipitation sums, in millimetres per day, rather
+  than the total precipitation for the month.
 
-The wording above describes the existing `helpers_data.py` aggregation. A new
-provider must preserve it unless a separately recorded schema and product
-decision intentionally changes the meaning.
+The wording above describes the existing `helpers_data.py` aggregation. CORe
+must preserve it and use its own `noaa_core` provider family so reanalysis is
+never silently mixed with the current `open_meteo_cmip6` CMIP6 model average.
 
-## Candidate assessment
+## Selected-source assessment
 
-### Copernicus CDS ERA5 — preferred
+### NOAA CORe — selected
 
-- **Owner and licence:** Copernicus Climate Change Service, operated by ECMWF
-  on behalf of the European Union; CC BY.
-- **Coverage:** global, regular latitude/longitude grid, 1940 to present.
-- **Access model:** HTTPS downloads and the CDS API. Requests are queued rather
-  than governed by Open-Meteo's point-request minute/hour/day quotas. The CDS
-  documents a 100,000-field ceiling for one ERA5 monthly single-level request;
-  limits may change with system load.
-- **Mean temperature:** request monthly averaged `2m_temperature`, then convert
-  Kelvin to Celsius with `C = K - 273.15`.
-- **Maximum and minimum temperature:** the ERA5 monthly dataset explicitly has
-  no monthly means for its forecast maximum/minimum parameters. Use the
-  post-processed daily-statistics dataset with hourly `2m_temperature`, daily
-  maximum and daily minimum aggregations at one-hour sampling, then take each
-  month's maximum and minimum respectively. ECMWF recommends deriving longer
-  extrema from analysed hourly 2 m temperature.
-- **Precipitation:** monthly averaged `total_precipitation` has effective units
-  of metres of water per day. Multiplying by 1,000 yields the application's
-  millimetres-per-day value. Multiplying again by the number of days would
-  produce a monthly total and would not match the current schema semantics.
-- **Resolution:** the CDS ERA5 atmospheric product is supplied on a 0.25° grid;
-  retrievals can be geographically subset and may be requested on another
-  regular grid. The importer must map the canonical 2°×4° points explicitly
-  and validate longitude conventions and pole handling.
-- **Freshness:** the daily-statistics catalogue is updated daily with a stated
-  six-day delay. Recent values may be ERA5T preliminary data before final ERA5
-  replaces them.
-- **Important difference:** ERA5 combines a weather model with observations to
-  create reanalysis. The current Open-Meteo endpoint provides downscaled CMIP6
-  climate-model output averaged across `MRI_AGCM3_2_S` and `EC_Earth3P_HR`.
-  Mixing both products in the same columns without provenance would create
-  artificial differences, so a migration needs one declared provider per
-  comparison series or explicit source metadata.
+- **Owner and access:** NOAA/NCEP, distributed through NODD on an official
+  public Google Cloud bucket. Downloads use HTTPS without authentication.
+- **Rights and attribution:** NOAA's CORe documentation marks the analyses and
+  downloader public domain. The project will still credit NOAA, NCEP, CPC,
+  PSL, and NODD so users can audit the source and limitations.
+- **Coverage and freshness:** global coverage from January 1950 to near real
+  time. NOAA states that the NODD archive is updated about one day after the
+  real-time system; availability can still be delayed or interrupted.
+- **Temporal products:** monthly, daily, and 3-hourly ensemble-mean `pgb` and
+  `flx` GRIB files. The file indexes publish byte offsets, allowing a client to
+  request only selected records.
+- **Mean temperature:** use the monthly ensemble-mean `TMP` record at 2 m above
+  ground and convert Kelvin to Celsius with `C = K - 273.15`.
+- **Maximum and minimum temperature:** do not use the convenient monthly
+  max/min records. NOAA defines them as averages of daily extrema, while this
+  application stores the highest and lowest daily value in each month. Read
+  the daily 2 m maximum/minimum records and aggregate the month's maximum and
+  minimum respectively.
+- **Precipitation:** use monthly surface `PRATE`, whose documented GRIB units
+  are kilograms per square metre per second. Convert the mean rate to
+  millimetres per day with `mm/day = kg/m2/s * 86,400`.
+- **Resolution:** CORe output uses a 512 by 256 Gaussian grid, about 0.7
+  degrees. The importer must inspect each GRIB grid, normalize longitude
+  conventions, and map it explicitly to the canonical 2-degree by 4-degree
+  application points. Retaining the native precision is unnecessary for this
+  project.
+- **Limitations:** CORe is a model-and-observation reanalysis, not a station
+  measurement or the same product as the current downscaled CMIP6 average.
+  NOAA provides the data without warranty and notes a free-download quota whose
+  details may change. Indexed partial downloads, bounded chunks, and resumable
+  PostgreSQL writes are required both for efficiency and respectful use.
 
-ERA5 meets the requested safety, ownership, licensing, historical coverage,
-global coverage, and bulk-capacity criteria. The requirement for a user
-account, one-time licence acceptance, and an API token is the reason this
-repository does not silently enable it.
+Direct index inspection confirmed that January 1950 contains the required
+monthly mean 2 m temperature and surface precipitation-rate records, plus
+daily 2 m minimum and maximum records. The monthly extrema records were also
+confirmed to be daily-extrema averages, which is why they are excluded from
+the importer contract.
 
-### NASA POWER — safe, but incomplete for this project
+## Alternatives not selected
+
+### Copernicus CDS ERA5
+
+ERA5 is authoritative, global, and technically suitable, but CDS requires an
+account, one-time dataset-licence acceptance, and an API token for programmatic
+retrieval. Anonymous mirrors do not remove the underlying Copernicus licence
+or attribution obligations. It no longer matches the request for a source
+that can be used without an account or licence-acceptance step.
+
+### NCEP/NCAR Reanalysis 1
+
+This older NOAA reanalysis covers the historical period and remains publicly
+available, but operational updates ended in March 2026. NOAA positions CORe as
+its replacement for climate monitoring, so starting a new importer on the
+retired series would immediately create a freshness gap.
+
+### NASA POWER
 
 NASA POWER provides a documented HTTPS API with analysis-ready monthly global
-meteorological data. Its meteorological record begins in 1981, so it cannot
-fill the required 1950–1980 period. Its documentation also cautions clients
-against excessive synchronous requests. It is useful for validation or a
-newer-period feature, not as the sole replacement.
+meteorological data, but its meteorological record begins in 1981. It cannot
+fill the required 1950–1980 period and its documentation asks clients to avoid
+excessive synchronous requests.
 
-### CRU TS — useful historical land dataset, not a complete replacement
+### CRU TS
 
 The University of East Anglia Climatic Research Unit publishes monthly mean,
-minimum, and maximum temperature plus precipitation from 1901 onward at 0.5°
-under the UK Open Government Licence. CRU TS covers land areas except
-Antarctica, is released periodically rather than near real time, and does not
-provide the ocean cells used by the global map. It is a credible historical
-land-only source, not a complete application provider.
+minimum, and maximum temperature plus precipitation from 1901 onward at 0.5
+degrees under the UK Open Government Licence. It covers land areas except
+Antarctica and is released periodically, so it cannot supply the ocean cells
+or near-real-time global coverage used by this map.
 
 ## Staged integration plan
 
-1. Add an optional, explicit ERA5 bulk-import command; do not change foreground
-   cache-miss requests yet.
-2. Read the CDS token from the user's standard configuration or an environment
-   variable. Never accept a token as a command-line argument or write one into
-   the project tree.
-3. Request bounded date/area chunks, download into an ignored temporary
-   directory, validate dimensions and units, then upsert one completed chunk at
-   a time so PostgreSQL remains resumable.
-4. Store or otherwise enforce provider provenance before ERA5 rows can coexist
-   with Open-Meteo rows. Do not label mixed products as one continuous series.
-5. Compare several land, ocean, polar, and dateline points across old and recent
-   months. Verify temperature extrema, leap-year precipitation, missing values,
-   coordinate selection, and reproducible reruns.
-6. Only after owner approval, use ERA5 for the remaining 1950–1953 and
-   2023–2026 bulk prefetch or run a documented one-provider migration.
+1. Implement a small optional `noaa_core` importer; do not change foreground
+   cache-miss requests or active site reads.
+2. Retrieve only required GRIB records by parsing NOAA's public `.idx` byte
+   offsets. Use bounded month chunks and an ignored temporary directory.
+3. Decode each record with a reviewed, cited GRIB implementation. Validate the
+   file's variable, level, timing, unit, dimensions, coordinates, and missing
+   values before converting it.
+4. Downsample deterministically to canonical points. Derive monthly extrema
+   from daily records, combine them with monthly mean temperature and
+   precipitation, and upsert only a complete validated month.
+5. Use PostgreSQL as the resume checkpoint. A rerun must skip complete
+   `noaa_core` rows and never infer completion from temporary files alone.
+6. Compare representative land, ocean, polar, and dateline points across 1950,
+   recent complete years, leap years, and the newest available month.
+7. Activate CORe only after a separate review documents sample differences and
+   explicitly switches site reads from `open_meteo_cmip6` to `noaa_core`.
 
 ## Primary sources
 
-- [ERA5 monthly averaged data on single levels](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview)
-- [ERA5 post-processed daily statistics on single levels](https://cds.climate.copernicus.eu/datasets/derived-era5-single-levels-daily-statistics?tab=overview)
-- [ERA5 data documentation and parameter semantics](https://confluence.ecmwf.int/spaces/CKB/pages/239349091/ERA5%3A+data+documentation)
-- [CDS documentation, access rules, and request limits](https://confluence.ecmwf.int/pages/viewpage.action?pageId=656872232)
-- [CDS API setup](https://cds.climate.copernicus.eu/how-to-api)
+- [NOAA CPC CORe overview](https://www.cpc.ncep.noaa.gov/products/CORe/index.html)
+- [NOAA CPC CORe archive and NODD access](https://www.cpc.ncep.noaa.gov/products/CORe/archive.html)
+- [NOAA CORe retrieval and field documentation](https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt)
+- [NOAA CORe regridding guidance](https://www.cpc.ncep.noaa.gov/products/CORe/regridding.html)
+- [NOAA PSL CORe overview](https://psl.noaa.gov/data/coreinfo.html)
+- [NOAA CORe operational announcement](https://wpo.noaa.gov/ncep-introduces-operational-reanalysis-for-climate-monitoring-core/)
+- [NOAA NCEI open-data policy](https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf)
+- [NCEP/NCAR Reanalysis 1 update notice](https://psl.noaa.gov/news/2026/r1datanotice.html)
+- [Copernicus CDS ERA5 monthly data](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview)
 - [NASA POWER monthly API](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/)
 - [CRU high-resolution gridded datasets](https://crudata.uea.ac.uk/cru/data/hrg/)
