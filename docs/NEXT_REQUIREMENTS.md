@@ -208,7 +208,7 @@ scale. The saved choice survives date changes and page reloads.
 
 ## 14. Same-scale multi-date comparison
 
-**Status:** Planned; recorded on 2026-09-23 before implementation.
+**Status:** Implemented on 2026-09-24; recorded before implementation.
 
 Add a comparison mode in which users select two or more months and view the
 same temperature or precipitation metric side by side. Comparison panels must
@@ -217,6 +217,20 @@ to auto-scale or use different bounds. Keep viewports synchronized where
 practical, label every date clearly, and preserve the existing distinction
 between direct, nearby-cache, and pending/missing values so apparent
 differences are not created by inconsistent rendering.
+
+Limit one comparison to two through four distinct months. This keeps panels
+readable on an ordinary screen and bounds the number of PostgreSQL and
+Open-Meteo requests caused by a settled viewport. Each panel may load its own
+month, but synchronized viewport movement must not create duplicate requests
+for the same panel and position.
+
+The Maps selector now lets users add up to three comparison months to the
+primary month. The resulting two-to-four-panel view labels each date, uses one
+shared preset or custom scale and legend, and synchronizes center, zoom,
+bearing, and pitch from whichever panel the user moves. Every panel retains
+its own load status and direct/nearby/estimated rendering, while debounced
+per-panel requests prevent synchronized movement from repeatedly loading the
+same final viewport.
 
 ## Delivery order
 

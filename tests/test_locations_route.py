@@ -120,6 +120,34 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"temp_mean for 2026-08", response.data)
         self.assertIn(b'href="/maps?select=1"', response.data)
 
+    def test_maps_compares_distinct_months_with_one_shared_scale(self):
+        with patch("app.latest_map_month", return_value="2026-08"):
+            response = self.client.get(
+                "/maps?month-picker=1950-01&month-picker=2026-08&data-type=temp_mean"
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Comparing temp_mean across 2 months", response.data)
+        self.assertIn(b'id="climate-map-0"', response.data)
+        self.assertIn(b'id="climate-map-1"', response.data)
+        self.assertIn(b"syncViewports", response.data)
+        self.assertIn(b"Shared by every panel", response.data)
+
+    def test_maps_rejects_duplicate_or_excessive_comparison_months(self):
+        duplicate = self.client.get(
+            "/maps?month-picker=1950-01&month-picker=1950-01&data-type=temp_mean"
+        )
+        excessive = self.client.get(
+            "/maps?month-picker=1950-01&month-picker=1950-02"
+            "&month-picker=1950-03&month-picker=1950-04"
+            "&month-picker=1950-05&data-type=temp_mean"
+        )
+
+        self.assertEqual(duplicate.status_code, 400)
+        self.assertIn(b"Comparison-months-must-be-distinct", duplicate.data)
+        self.assertEqual(excessive.status_code, 400)
+        self.assertIn(b"Compare-at-most-four-months", excessive.data)
+
     def test_default_map_month_uses_previous_month_early_on_day_one(self):
         early_new_year = datetime(2027, 1, 1, 5, 59, tzinfo=timezone.utc)
 
@@ -338,9 +366,9 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"renderWorldCopies: false", response.data)
         self.assertIn(b"zoom: 2.25", response.data)
         self.assertIn(b"maxZoom: 10", response.data)
-        self.assertIn(b'map.setProjection({type: "mercator"})', response.data)
+        self.assertIn(b'panel.map.setProjection({type: "mercator"})', response.data)
         self.assertIn(b"FullscreenControl", response.data)
-        self.assertIn(b"map.addControl(new FullscreenControl())", response.data)
+        self.assertIn(b"panel.map.addControl(new FullscreenControl())", response.data)
         self.assertIn(b"loaded from PostgreSQL before this batch", response.data)
         self.assertIn(b"nearby-cache cells", response.data)
         self.assertIn(b"metadata.rows", response.data)
@@ -349,8 +377,9 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b'/static/map_scales.js', response.data)
         self.assertIn(b'id="scale-preset"', response.data)
         self.assertIn(b"colorExpression(activeScale)", response.data)
-        self.assertIn(b"Fixed until you change it", response.data)
+        self.assertIn(b"fixed until you change it", response.data)
         self.assertIn(b"saveScale(family, scale)", response.data)
+        self.assertIn(b"panels.forEach((panel)", response.data)
         self.assertEqual(response.data.count(b"fetch(`/api/map-data?${query}`"), 1)
         self.assertNotIn(b"fetching another batch", response.data)
         self.assertNotIn(b'projection: "mercator"', response.data)

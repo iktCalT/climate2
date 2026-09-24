@@ -7,20 +7,26 @@
 {% endblock %}
 
 {% block main %}
-    {% if month and data_type %}
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="fs-4 mb-0">{{ data_type }} for {{ month }}</h2>
+    {% if months and data_type %}
+        <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
+            {% if comparison %}
+                <h2 class="fs-4 mb-0">Comparing {{ data_type }} across {{ months | length }} months</h2>
+            {% else %}
+                <h2 class="fs-4 mb-0">{{ data_type }} for {{ month }}</h2>
+            {% endif %}
             <a class="btn btn-success" href="/maps?select=1">Change selection</a>
         </div>
-        <p id="map-status" class="text-muted" aria-live="polite">
-            Loading viewport data…
-        </p>
+        {% if comparison %}
+            <p class="text-muted">
+                Move any map to synchronize every viewport. All panels share the scale and legend below.
+            </p>
+        {% endif %}
         <section class="map-scale-panel" aria-labelledby="map-scale-heading">
             <div class="map-scale-header">
                 <div>
                     <p class="eyebrow mb-1">Manual color scale</p>
                     <h3 id="map-scale-heading" class="h5 mb-1">Keep colors consistent</h3>
-                    <p class="text-muted mb-0">The scale stays fixed while you pan, zoom, load data, or change dates.</p>
+                    <p class="text-muted mb-0">The shared scale stays fixed while you pan, zoom, load data, or change dates.</p>
                 </div>
                 <label class="map-scale-picker" for="scale-preset">
                     <span>Preset</span>
@@ -55,18 +61,32 @@
             <p id="scale-error" class="map-scale-error" role="alert" hidden></p>
             <div class="map-scale-summary">
                 <strong id="scale-summary"></strong>
-                <span>Fixed until you change it</span>
+                <span>Shared by every panel · fixed until you change it</span>
             </div>
             <div id="scale-legend" class="map-scale-legend" aria-label="Active color scale"></div>
         </section>
-        <div id="climate-map" class="climate-map"></div>
+        <div class="climate-map-grid{% if comparison %} climate-map-comparison{% endif %}">
+            {% for panel_month in months %}
+                <article class="climate-map-panel" aria-labelledby="map-heading-{{ loop.index0 }}">
+                    <h3 id="map-heading-{{ loop.index0 }}" class="h5{% if not comparison %} visually-hidden{% endif %}">{{ panel_month }}</h3>
+                    <p id="map-status-{{ loop.index0 }}" class="map-panel-status text-muted" aria-live="polite">
+                        Loading viewport data…
+                    </p>
+                    <div
+                        id="climate-map-{{ loop.index0 }}"
+                        class="climate-map"
+                        aria-label="{{ data_type }} map for {{ panel_month }}"
+                    ></div>
+                </article>
+            {% endfor %}
+        </div>
     {% else %}
-        <form action="/maps" method="get">
+        <form action="/maps" id="map-selection" method="get">
             <div class="mb-3">
-                <label for="month-picker"><h5>Select Year and Month:</h5></label>
+                <label for="month-picker-0"><h5>Select Year and Month:</h5></label>
                 <input
                     class="form-control mx-auto w-auto"
-                    id="month-picker"
+                    id="month-picker-0"
                     name="month-picker"
                     type="month"
                     min="{{ start }}"
@@ -74,6 +94,10 @@
                     required
                 >
             </div>
+            <div id="comparison-months" class="comparison-months"></div>
+            <button class="btn btn-climate-secondary mb-3" id="add-comparison-month" type="button">
+                Add comparison month
+            </button>
             <div class="mb-3">
                 <label for="data-type"><h5>Select a Type of Data:</h5></label>
                 <select
@@ -89,16 +113,15 @@
             </div>
             <button class="btn btn-success" type="submit">Open interactive map</button>
             <p class="text-muted mt-3">
-                Choose a temperature- or precipitation-specific scale preset or define
-                a custom fixed color range after opening the map. Your choice will not
-                change automatically. Same-scale comparison for multiple months is planned.
+                Add up to three distinct comparison months to view two through four synchronized maps.
+                Every panel uses one shared temperature or precipitation scale, which never changes automatically.
             </p>
         </form>
     {% endif %}
 {% endblock %}
 
 {% block script %}
-    {% if month and data_type %}
+    {% if months and data_type %}
         <script type="module">
             import {
                 FullscreenControl,
@@ -117,9 +140,8 @@
                 scaleFamily,
             } from "/static/map_scales.js";
 
-            const month = {{ month | tojson }};
+            const months = {{ months | tojson }};
             const climateType = {{ data_type | tojson }};
-            const status = document.getElementById("map-status");
             const family = scaleFamily(climateType);
             const presetPicker = document.getElementById("scale-preset");
             const customFields = document.getElementById("custom-scale-fields");
@@ -133,17 +155,23 @@
             const scaleSummary = document.getElementById("scale-summary");
             const scaleLegend = document.getElementById("scale-legend");
             let activeScale = loadScale(family);
-            const map = new Map({
-                container: "climate-map",
-                style: "https://demotiles.maplibre.org/style.json",
-                center: [0, 0],
-                zoom: 2.25,
-                maxZoom: 10,
-                renderWorldCopies: false,
-            });
-            let moveTimer;
-            let requestController;
-            let viewportGeneration = 0;
+            let synchronizingViewports = false;
+
+            const panels = months.map((panelMonth, index) => ({
+                month: panelMonth,
+                status: document.getElementById(`map-status-${index}`),
+                map: new Map({
+                    container: `climate-map-${index}`,
+                    style: "https://demotiles.maplibre.org/style.json",
+                    center: [0, 0],
+                    zoom: 2.25,
+                    maxZoom: 10,
+                    renderWorldCopies: false,
+                }),
+                moveTimer: undefined,
+                requestController: undefined,
+                viewportGeneration: 0,
+            }));
 
             function formatScaleValue(value) {
                 return Number.isInteger(value) ? value.toString() : value.toFixed(1);
@@ -186,13 +214,15 @@
                     fillCustomInputs(scale);
                 }
                 renderScale(scale);
-                if (map.getLayer("climate-cells")) {
-                    map.setPaintProperty(
-                        "climate-cells",
-                        "fill-color",
-                        colorExpression(activeScale)
-                    );
-                }
+                panels.forEach((panel) => {
+                    if (panel.map.isStyleLoaded() && panel.map.getLayer("climate-cells")) {
+                        panel.map.setPaintProperty(
+                            "climate-cells",
+                            "fill-color",
+                            colorExpression(activeScale)
+                        );
+                    }
+                });
             }
 
             Object.values(SCALE_PRESETS[family]).forEach((scale) => {
@@ -236,28 +266,47 @@
                 return value.toFixed(4);
             }
 
-            async function loadData(generation) {
-                const bounds = map.getBounds();
+            function syncViewports(sourcePanel) {
+                if (synchronizingViewports || panels.length === 1) {
+                    return;
+                }
+                synchronizingViewports = true;
+                const sourceMap = sourcePanel.map;
+                panels.forEach((panel) => {
+                    if (panel !== sourcePanel) {
+                        panel.map.jumpTo({
+                            center: sourceMap.getCenter(),
+                            zoom: sourceMap.getZoom(),
+                            bearing: sourceMap.getBearing(),
+                            pitch: sourceMap.getPitch(),
+                        });
+                    }
+                });
+                synchronizingViewports = false;
+            }
+
+            async function loadData(panel, generation) {
+                const bounds = panel.map.getBounds();
                 const south = Math.max(-85, bounds.getSouth());
                 const west = Math.max(-180, bounds.getWest());
                 const north = Math.min(85, bounds.getNorth());
                 const east = Math.min(180, bounds.getEast());
                 if (south >= north || west >= east) {
-                    status.textContent = "Move the map back toward the visible world.";
+                    panel.status.textContent = "Move the map back toward the visible world.";
                     return;
                 }
                 const query = new URLSearchParams({
-                    month,
+                    month: panel.month,
                     climate_type: climateType,
                     south,
                     west,
                     north,
                     east,
-                    zoom: map.getZoom(),
+                    zoom: panel.map.getZoom(),
                 });
                 const controller = new AbortController();
-                requestController = controller;
-                status.textContent = "Loading viewport data…";
+                panel.requestController = controller;
+                panel.status.textContent = "Loading viewport data…";
 
                 try {
                     const response = await fetch(`/api/map-data?${query}`, {
@@ -267,13 +316,16 @@
                     if (!response.ok) {
                         throw new Error(data.error || "Unknown map-data error");
                     }
-                    if (controller.signal.aborted || generation !== viewportGeneration) {
+                    if (
+                        controller.signal.aborted
+                        || generation !== panel.viewportGeneration
+                    ) {
                         return;
                     }
 
-                    map.getSource("climate").setData(data);
+                    panel.map.getSource("climate").setData(data);
                     const metadata = data.metadata;
-                    status.textContent = [
+                    panel.status.textContent = [
                         `${metadata.tiles} cells`,
                         `${metadata.rows} × ${metadata.columns} grid`,
                         `${formatStep(metadata.latitude_step)}° × ${formatStep(metadata.longitude_step)}°`,
@@ -285,70 +337,121 @@
                     ].filter(Boolean).join(" · ");
                 } catch (error) {
                     if (error.name !== "AbortError") {
-                        status.textContent = `Map data unavailable: ${error.message}`;
+                        panel.status.textContent = `Map data unavailable: ${error.message}`;
                     }
                 } finally {
-                    if (requestController === controller) {
-                        requestController = undefined;
+                    if (panel.requestController === controller) {
+                        panel.requestController = undefined;
                     }
                 }
             }
 
-            function startViewportLoad() {
-                requestController?.abort();
-                viewportGeneration += 1;
-                loadData(viewportGeneration);
+            function startViewportLoad(panel) {
+                panel.requestController?.abort();
+                panel.viewportGeneration += 1;
+                loadData(panel, panel.viewportGeneration);
             }
 
-            map.on("load", () => {
-                map.setProjection({type: "mercator"});
-                map.addControl(new NavigationControl());
-                map.addControl(new FullscreenControl());
-                map.addSource("climate", {
-                    type: "geojson",
-                    data: {type: "FeatureCollection", features: []},
+            panels.forEach((panel) => {
+                panel.map.on("load", () => {
+                    panel.map.setProjection({type: "mercator"});
+                    panel.map.addControl(new NavigationControl());
+                    panel.map.addControl(new FullscreenControl());
+                    panel.map.addSource("climate", {
+                        type: "geojson",
+                        data: {type: "FeatureCollection", features: []},
+                    });
+                    panel.map.addLayer({
+                        id: "climate-cells",
+                        type: "fill",
+                        source: "climate",
+                        paint: {
+                            "fill-color": colorExpression(activeScale),
+                            "fill-opacity": [
+                                "case",
+                                ["boolean", ["get", "estimated"], false],
+                                0.5,
+                                0.72,
+                            ],
+                            "fill-antialias": false,
+                        },
+                    });
+                    panel.map.on("click", "climate-cells", (event) => {
+                        const properties = event.features[0].properties;
+                        const labels = {
+                            direct_cache: "Direct PostgreSQL observation",
+                            nearby_cache: "Reused nearby PostgreSQL observation",
+                            display_estimate: "Display-only nearest estimate (refresh pending)",
+                        };
+                        const label = labels[properties.source] || "Climate observation";
+                        new Popup()
+                            .setLngLat(event.lngLat)
+                            .setHTML(
+                                `<strong>${properties.value} ${activeScale.unit}</strong><br>${label}<br>`
+                                + `${properties.latitude}, ${properties.longitude}`
+                            )
+                            .addTo(panel.map);
+                    });
+                    startViewportLoad(panel);
                 });
-                map.addLayer({
-                    id: "climate-cells",
-                    type: "fill",
-                    source: "climate",
-                    paint: {
-                        "fill-color": colorExpression(activeScale),
-                        "fill-opacity": [
-                            "case",
-                            ["boolean", ["get", "estimated"], false],
-                            0.5,
-                            0.72,
-                        ],
-                        "fill-antialias": false,
-                    },
-                });
-                map.on("click", "climate-cells", (event) => {
-                    const properties = event.features[0].properties;
-                    const labels = {
-                        direct_cache: "Direct PostgreSQL observation",
-                        nearby_cache: "Reused nearby PostgreSQL observation",
-                        display_estimate: "Display-only nearest estimate (refresh pending)",
-                    };
-                    const label = labels[properties.source] || "Climate observation";
-                    new Popup()
-                        .setLngLat(event.lngLat)
-                        .setHTML(
-                            `<strong>${properties.value} ${activeScale.unit}</strong><br>${label}<br>`
-                            + `${properties.latitude}, ${properties.longitude}`
-                        )
-                        .addTo(map);
-                });
-                startViewportLoad();
-            });
 
-            map.on("moveend", () => {
-                clearTimeout(moveTimer);
-                moveTimer = setTimeout(startViewportLoad, 350);
+                panel.map.on("move", () => syncViewports(panel));
+                panel.map.on("moveend", () => {
+                    clearTimeout(panel.moveTimer);
+                    panel.moveTimer = setTimeout(() => startViewportLoad(panel), 350);
+                });
+                panel.map.on("remove", () => {
+                    clearTimeout(panel.moveTimer);
+                    panel.requestController?.abort();
+                });
             });
-            map.on("remove", () => {
-                clearTimeout(moveTimer);
-                requestController?.abort();
+        </script>
+    {% else %}
+        <script>
+            const comparisonMonths = document.getElementById("comparison-months");
+            const addComparisonMonth = document.getElementById("add-comparison-month");
+            const maximumMonths = 4;
+
+            function renumberComparisonMonths() {
+                const rows = [...comparisonMonths.querySelectorAll(".comparison-month-row")];
+                rows.forEach((row, index) => {
+                    const number = index + 2;
+                    const input = row.querySelector("input");
+                    row.querySelector("label").textContent = `Compare month ${number}`;
+                    input.id = `month-picker-${number - 1}`;
+                    row.querySelector("label").htmlFor = input.id;
+                });
+                addComparisonMonth.disabled = rows.length + 1 >= maximumMonths;
+            }
+
+            addComparisonMonth.addEventListener("click", () => {
+                const row = document.createElement("div");
+                row.className = "comparison-month-row";
+
+                const field = document.createElement("div");
+                const label = document.createElement("label");
+                const input = document.createElement("input");
+                input.className = "form-control";
+                input.name = "month-picker";
+                input.type = "month";
+                input.min = {{ start | tojson }};
+                input.max = {{ end | tojson }};
+                input.required = true;
+                field.append(label, input);
+
+                const remove = document.createElement("button");
+                remove.className = "btn btn-outline-danger";
+                remove.type = "button";
+                remove.textContent = "Remove";
+                remove.addEventListener("click", () => {
+                    row.remove();
+                    renumberComparisonMonths();
+                });
+
+                row.append(field, remove);
+                comparisonMonths.append(row);
+                renumberComparisonMonths();
+                input.focus();
             });
         </script>
     {% endif %}
