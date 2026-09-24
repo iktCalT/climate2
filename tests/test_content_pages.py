@@ -19,7 +19,8 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b'href="/maps"', response.data)
         self.assertIn(b'href="/locations"', response.data)
         self.assertIn(b"Climate-model output", response.data)
-        self.assertIn(b"public-domain NOAA CORe", response.data)
+        self.assertIn(b"anonymous NOAA CORe bulk importer", response.data)
+        self.assertIn(b"cross-provider comparisons", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):
         response = self.client.get("/references")
@@ -28,6 +29,7 @@ class ContentPageTests(unittest.TestCase):
         for expected in (
             b"Open-Meteo Climate API",
             b"CMIP6 Terms of Use",
+            b"ECMWF ecCodes Python",
             b"PostgreSQL 18",
             b"MapLibre GL JS",
             b"Flask-Session",

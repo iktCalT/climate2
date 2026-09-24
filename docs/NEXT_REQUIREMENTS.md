@@ -266,8 +266,9 @@ ERA5 value was introduced.
 
 ## 16. Anonymous NOAA CORe bulk source
 
-**Status:** NOAA CORe selected on 2026-09-24; importer implementation remains
-planned and Open-Meteo remains the active website provider.
+**Status:** Implemented and live-validated on 2026-09-24. Open-Meteo remains
+the active website provider pending a separate comparison and activation
+decision.
 
 Replace the deferred, account-gated ERA5 bulk-source plan with NOAA's
 Conventional Observation Reanalysis (CORe) archive on the NOAA Open Data
@@ -300,6 +301,16 @@ provider-scoped rows. Do not activate CORe for foreground cache misses or site
 reads until a separately reviewed sample confirms field selection, units,
 coordinates, missing-value handling, and representative land, ocean, polar,
 and dateline results.
+
+The command-line importer now retrieves indexed byte ranges with bounded
+retries, decodes GRIB2 with ECMWF ecCodes, validates metadata and values,
+nearest-samples to all 8,281 canonical points, and atomically upserts one month
+under `noaa_core`. Complete calendar months are selected in stable order, one
+per run by default and at most 12; `--dry-run` never contacts NOAA and
+`--validate-only` never writes PostgreSQL. Live validation succeeded for
+January 1950 and August 2026. A January 1950 write followed by an immediate
+dry run confirmed that PostgreSQL recognizes and skips the complete month.
+Website reads remain explicitly scoped to `open_meteo_cmip6`.
 
 ## Delivery order
 

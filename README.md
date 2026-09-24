@@ -11,12 +11,13 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
 - **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future NOAA CORe reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
+- **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. PostgreSQL is the checkpoint, and the default batch is one month.
 
 The displayed values are climate-model output, not direct station observations. See the in-app References page for data and software attribution.
 
 ## Planned next features
 
-- **NOAA CORe bulk-provider path:** updated provider research selected NOAA Conventional Observation Reanalysis from the NOAA Open Data Dissemination Program. It is an official, public-domain, anonymous HTTPS source covering 1950 to near real time, with no account, API key, or click-through licence acceptance. A planned importer will retrieve only indexed GRIB records needed for the canonical coarse grid, derive monthly high/low values from daily extrema, and store them under a separate `noaa_core` provider family. Open-Meteo remains active until that importer and representative samples are reviewed. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **NOAA CORe activation review:** the anonymous bulk importer is implemented and live validation covered January 1950 and August 2026. Open-Meteo remains active until representative CORe-versus-current-series comparisons are reviewed and an explicit provider switch is recorded. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
@@ -24,6 +25,8 @@ The displayed values are climate-model output, not direct station observations. 
 Browser -> Flask -> provider-scoped PostgreSQL weather cache
                     |
                     +-- missing months/cells -> Open-Meteo -> PostgreSQL
+
+NOAA CORe -> indexed GRIB2 importer -> PostgreSQL (`noaa_core`, inactive)
 
 Accounts -> ignored local SQLite database
 ```
@@ -33,6 +36,8 @@ The main modules are:
 - `app.py` — Flask routes, validation, account access, and administrator ingest.
 - `db.py` — PostgreSQL connection and location lookup helpers.
 - `helpers_data.py` — Open-Meteo requests, monthly aggregation, cache lookup, and PostgreSQL upserts.
+- `noaa_core.py` — anonymous indexed NOAA retrieval, GRIB2 validation, canonical-grid sampling, and provider-scoped monthly upserts.
+- `import_noaa_core.py` — bounded command-line batch, validation-only mode, and PostgreSQL resume checkpoint.
 - `map_data.py` — bounded, zoom-aware MapLibre GeoJSON viewport tiles.
 - `helpers.py` — charts, validators, and authentication helpers.
 - `schema.sql` — PostgreSQL weather schema.
@@ -97,6 +102,25 @@ variables, and models. The batch stops on its first provider failure and can be
 resumed later. Use `--delay-seconds NUMBER` only when a different pacing policy
 is appropriate for the available Open-Meteo plan.
 
+The higher-capacity NOAA path works month-by-month across the whole canonical
+grid. It needs no account or secret:
+
+```sh
+.venv/bin/python -m eccodes selfcheck
+.venv/bin/python import_noaa_core.py --dry-run
+.venv/bin/python import_noaa_core.py --period 1950-1953
+.venv/bin/python import_noaa_core.py --period 2023-2026
+```
+
+Only complete calendar months are eligible. One month is imported per run by
+default; `--limit NUMBER` may raise the batch to at most 12. Use
+`--month YYYY-MM --validate-only` to download and validate a sample without a
+database write. Each successful month contains all 8,281 canonical locations
+and all four metrics in the separate `noaa_core` family. An interrupted month
+is retried in full, while a completed month is skipped. These rows do not
+change website output because all current reads still select
+`open_meteo_cmip6`.
+
 ## Administrator setup
 
 Registration always creates a normal user. Promote or demote an existing local account with:
@@ -160,6 +184,7 @@ Current data and evaluated providers:
 
 Current application software and delivery services:
 
+- [ECMWF ecCodes Python](https://github.com/ecmwf/eccodes-python) decodes the selected NOAA GRIB2 records and is distributed under Apache License 2.0. Its PyPI installation includes the binary ecCodes library on macOS and Linux.
 - [Flask](https://flask.palletsprojects.com/en/stable/) and [Flask-Session](https://flask-session.readthedocs.io/en/latest/) provide the web application and server-side sessions.
 - [PostgreSQL](https://www.postgresql.org/docs/18/) and [Psycopg](https://www.psycopg.org/psycopg3/docs/) provide climate storage and Python database access.
 - [NumPy](https://numpy.org/doc/stable/), [pandas](https://pandas.pydata.org/docs/), and [Plotly Python](https://plotly.com/python/) provide numerical work, monthly aggregation, and charts.
