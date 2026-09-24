@@ -10,7 +10,7 @@ import time
 
 import numpy as np
 
-from db import weather_db
+from db import ACTIVE_CLIMATE_PROVIDER, weather_db
 from helpers_data import get_data, missing_location_ranges
 
 
@@ -71,13 +71,14 @@ def load_period_completion(con, periods=PREFETCH_PERIODS):
     for _, start, end in periods:
         date_predicates.append("d.dates BETWEEN %s AND %s")
         params.extend((start, end))
-    params.extend((lats, lons))
+    params.extend((ACTIVE_CLIMATE_PROVIDER, lats, lons))
 
     query = f"""
         SELECT l.lat, l.lon, {", ".join(count_columns)}
         FROM locations AS l
         JOIN data AS d ON d.loc_id = l.loc_id
         WHERE ({" OR ".join(date_predicates)})
+          AND d.provider = %s
           AND l.lat = ANY(%s)
           AND l.lon = ANY(%s)
         GROUP BY l.lat, l.lon

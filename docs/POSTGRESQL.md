@@ -15,10 +15,15 @@ service. Flask uses `postgresql://localhost/climate` automatically. Set
 The database has the following tables:
 
 - `locations`: a unique latitude/longitude and its `loc_id`.
-- `data`: one row per location/month with a primary key on `(loc_id, dates)`.
+- `data`: one row per location/month/provider with a primary key on
+  `(loc_id, dates, provider)`. Existing and current Open-Meteo rows use
+  `open_meteo_cmip6`; application reads explicitly select that active series.
 
-Both ingestion and updates use PostgreSQL `ON CONFLICT` upserts. To make a
-fresh local database after intentionally deleting it, run:
+Both ingestion and updates use provider-scoped PostgreSQL `ON CONFLICT`
+upserts. Running `setup_database.py` also upgrades an existing two-column
+weather key idempotently: legacy rows are labelled `open_meteo_cmip6` before
+the provider-aware primary key is installed. To make a fresh local database
+after intentionally deleting it, run:
 
 ```sh
 /opt/homebrew/opt/postgresql@18/bin/createdb climate

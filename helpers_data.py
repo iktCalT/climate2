@@ -7,7 +7,7 @@ import requests_cache
 from openmeteo_requests import OpenMeteoRequestsError
 from retry_requests import retry
 
-from db import fetch_loc_id, weather_db
+from db import ACTIVE_CLIMATE_PROVIDER, fetch_loc_id, weather_db
 
 logger = logging.getLogger(__name__)
 
@@ -178,9 +178,10 @@ def get_data_in_database(lat, lon, con=None):
                 """
                 SELECT * FROM data WHERE loc_id =
                 (SELECT loc_id FROM locations WHERE lat = %s AND lon = %s)
+                AND provider = %s
                 LIMIT 1
                 """,
-                (lat, lon),
+                (lat, lon, ACTIVE_CLIMATE_PROVIDER),
             )
             return cur.fetchall()
 
@@ -201,9 +202,16 @@ def load_location_history(location, date_start, date_end, fields, con=None):
                 JOIN locations AS l ON l.loc_id = d.loc_id
                 WHERE l.lat = %s AND l.lon = %s
                   AND d.dates BETWEEN %s AND %s
+                  AND d.provider = %s
                 ORDER BY d.dates
                 """,
-                (float(location[0]), float(location[1]), date_start, date_end),
+                (
+                    float(location[0]),
+                    float(location[1]),
+                    date_start,
+                    date_end,
+                    ACTIVE_CLIMATE_PROVIDER,
+                ),
             )
             rows = cur.fetchall()
 
@@ -307,8 +315,12 @@ def _locations_with_data(con):
             """
             SELECT l.lat, l.lon
             FROM locations l
-            WHERE EXISTS (SELECT 1 FROM data d WHERE d.loc_id = l.loc_id)
-            """
+            WHERE EXISTS (
+                SELECT 1 FROM data d
+                WHERE d.loc_id = l.loc_id AND d.provider = %s
+            )
+            """,
+            (ACTIVE_CLIMATE_PROVIDER,),
         )
         rows = cur.fetchall()
     return {_coord_key(lat, lon) for lat, lon in rows}
@@ -374,6 +386,7 @@ def modify_database(data, type="donothing", con=None):
                 _nullable_float(getattr(row, "temp_max", None)),
                 _nullable_float(getattr(row, "temp_min", None)),
                 _nullable_float(getattr(row, "precip", None)),
+                ACTIVE_CLIMATE_PROVIDER,
             )
             for row in data.itertuples()
         ]
@@ -383,18 +396,20 @@ def modify_database(data, type="donothing", con=None):
             if type == "insert":
                 cur.executemany(
                     """
-                    INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (loc_id, dates) DO NOTHING
+                    INSERT INTO data
+                        (loc_id, dates, temp_mean, temp_max, temp_min, precip, provider)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (loc_id, dates, provider) DO NOTHING
                     """,
                     rows,
                 )
             else:
                 cur.executemany(
                     """
-                    INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
-                    VALUES (%s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (loc_id, dates) DO UPDATE SET
+                    INSERT INTO data
+                        (loc_id, dates, temp_mean, temp_max, temp_min, precip, provider)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (loc_id, dates, provider) DO UPDATE SET
                         temp_mean = COALESCE(EXCLUDED.temp_mean, data.temp_mean),
                         temp_max = COALESCE(EXCLUDED.temp_max, data.temp_max),
                         temp_min = COALESCE(EXCLUDED.temp_min, data.temp_min),

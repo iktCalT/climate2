@@ -6,12 +6,19 @@ from unittest.mock import Mock, patch
 import pandas as pd
 from openmeteo_requests import OpenMeteoRequestsError
 
-from db import DEFAULT_DATABASE_URL, database_url, fetch_loc_id, weather_db
+from db import (
+    ACTIVE_CLIMATE_PROVIDER,
+    DEFAULT_DATABASE_URL,
+    database_url,
+    fetch_loc_id,
+    weather_db,
+)
 from helpers_data import (
     OPEN_METEO_HTTP_CACHE_TTL_SECONDS,
     get_data,
     get_data_in_database,
     get_location_history,
+    load_location_history,
     modify_database,
 )
 
@@ -108,6 +115,45 @@ class PostgreSQLWeatherTests(unittest.TestCase):
                 values = cur.fetchone()
 
         self.assertEqual(values, (11.0, 15.0, 5.0, 2.0))
+
+    def test_provider_rows_coexist_while_active_reads_stay_isolated(self):
+        location = (34.567891, 89.012345)
+        comparison_date = "2099-03-01"
+        with weather_db() as con:
+            loc_id = fetch_loc_id(*location, con=con)
+            with con.cursor() as cur:
+                cur.executemany(
+                    """
+                    INSERT INTO data
+                        (loc_id, dates, provider, temp_mean)
+                    VALUES (%s, %s, %s, %s)
+                    ON CONFLICT (loc_id, dates, provider) DO UPDATE SET
+                        temp_mean = EXCLUDED.temp_mean
+                    """,
+                    (
+                        (loc_id, comparison_date, ACTIVE_CLIMATE_PROVIDER, 12.0),
+                        (loc_id, comparison_date, "era5_reanalysis", 99.0),
+                    ),
+                )
+            history = load_location_history(
+                location,
+                comparison_date,
+                comparison_date,
+                ("temp_mean",),
+                con=con,
+            )
+            with con.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT COUNT(*) FROM data
+                    WHERE loc_id = %s AND dates = %s
+                    """,
+                    (loc_id, comparison_date),
+                )
+                provider_count = cur.fetchone()[0]
+
+        self.assertEqual(provider_count, 2)
+        self.assertEqual(history.loc[pd.Timestamp(comparison_date), "temp_mean"], 12.0)
 
 
 class ConfigurationTests(unittest.TestCase):

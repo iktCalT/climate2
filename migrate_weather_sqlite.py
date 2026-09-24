@@ -7,7 +7,7 @@ The PostgreSQL schema must already exist and DATABASE_URL must be set.
 import sqlite3
 import sys
 
-from db import weather_db
+from db import ACTIVE_CLIMATE_PROVIDER, weather_db
 
 
 BATCH_SIZE = 10_000
@@ -37,15 +37,16 @@ def migrate(sqlite_path="static/weather.db"):
                 while batch := rows.fetchmany(BATCH_SIZE):
                     cur.executemany(
                         """
-                        INSERT INTO data (loc_id, dates, temp_mean, temp_max, temp_min, precip)
-                        VALUES (%s, %s, %s, %s, %s, %s)
-                        ON CONFLICT (loc_id, dates) DO UPDATE SET
+                        INSERT INTO data
+                            (loc_id, dates, temp_mean, temp_max, temp_min, precip, provider)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (loc_id, dates, provider) DO UPDATE SET
                             temp_mean = EXCLUDED.temp_mean,
                             temp_max = EXCLUDED.temp_max,
                             temp_min = EXCLUDED.temp_min,
                             precip = EXCLUDED.precip
                         """,
-                        [tuple(row) for row in batch],
+                        [tuple(row) + (ACTIVE_CLIMATE_PROVIDER,) for row in batch],
                     )
                 cur.execute(
                     "SELECT setval(pg_get_serial_sequence('locations', 'loc_id'), "

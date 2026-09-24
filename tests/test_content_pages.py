@@ -37,6 +37,7 @@ class ContentPageTests(unittest.TestCase):
             b"OpenAI Codex (GPT-5)",
             b"must be credited both here and in the repository README",
             b"must never be committed or pushed",
+            b"open_meteo_cmip6",
         ):
             self.assertIn(expected, response.data)
 

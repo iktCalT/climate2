@@ -5,7 +5,7 @@ import math
 import numpy as np
 import pandas as pd
 
-from db import CLIMATE_TYPES, weather_db
+from db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, weather_db
 from helpers_data import DEFAULT_METEO_TYPES, get_data
 
 MAX_VIEWPORT_POINTS = 91 * 91
@@ -229,6 +229,7 @@ def _query_weather_rows(
         FROM data AS d
         JOIN locations AS l ON l.loc_id = d.loc_id
         WHERE d.dates = %s
+          AND d.provider = %s
           AND l.lat BETWEEN %s AND %s
           AND l.lon BETWEEN %s AND %s
         ORDER BY l.lat, l.lon
@@ -238,6 +239,7 @@ def _query_weather_rows(
             query,
             (
                 date,
+                ACTIVE_CLIMATE_PROVIDER,
                 max(-90, lat_edges[0] - latitude_padding),
                 min(90, lat_edges[-1] + latitude_padding),
                 max(-180, lon_edges[0] - longitude_padding),
@@ -397,5 +399,6 @@ def viewport_geojson(
             "rows": len(lat_edges) - 1,
             "columns": len(lon_edges) - 1,
             "tiles": len(cells),
+            "provider": ACTIVE_CLIMATE_PROVIDER,
         },
     }
