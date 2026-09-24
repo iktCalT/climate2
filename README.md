@@ -10,18 +10,18 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 - **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. The global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells. As the viewport shrinks, cell size decreases more slowly so fewer cells are displayed, stopping at 0.5-degree latitude by 1-degree longitude cells and city-scale zoom level 10. Tiles reuse direct or sufficiently nearby PostgreSQL observations without requiring the sample to match the tile or zoom center. A settled viewport requests at most one distributed batch of four locations that have no suitable cached neighbor and persists all four metrics for each location. Temporary estimates remain visibly distinguished from cached values in every comparison panel.
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
-- **Local-first storage:** weather data uses PostgreSQL 18. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
+- **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future ERA5 reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
 
 The displayed values are climate-model output, not direct station observations. See the in-app References page for data and software attribution.
 
 ## Planned next features
 
-- **ERA5 bulk-provider path:** provider research selected Copernicus CDS ERA5 as the preferred safe, free, global bulk-source candidate. Integration is deliberately deferred until the owner accepts the CDS licence, supplies a token outside Git, and approves the change from averaged CMIP6 projections to reanalysis. Open-Meteo remains active. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **ERA5 bulk-provider path:** provider research selected Copernicus CDS ERA5 as the preferred safe, free, global bulk-source candidate. PostgreSQL rows and reads are already provider-scoped, but retrieval and import remain deliberately deferred until the owner accepts the CDS licence, supplies a token outside Git, and approves the change from averaged CMIP6 projections to reanalysis. Open-Meteo remains active. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
 ```text
-Browser -> Flask -> PostgreSQL weather cache
+Browser -> Flask -> provider-scoped PostgreSQL weather cache
                     |
                     +-- missing months/cells -> Open-Meteo -> PostgreSQL
 

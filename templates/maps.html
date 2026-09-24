@@ -325,7 +325,11 @@
 
                     panel.map.getSource("climate").setData(data);
                     const metadata = data.metadata;
+                    const providerLabels = {
+                        open_meteo_cmip6: "Open-Meteo CMIP6",
+                    };
                     panel.status.textContent = [
+                        providerLabels[metadata.provider] || metadata.provider,
                         `${metadata.tiles} cells`,
                         `${metadata.rows} × ${metadata.columns} grid`,
                         `${formatStep(metadata.latitude_step)}° × ${formatStep(metadata.longitude_step)}°`,

@@ -232,6 +232,38 @@ its own load status and direct/nearby/estimated rendering, while debounced
 per-panel requests prevent synchronized movement from repeatedly loading the
 same final viewport.
 
+## 15. Provider-scoped climate rows
+
+**Status:** Implemented on 2026-09-24; recorded before implementation.
+
+Prepare the PostgreSQL climate cache for a future ERA5 bulk-import path without
+changing the active website provider. Every stored monthly climate row must
+identify its provider and product family so ERA5 reanalysis cannot be silently
+mixed with the existing Open-Meteo CMIP6 model average.
+
+Existing rows and every current Open-Meteo write must be labelled consistently.
+All current website, map, location-history, administrator, migration, and
+prefetch reads must explicitly select the active Open-Meteo provider. The
+database key must permit two providers to store values for the same location
+and month while preventing duplicate rows within one provider. Expose the
+selected provider in map response metadata so the UI data contract remains
+auditable.
+
+This is schema and provenance groundwork only. Do not contact CDS, request or
+store a token, import ERA5 files, replace Open-Meteo, or combine values from
+different provider families. Existing installations must be upgraded
+idempotently by the normal schema setup command, and fresh installations must
+receive the same constraints and defaults.
+
+The `data` table now uses `(loc_id, dates, provider)` as its primary key, with
+legacy and current writes labelled `open_meteo_cmip6`. Location history, maps,
+administrator ingestion, legacy migration, and resumable prefetch queries all
+select that active family explicitly. Map JSON and the visible panel status
+report the provider, while a database integration test verifies that a second
+provider can coexist without affecting active-site results. The schema upgrade
+was run twice successfully to verify repeatability; no CDS request, token, or
+ERA5 value was introduced.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -248,3 +280,4 @@ same final viewport.
 12. Add temperature and precipitation scale presets plus validated custom scales.
 13. Keep color-scale changes entirely manual and stable across map interactions.
 14. Add synchronized, same-scale side-by-side comparison for two or more dates.
+15. Scope every climate cache row and read to an explicit provider before ERA5 integration.

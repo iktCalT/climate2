@@ -8,6 +8,7 @@ import pandas as pd
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from app import app, default_map_month
+from db import ACTIVE_CLIMATE_PROVIDER
 from map_data import (
     MAX_FETCH_PER_VIEWPORT,
     MAX_ZOOM,
@@ -273,6 +274,9 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(payload["metadata"]["reused_nearby"], 1)
         self.assertEqual(payload["metadata"]["fetched"], 0)
         self.assertEqual(payload["metadata"]["missing"], len(cells) - 2)
+        self.assertEqual(
+            payload["metadata"]["provider"], ACTIVE_CLIMATE_PROVIDER
+        )
         self.assertAlmostEqual(query.call_args.args[5], lat_step * 1.5)
         self.assertAlmostEqual(query.call_args.args[6], lon_step * 1.5)
         sources = [
@@ -372,6 +376,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"loaded from PostgreSQL before this batch", response.data)
         self.assertIn(b"nearby-cache cells", response.data)
         self.assertIn(b"metadata.rows", response.data)
+        self.assertIn(b"Open-Meteo CMIP6", response.data)
         self.assertIn(b"Reused nearby PostgreSQL observation", response.data)
         self.assertIn(b"startViewportLoad", response.data)
         self.assertIn(b'/static/map_scales.js', response.data)

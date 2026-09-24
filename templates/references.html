@@ -64,6 +64,9 @@
             it is reanalysis rather than the site's current CMIP6 model output.
             Open-Meteo remains active until the CDS licence, private API token,
             aggregation checks, provenance, and owner approval are in place.
+            PostgreSQL rows and current application reads are already scoped to
+            the <code>open_meteo_cmip6</code> provider family so a later ERA5
+            importer cannot silently mix reanalysis with the current series.
         </aside>
     </section>
 
