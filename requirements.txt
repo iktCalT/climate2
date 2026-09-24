@@ -1,5 +1,6 @@
 Flask
 Flask-Session
+eccodes
 numpy
 openmeteo-requests
 pandas

@@ -53,3 +53,33 @@ partially failed batch can therefore be resumed with the same command. Live
 requests start at least 30 seconds apart by default, and the command stops on
 the first provider failure rather than consuming the rest of a batch while a
 rate limit is active.
+
+## Resumable NOAA CORe bulk import
+
+The optional NOAA importer fills one complete global month at a time under the
+separate `noaa_core` provider family. It does not require an account, API key,
+token, or `.env` entry, and it does not change the website's active
+`open_meteo_cmip6` reads.
+
+```sh
+.venv/bin/python -m eccodes selfcheck
+.venv/bin/python import_noaa_core.py --dry-run
+.venv/bin/python import_noaa_core.py --period 1950-1953
+.venv/bin/python import_noaa_core.py --period 2023-2026
+```
+
+The default batch is one month and the maximum is 12 months. Only completed
+calendar months are selected. NOAA `.idx` files identify the exact GRIB2 byte
+ranges, so unrelated fields and full archive files are not downloaded. The
+importer validates dates, variables, aggregation types, units, levels, the
+512-by-256 Gaussian grid, missing values, physical bounds, and temperature
+ordering before writing anything.
+
+One database transaction creates or reuses the 8,281 canonical locations and
+upserts all four values for the month. A month is complete only when every
+canonical location has every metric. Interrupted or incomplete months are
+retried; complete months are skipped. For a no-write live check, use:
+
+```sh
+.venv/bin/python import_noaa_core.py --month 1950-01 --validate-only
+```

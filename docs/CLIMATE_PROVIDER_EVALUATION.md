@@ -22,10 +22,10 @@ than make one HTTP request per map point. This is a better match for the
 project's deliberately coarse 2-degree by 4-degree grid than Open-Meteo's
 point-by-point request model.
 
-Open-Meteo remains the only active website provider while the CORe importer is
-built and validated. No archive, credential, generated data file, or database
-export belongs in Git. PostgreSQL remains the durable checkpoint and public
-data source for the application.
+Open-Meteo remains the only active website provider while imported CORe values
+are compared and reviewed. No archive, credential, generated data file, or
+database export belongs in Git. PostgreSQL remains the durable checkpoint and
+public data source for the application.
 
 ## Required data contract
 
@@ -84,6 +84,24 @@ monthly mean 2 m temperature and surface precipitation-rate records, plus
 daily 2 m minimum and maximum records. The monthly extrema records were also
 confirmed to be daily-extrema averages, which is why they are excluded from
 the importer contract.
+
+## Implementation result
+
+The optional `import_noaa_core.py` command now implements the staged retrieval
+path with the Apache-2.0 [ECMWF ecCodes Python bindings](https://github.com/ecmwf/eccodes-python).
+It reads NOAA `.idx` offsets, downloads only selected `.grb` byte ranges,
+validates the encoded date, variable, statistic, unit, level, grid, missing
+values, and physical bounds, then nearest-samples to the canonical 2-degree by
+4-degree grid. One fully validated month is committed atomically under
+`noaa_core`; PostgreSQL completion counts make reruns skip it.
+
+Read-only live checks succeeded for January 1950 and August 2026. January 1950
+was then written as 8,281 provider-scoped rows and an immediate dry run reported
+the month complete without contacting NOAA. This verifies retrieval, decoding,
+unit conversion, canonical dateline/pole sampling, transactional storage, and
+the resume checkpoint. It does not yet approve switching website reads: the
+remaining activation gate is a documented comparison between representative
+CORe and current Open-Meteo values.
 
 ## Alternatives not selected
 
