@@ -202,13 +202,13 @@ def logout():
 
 @app.route("/maps")
 def maps():
-    month = request.args.get("month-picker")
+    months = [month for month in request.args.getlist("month-picker") if month]
     data_type = request.args.get("data-type")
     latest_month = latest_map_month()
     imgname = current_image_name()
     show_selector = request.args.get("select") == "1"
 
-    if show_selector and not month and not data_type:
+    if show_selector and not months and not data_type:
         return render_template(
             "maps.html",
             imgname=imgname,
@@ -217,13 +217,20 @@ def maps():
             end=latest_month,
         )
 
-    if not month and not data_type:
-        month = default_map_month()
+    if not months and not data_type:
+        months = [default_map_month()]
         data_type = DEFAULT_MAP_DATA_TYPE
-    elif not month or not data_type:
+    elif not months or not data_type:
         return apology("Month and climate data type are both required", 400)
 
-    if not is_valid_month(month, start=START, end=latest_month):
+    if len(months) > 4:
+        return apology("Compare at most four months at a time", 400)
+    if len(set(months)) != len(months):
+        return apology("Comparison months must be distinct", 400)
+    if any(
+        not is_valid_month(month, start=START, end=latest_month)
+        for month in months
+    ):
         return apology("Invalid month", 400)
     if data_type not in DATA_TYPES:
         return apology(f"This data type ({data_type}) is not supported", 400)
@@ -232,7 +239,9 @@ def maps():
         imgname=imgname,
         data_types=DATA_TYPES,
         data_type=data_type,
-        month=month,
+        month=months[0],
+        months=months,
+        comparison=len(months) > 1,
         start=START,
         end=latest_month,
     )

@@ -81,6 +81,55 @@ table {
 
 .climate-map { height: 720px; width: 100%; border-radius: 0.5rem; overflow: hidden; }
 
+.climate-map-grid {
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr;
+}
+
+.climate-map-comparison {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.climate-map-panel {
+    min-width: 0;
+}
+
+.climate-map-panel h3 {
+    font-family: "Space Mono", monospace;
+    margin-bottom: 0.35rem;
+}
+
+.map-panel-status {
+    font-size: 0.8rem;
+    min-height: 2.5rem;
+}
+
+.climate-map-comparison .climate-map {
+    height: 520px;
+}
+
+.comparison-months {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0 auto 0.75rem;
+    max-width: 28rem;
+}
+
+.comparison-month-row {
+    align-items: end;
+    display: grid;
+    gap: 0.75rem;
+    grid-template-columns: 1fr auto;
+    text-align: left;
+}
+
+.comparison-month-row label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+}
+
 .map-scale-panel {
     background: rgba(255, 255, 255, 0.38);
     border: 1px solid rgba(24, 52, 44, 0.16);
@@ -398,6 +447,8 @@ table {
 .footer-credit { color: #60766f; font-size: 0.9rem; }
 
 @media screen and (max-width: 800px) {
+    .climate-map-comparison { grid-template-columns: 1fr; }
+    .climate-map-comparison .climate-map { height: 460px; }
     .map-scale-header, .map-scale-summary { align-items: stretch; flex-direction: column; }
     .map-scale-picker { flex-basis: auto; width: 100%; }
     .custom-scale-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
