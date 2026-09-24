@@ -19,6 +19,7 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b'href="/maps"', response.data)
         self.assertIn(b'href="/locations"', response.data)
         self.assertIn(b"Climate-model output", response.data)
+        self.assertIn(b"public-domain NOAA CORe", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):
         response = self.client.get("/references")
@@ -32,12 +33,18 @@ class ContentPageTests(unittest.TestCase):
             b"Flask-Session",
             b"Bootstrap 5",
             b"NASA POWER monthly API",
+            b"NOAA Conventional Observation Reanalysis (CORe)",
+            b"NOAA CORe NODD archive",
+            b"NOAA NCEI open-data policy",
+            b"NOAA CORe regridding guidance",
+            b"NCEP/NCAR Reanalysis 1 update notice",
             b"Inactive generated-map dependencies",
             b"iktCalT/climate",
             b"OpenAI Codex (GPT-5)",
             b"must be credited both here and in the repository README",
             b"must never be committed or pushed",
             b"open_meteo_cmip6",
+            b"noaa_core",
         ):
             self.assertIn(expected, response.data)
 
