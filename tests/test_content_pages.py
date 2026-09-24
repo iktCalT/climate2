@@ -20,7 +20,8 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b'href="/locations"', response.data)
         self.assertIn(b"Climate-model output", response.data)
         self.assertIn(b"anonymous NOAA CORe bulk importer", response.data)
-        self.assertIn(b"cross-provider comparisons", response.data)
+        self.assertIn(b"read-only report", response.data)
+        self.assertIn(b"explicit provider decision", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):
         response = self.client.get("/references")
@@ -47,6 +48,8 @@ class ContentPageTests(unittest.TestCase):
             b"must never be committed or pushed",
             b"open_meteo_cmip6",
             b"noaa_core",
+            b"read-only PostgreSQL report",
+            b"8,281 January 1950 canonical rows",
         ):
             self.assertIn(expected, response.data)
 
