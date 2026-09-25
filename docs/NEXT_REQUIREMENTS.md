@@ -426,7 +426,9 @@ months complete and selected January–December 1954 as the first bounded batch.
 All 12 months validated and committed atomically; the follow-up checkpoint is
 104 of 920 complete months. A second bounded live run validated and atomically
 committed January–December 1955. The checkpoint is now 116 of 920 complete
-months, and the next resumable batch is January–December 1956.
+months. A third bounded live run validated and atomically committed
+January–December 1956. The checkpoint is now 128 of 920 complete months, and
+the next resumable batch is January–December 1957.
 
 ## Delivery order
 

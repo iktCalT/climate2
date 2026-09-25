@@ -18,7 +18,7 @@ The displayed values are climate-model output, not direct station observations. 
 
 ## Provider status
 
-- **NOAA CORe backfill:** the local PostgreSQL checkpoint contains all 92 requested edge-period months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema. An opt-in `1950-present` period makes the missing middle decades resumable in the same bounded batches; live batches have added all months of 1954–1955 and brought the checkpoint to 116/920 complete months, with 1956 next. Open-Meteo remains the active website provider until that backfill and a separate activation decision are complete because CORe reanalysis and the two-model CMIP6 average are materially different products. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **NOAA CORe backfill:** the local PostgreSQL checkpoint contains all 92 requested edge-period months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema. An opt-in `1950-present` period makes the missing middle decades resumable in the same bounded batches; live batches have added all months of 1954–1956 and brought the checkpoint to 128/920 complete months, with 1957 next. Open-Meteo remains the active website provider until that backfill and a separate activation decision are complete because CORe reanalysis and the two-model CMIP6 average are materially different products. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
