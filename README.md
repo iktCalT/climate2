@@ -11,14 +11,14 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
 - **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future NOAA CORe reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
-- **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. PostgreSQL is the checkpoint, and the default batch is one month.
+- **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. If a daily file omits both extrema, the importer may recover them only from all eight exact 0–3 hour extrema pairs in NOAA's official 3-hourly archive; any incomplete fallback rejects the month. PostgreSQL is the checkpoint, and the default batch is one month.
 - **Read-only provider review:** `compare_climate_providers.py` compares up to 12 imported months against the active Open-Meteo rows already in PostgreSQL. It reports canonical-grid coverage, per-metric deltas, and stable land, ocean, polar, and dateline samples as Markdown without contacting either provider, writing the database, or switching the website.
 
 The displayed values are climate-model output, not direct station observations. See the in-app References page for data and software attribution.
 
-## Planned next features
+## Provider status
 
-- **NOAA CORe edge-period population:** the importer and representative review are complete. January 1950, leap-month February 1952, and July 2023 each have 8,281 paired canonical rows; all six August 2026 land, ocean, polar, and dateline samples were also compared. Open-Meteo remains active because only four CORe months are populated and the products have material expected differences, especially for precipitation and temperature extrema. Continue the resumable 1950–1953 and 2023–2026 import before revisiting an explicit provider switch. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **NOAA CORe edge-period population:** the local PostgreSQL checkpoint contains all 92 requested months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema, and a final dry run reported 92/92 complete. Open-Meteo remains the active website provider because CORe reanalysis and the two-model CMIP6 average are materially different products; activation remains a separate explicit decision. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
@@ -119,8 +119,12 @@ default; `--limit NUMBER` may raise the batch to at most 12. Use
 `--month YYYY-MM --validate-only` to download and validate a sample without a
 database write. Each successful month contains all 8,281 canonical locations
 and all four metrics in the separate `noaa_core` family. An interrupted month
-is retried in full, while a completed month is skipped. These rows do not
-change website output because all current reads still select
+is retried in full, while a completed month is skipped. If both extrema are
+absent from a daily aggregate index, the importer uses all eight exact 0–3
+hour extrema pairs from that day's official 3-hourly files; it rejects partial
+daily or 3-hourly evidence rather than interpolating or skipping a day. The
+local checkpoint completed all 92 edge-period months on 2026-09-25. These rows
+do not change website output because all current reads still select
 `open_meteo_cmip6`.
 
 Compare only rows already stored in PostgreSQL after importing review months:
@@ -195,7 +199,7 @@ available.
 Current data and evaluated providers:
 
 - [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) supplies the active downscaled climate-model data; its underlying models follow the [CMIP6 terms](https://pcmdi.llnl.gov/CMIP6/TermsOfUse).
-- [NOAA Conventional Observation Reanalysis (CORe)](https://www.cpc.ncep.noaa.gov/products/CORe/index.html), its [public NODD archive](https://www.cpc.ncep.noaa.gov/products/CORe/archive.html), and [field/retrieval documentation](https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt) define the selected future anonymous bulk source. NOAA documents the analyses and downloader as public domain; the [NOAA NCEI open-data policy](https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf) explains NOAA's public-domain and CC0 policy. CORe is not yet an active provider.
+- [NOAA Conventional Observation Reanalysis (CORe)](https://www.cpc.ncep.noaa.gov/products/CORe/index.html), its [public NODD archive](https://www.cpc.ncep.noaa.gov/products/CORe/archive.html), and [field/retrieval documentation](https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt) define the selected anonymous bulk source. The retrieval guide documents the monthly, daily, and 3-hourly file layout used by the exact daily-extrema fallback. NOAA documents the analyses and downloader as public domain; the [NOAA NCEI open-data policy](https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf) explains NOAA's public-domain and CC0 policy. CORe is imported but not yet the active website provider.
 - NOAA's [CORe regridding guidance](https://www.cpc.ncep.noaa.gov/products/CORe/regridding.html) documents its 512-by-256 Gaussian grid, the [Physical Sciences Laboratory overview](https://psl.noaa.gov/data/coreinfo.html) describes its reanalysis role, and the [Weather Program Office announcement](https://wpo.noaa.gov/ncep-introduces-operational-reanalysis-for-climate-monitoring-core/) records the operational transition. The [NCEP/NCAR Reanalysis 1 update notice](https://psl.noaa.gov/news/2026/r1datanotice.html) explains why that retired predecessor was not selected.
 - [Copernicus CDS ERA5 monthly data](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview) remains an evaluated alternative under CC BY, but was not selected because programmatic retrieval requires an account, dataset-licence acceptance, and a private token.
 - [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/) and [CRU gridded datasets](https://crudata.uea.ac.uk/cru/data/hrg/) were evaluated as documented alternatives but are not active providers.

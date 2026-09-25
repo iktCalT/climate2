@@ -59,6 +59,19 @@ DAILY_RECORDS = {
     ),
 }
 
+THREE_HOURLY_RECORDS = {
+    "temp_min": (
+        ":TMP:2 m above ground:",
+        ":0-3 hour min fcst:",
+        ":ens mean",
+    ),
+    "temp_max": (
+        ":TMP:2 m above ground:",
+        ":0-3 hour max fcst:",
+        ":ens mean",
+    ),
+}
+
 
 class CoreError(RuntimeError):
     """Base exception for safe, concise importer failures."""
@@ -127,6 +140,16 @@ def daily_file_url(day):
     return (
         f"{NOAA_CORE_BASE_URL}/day/flx/{day.year:04d}/{day.month:02d}/"
         f"flx.{day.year:04d}{day.month:02d}{day.day:02d}"
+    )
+
+
+def three_hourly_file_url(day, hour):
+    """Return an official NODD 3-hourly flux-file URL."""
+    if hour not in range(0, 24, 3):
+        raise ValueError("hour must be one of NOAA CORe's 3-hour intervals")
+    return (
+        f"{NOAA_CORE_BASE_URL}/3hour/flx/{day.year:04d}/{day.month:02d}/"
+        f"flx.{day.year:04d}{day.month:02d}{day.day:02d}{hour:02d}"
     )
 
 
@@ -432,6 +455,66 @@ def _temperature_celsius(field, decoder, field_name, expected_date):
     )
 
 
+def _matching_record_count(records, tokens):
+    return sum(
+        all(token in record.description for token in tokens)
+        for record in records
+    )
+
+
+def _three_hourly_daily_extrema(day, archive, decoder):
+    """Aggregate exact 0-3 hour extrema when a daily file omits both fields."""
+    daily_min = None
+    daily_max = None
+    for hour in range(0, 24, 3):
+        messages = archive.records(
+            three_hourly_file_url(day, hour), THREE_HOURLY_RECORDS
+        )
+        interval_min = _temperature_celsius(
+            messages["temp_min"], decoder, "temp_min", day
+        )
+        interval_max = _temperature_celsius(
+            messages["temp_max"], decoder, "temp_max", day
+        )
+        daily_min = (
+            interval_min
+            if daily_min is None
+            else np.minimum(daily_min, interval_min)
+        )
+        daily_max = (
+            interval_max
+            if daily_max is None
+            else np.maximum(daily_max, interval_max)
+        )
+    return daily_min, daily_max
+
+
+def _daily_extrema(day, archive, decoder):
+    """Load one day's extrema, using exact 3-hourly fields for a verified gap."""
+    file_url = daily_file_url(day)
+    try:
+        messages = archive.records(file_url, DAILY_RECORDS)
+    except CoreDownloadError:
+        records = archive.index_records(file_url)
+        counts = {
+            name: _matching_record_count(records, tokens)
+            for name, tokens in DAILY_RECORDS.items()
+        }
+        if counts != {"temp_min": 0, "temp_max": 0}:
+            raise
+        logger.warning(
+            "NOAA CORe daily extrema are both absent for %s; "
+            "using all eight exact 3-hourly extrema pairs",
+            day,
+        )
+        return _three_hourly_daily_extrema(day, archive, decoder)
+
+    return (
+        _temperature_celsius(messages["temp_min"], decoder, "temp_min", day),
+        _temperature_celsius(messages["temp_max"], decoder, "temp_max", day),
+    )
+
+
 def load_core_month(month, archive=None, decoder=None):
     """Download, aggregate, and validate one complete CORe calendar month."""
     month = date(month.year, month.month, 1)
@@ -454,13 +537,7 @@ def load_core_month(month, archive=None, decoder=None):
     days_in_month = monthrange(month.year, month.month)[1]
     for day_number in range(1, days_in_month + 1):
         day = date(month.year, month.month, day_number)
-        daily_messages = archive.records(daily_file_url(day), DAILY_RECORDS)
-        daily_min = _temperature_celsius(
-            daily_messages["temp_min"], decoder, "temp_min", day
-        )
-        daily_max = _temperature_celsius(
-            daily_messages["temp_max"], decoder, "temp_max", day
-        )
+        daily_min, daily_max = _daily_extrema(day, archive, decoder)
         temp_min = daily_min if temp_min is None else np.minimum(temp_min, daily_min)
         temp_max = daily_max if temp_max is None else np.maximum(temp_max, daily_max)
 

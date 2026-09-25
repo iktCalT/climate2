@@ -20,7 +20,8 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b'href="/locations"', response.data)
         self.assertIn(b"Climate-model output", response.data)
         self.assertIn(b"NOAA CORe", response.data)
-        self.assertIn(b"passed historical, leap-month, recent-year", response.data)
+        self.assertIn(b"all 92 requested months", response.data)
+        self.assertIn(b"exact 3-hourly recovery", response.data)
         self.assertIn(b"never silently mixes reanalysis", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):
@@ -48,6 +49,8 @@ class ContentPageTests(unittest.TestCase):
             b"must never be committed or pushed",
             b"open_meteo_cmip6",
             b"noaa_core",
+            b"all eight exact 0\xe2\x80\x933 hour extrema pairs",
+            b"all 92 requested months",
             b"read-only PostgreSQL report",
             b"all 8,281 canonical rows for January 1950",
             b"February 1952",

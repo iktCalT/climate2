@@ -353,11 +353,44 @@ The review confirms that retrieval, units, dates, cyclic coordinates, poles,
 and representative values are coherent, but it does not justify an immediate
 provider switch. CORe reanalysis and the active two-model CMIP6 average show
 material expected differences, especially for precipitation and temperature
-extrema, and only four CORe months are currently populated. Keep
-`open_meteo_cmip6` active, keep the provider families separate, and continue
-the resumable edge-period CORe import. Revisit activation only when stored CORe
-coverage and foreground cache-miss behavior can serve the advertised date
-range without mixing products or requiring synchronous archive downloads.
+extrema. The resumable local import subsequently completed all 92 requested
+months across 1950–1953 and 2023–2026, but coverage alone does not make these
+different products interchangeable. Keep `open_meteo_cmip6` active and keep
+the provider families separate until a new requirement explicitly decides how
+foreground cache misses and provider activation should work.
+
+## 18. Exact NOAA daily-extrema archive-gap fallback
+
+**Status:** Implemented and live-validated on 2026-09-25 after the official
+May 19, 2026 daily flux index was found to omit both 2 m temperature extrema.
+
+Keep the NOAA CORe importer resumable when a daily aggregate file omits both
+required temperature-extrema records but the official 3-hourly archive still
+contains the corresponding 0–3 hour minimum and maximum fields. In that narrow
+case, retrieve all eight official 3-hourly flux files for the affected UTC day,
+decode their exact interval extrema with the same metadata and grid validation,
+and reduce those fields to the daily minimum and maximum before continuing the
+existing monthly aggregation. This is an archive-gap recovery path, not an
+instantaneous-temperature approximation.
+
+Use the fallback only when the daily index contains neither required extrema.
+If only one daily field is missing, any 3-hourly file or extrema record is
+missing, metadata or coordinates disagree, or a download fails, reject the
+month and leave PostgreSQL unchanged. Do not skip the day, interpolate it, or
+silently substitute the daily mean. Log the affected date so operators can
+distinguish a verified archive gap from an ordinary failure. Cover both the
+successful exact fallback and incomplete-fallback rejection with tests, then
+live-validate May 2026 before resuming the bounded edge-period import.
+
+The importer now checks the failed daily index and enters the fallback only
+when both required records have a match count of zero. It downloads the exact
+minimum and maximum interval records from all eight official 3-hourly files,
+applies the existing date, statistic, unit, grid, coordinate, and missing-value
+validation, and reduces them to one daily pair. Tests verify the complete path
+and fail-closed behavior when an interval is unavailable. May 2026 passed a
+live no-write validation through this path and was then committed atomically;
+June and July followed normally. A final dry run reported all 92 requested
+edge-period months complete.
 
 ## Delivery order
 
@@ -378,3 +411,4 @@ range without mixing products or requiring synchronous archive downloads.
 15. Scope every climate cache row and read to an explicit provider before reanalysis integration.
 16. Add and validate a resumable NOAA CORe bulk importer without changing the active provider.
 17. Generate a bounded, read-only CORe-versus-Open-Meteo comparison report before any activation decision.
+18. Recover verified daily-extrema archive gaps from exact official 3-hourly extrema without approximation.

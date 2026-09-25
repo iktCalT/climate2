@@ -70,6 +70,32 @@ class FakeDownloadClient(noaa_core.CoreArchiveClient):
         return self.file_bytes[start : end + 1]
 
 
+class MissingDailyExtremaArchive:
+    def __init__(self, failing_hour=None):
+        self.failing_hour = failing_hour
+        self.three_hourly_calls = []
+
+    def records(self, file_url, specifications):
+        if "/day/" in file_url:
+            raise noaa_core.CoreDownloadError(
+                "Expected one NOAA CORe temp_min record; found 0"
+            )
+        hour = int(file_url[-2:])
+        self.three_hourly_calls.append(hour)
+        if hour == self.failing_hour:
+            raise noaa_core.CoreDownloadError("missing 3-hourly extrema")
+        return {
+            "temp_min": f"min:{hour}".encode(),
+            "temp_max": f"max:{hour}".encode(),
+        }
+
+    def index_records(self, file_url):
+        return [
+            noaa_core.GribRecord(1, 0, 7, "1:0:TMP:2 m above ground:anl"),
+            noaa_core.GribRecord(2, 8, 15, "2:8:TMP:surface:anl"),
+        ]
+
+
 class FakeEccodes:
     def __init__(self, data_date=19500101):
         self.data_date = data_date
@@ -182,6 +208,29 @@ class NOAAcoreTests(unittest.TestCase):
         self.assertTrue(np.allclose(data.temp_max, 285.0 + 2.9 - 273.15))
         self.assertTrue(np.allclose(data.precip, 2.0))
         self.assertEqual(len(list(data.rows())), 91 * 91)
+
+    def test_missing_daily_extrema_use_all_exact_three_hourly_pairs(self):
+        archive = MissingDailyExtremaArchive()
+
+        daily_min, daily_max = noaa_core._daily_extrema(
+            date(2026, 5, 19), archive, FakeDecoder()
+        )
+
+        self.assertEqual(archive.three_hourly_calls, list(range(0, 24, 3)))
+        self.assertTrue(np.allclose(daily_min, 275.0 - 2.1 - 273.15))
+        self.assertTrue(np.allclose(daily_max, 285.0 + 2.1 - 273.15))
+
+    def test_incomplete_three_hourly_fallback_rejects_the_day(self):
+        archive = MissingDailyExtremaArchive(failing_hour=9)
+
+        with self.assertRaisesRegex(
+            noaa_core.CoreDownloadError, "missing 3-hourly extrema"
+        ):
+            noaa_core._daily_extrema(
+                date(2026, 5, 19), archive, FakeDecoder()
+            )
+
+        self.assertEqual(archive.three_hourly_calls, [0, 3, 6, 9])
 
     def test_validation_rejects_inconsistent_temperature_order(self):
         shape = (91, 91)
