@@ -111,13 +111,15 @@
             separate <code>noaa_core</code> family. January 1950 and August 2026
             passed live no-write validation, and the PostgreSQL resume checkpoint
             was verified with January 1950. A read-only PostgreSQL report also
-            compared all 8,281 January 1950 canonical rows, including land,
-            ocean, polar, and both dateline-edge samples. This comparison does
-            not treat differences between reanalysis and the two-model CMIP6
-            average as automatic pass/fail thresholds. Open-Meteo and
-            <code>open_meteo_cmip6</code> remain active until leap-year, recent,
-            and newest-month evidence is reviewed and a separate provider
-            decision is recorded.
+            compared all 8,281 canonical rows for January 1950, leap-month
+            February 1952, and July 2023. Six bounded Open-Meteo requests also
+            completed the required August 2026 land, ocean, polar, and dateline
+            samples without attempting a global refill. Expected differences
+            were material for precipitation and temperature extrema, so they
+            are review evidence rather than automatic pass/fail thresholds.
+            Open-Meteo and <code>open_meteo_cmip6</code> remain active while
+            NOAA edge-period coverage is populated; the site does not silently
+            mix the reanalysis and two-model CMIP6 products.
         </aside>
     </section>
 

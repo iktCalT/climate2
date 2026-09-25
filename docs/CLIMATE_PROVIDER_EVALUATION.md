@@ -111,9 +111,44 @@ mm/day for precipitation. Mean absolute differences were 3.652 °C, 3.919 °C,
 4.037 °C, and 0.950 mm/day respectively. These are different climate products,
 so those differences are evidence to review rather than pass/fail thresholds.
 
-Website reads are still not approved to switch. Representative leap-year,
-recent complete-year, and newest-month CORe imports and reports remain part of
-the activation gate, followed by a separately recorded human decision.
+The representative review was completed on 2026-09-25. February 1952 exercises
+a leap month and July 2023 exercises a recent complete year; both had 8,281
+complete canonical rows from each provider. Their CORe-minus-Open-Meteo signed
+mean differences were:
+
+- February 1952: -1.752 °C mean, -2.067 °C maximum, -1.143 °C minimum, and
+  +0.275 mm/day precipitation; mean absolute differences were 3.427 °C,
+  3.929 °C, 3.668 °C, and 0.814 mm/day respectively.
+- July 2023: -1.224 °C mean, -0.222 °C maximum, -1.915 °C minimum, and
+  +0.434 mm/day precipitation; mean absolute differences were 3.032 °C,
+  3.813 °C, 3.553 °C, and 1.146 mm/day respectively.
+
+For newest complete month August 2026, CORe had the full canonical grid while
+the existing Open-Meteo cache had only nine canonical rows. Six bounded
+Open-Meteo requests filled the required New York-area land, central-Pacific
+ocean, North Pole, South Pole, and both dateline-edge samples. The report then
+showed every required representative value; it deliberately left global
+coverage at 15 of 8,281 pairs rather than making thousands of comparison-only
+API requests. The largest representative precipitation differences were
++9.202 mm/day in the central Pacific and about +4.3 mm/day at both dateline
+edges. These are signals of product and aggregation differences to communicate,
+not proof that either dataset is wrong.
+
+## Activation decision
+
+Keep `open_meteo_cmip6` as the active website provider. The field, unit,
+coordinate, pole, dateline, historical, leap-month, recent-year, and newest-
+month checks are sufficient to continue the resumable NOAA import, but not to
+change live reads. Only January 1950, February 1952, July 2023, and August 2026
+are currently complete under `noaa_core`; switching now would leave most of the
+advertised timeline unavailable. Mixing providers by month would also make
+same-scale date comparisons scientifically confusing.
+
+Continue importing the recorded 1950–1953 and 2023–2026 edge periods under
+`noaa_core`. Revisit activation only after a separate design can serve missing
+months without a slow synchronous archive download and without silently
+combining reanalysis with the CMIP6 series. Any future switch remains an
+explicit, separately recorded change.
 
 ## Alternatives not selected
 
@@ -163,8 +198,8 @@ or near-real-time global coverage used by this map.
    `noaa_core` rows and never infer completion from temporary files alone.
 6. Use the read-only comparison report for representative land, ocean, polar,
    and dateline points across 1950, recent complete years, leap years, and the
-   newest available month. January 1950 is complete; the remaining periods
-   still require review.
+   newest available month. Completed on 2026-09-25 with January 1950, February
+   1952, July 2023, and August 2026.
 7. Activate CORe only after a separate review documents sample differences and
    explicitly switches site reads from `open_meteo_cmip6` to `noaa_core`.
 

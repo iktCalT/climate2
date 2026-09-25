@@ -18,7 +18,7 @@ The displayed values are climate-model output, not direct station observations. 
 
 ## Planned next features
 
-- **NOAA CORe activation review:** the anonymous bulk importer and read-only comparison report are implemented. January 1950 has complete paired coverage, while leap-year, recent-year, and newest-month samples still need to be imported and reviewed before any explicit provider switch. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **NOAA CORe edge-period population:** the importer and representative review are complete. January 1950, leap-month February 1952, and July 2023 each have 8,281 paired canonical rows; all six August 2026 land, ocean, polar, and dateline samples were also compared. Open-Meteo remains active because only four CORe months are populated and the products have material expected differences, especially for precipitation and temperature extrema. Continue the resumable 1950–1953 and 2023–2026 import before revisiting an explicit provider switch. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
