@@ -392,6 +392,40 @@ live no-write validation through this path and was then committed atomically;
 June and July followed normally. A final dry run reported all 92 requested
 edge-period months complete.
 
+## 19. Explicit NOAA full-history backfill
+
+**Status:** Implemented on 2026-09-25 after the two recorded edge periods
+reached 92 of 92 complete months.
+
+Add an explicit importer period for every complete calendar month from January
+1950 through the latest complete month. This is the next prerequisite for any
+future NOAA activation because edge-period coverage alone cannot serve the
+website's advertised middle decades, and filling missing months synchronously
+during a visitor request would be too slow. The full-history selection must be
+opt-in: keep the existing two edge periods as the default so an ordinary
+rerun does not unexpectedly expand into a multi-year archive job.
+
+Reuse the existing bounded batch limit, stable chronological ordering,
+provider-scoped PostgreSQL completion checkpoint, month-atomic commits,
+metadata validation, and exact daily-extrema fallback. The moving end of the
+period must always be the latest complete month, with `--through` still able to
+set an earlier stopping point. A dry run must report progress without
+contacting NOAA or changing PostgreSQL. Document the command and the remaining
+activation boundary in the README, provider evaluation, and website References
+page. Do not switch active site reads or mix provider families as part of this
+backfill capability.
+
+The importer now accepts `--period 1950-present` and selects January 1950
+through the latest complete month, or an earlier `--through` bound. It retains
+the existing one-month default and 12-month maximum batch, while an invocation
+without `--period` still selects only the two edge periods. Unit tests cover
+the dynamic end, explicit opt-in, and earlier bound. README, provider review,
+home-page status, and References copy describe the full-history prerequisite;
+active reads remain `open_meteo_cmip6`. A live dry run reported 92 of 920
+months complete and selected January–December 1954 as the first bounded batch.
+All 12 months validated and committed atomically; the follow-up checkpoint is
+104 of 920 complete months.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -412,3 +446,4 @@ edge-period months complete.
 16. Add and validate a resumable NOAA CORe bulk importer without changing the active provider.
 17. Generate a bounded, read-only CORe-versus-Open-Meteo comparison report before any activation decision.
 18. Recover verified daily-extrema archive gaps from exact official 3-hourly extrema without approximation.
+19. Add an explicit, bounded, resumable NOAA backfill for January 1950 through the latest complete month.

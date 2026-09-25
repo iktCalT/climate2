@@ -20,8 +20,8 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b'href="/locations"', response.data)
         self.assertIn(b"Climate-model output", response.data)
         self.assertIn(b"NOAA CORe", response.data)
-        self.assertIn(b"all 92 requested months", response.data)
-        self.assertIn(b"exact 3-hourly recovery", response.data)
+        self.assertIn(b"all 92 requested edge-period months", response.data)
+        self.assertIn(b"explicit bounded full-history backfill", response.data)
         self.assertIn(b"never silently mixes reanalysis", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):

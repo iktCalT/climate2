@@ -23,6 +23,26 @@ class NOAAcoreCommandTests(unittest.TestCase):
                 today=date(2026, 9, 24),
             )
 
+    def test_full_history_period_is_explicit_and_stops_at_latest_complete_month(self):
+        months = import_noaa_core.selected_months(
+            periods=["1950-present"],
+            today=date(2026, 9, 24),
+        )
+
+        self.assertEqual(months[0], date(1950, 1, 1))
+        self.assertEqual(months[-1], date(2026, 8, 1))
+        self.assertEqual(len(months), 920)
+
+    def test_full_history_period_respects_an_earlier_through_month(self):
+        months = import_noaa_core.selected_months(
+            periods=["1950-present"],
+            through=date(1954, 2, 1),
+            today=date(2026, 9, 24),
+        )
+
+        self.assertEqual(months[-1], date(1954, 2, 1))
+        self.assertEqual(len(months), 50)
+
     def test_period_and_month_are_mutually_exclusive(self):
         with redirect_stderr(StringIO()), self.assertRaises(SystemExit):
             import_noaa_core.parse_args(
