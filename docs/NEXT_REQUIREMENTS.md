@@ -314,8 +314,8 @@ Website reads remain explicitly scoped to `open_meteo_cmip6`.
 
 ## 17. Read-only provider comparison report
 
-**Status:** Implemented and live-validated on 2026-09-24; recorded before
-implementation.
+**Status:** Implemented on 2026-09-24; representative review completed on
+2026-09-25. Activation is deliberately deferred.
 
 Add a deterministic command-line report that compares provider-scoped NOAA
 CORe and active Open-Meteo rows already present in PostgreSQL. The report must
@@ -344,9 +344,20 @@ The `compare_climate_providers.py` command now opens a read-only PostgreSQL
 transaction, filters out non-canonical user locations, and prints deterministic
 Markdown for up to 12 complete months. Coverage, per-metric signed and absolute
 deltas, missing evidence, and land, ocean, polar, and dateline samples are all
-visible. A January 1950 live run compared 8,281 complete rows from each
-provider; this validates the reporting path but does not activate CORe or
-complete the required multi-period review.
+visible. Live reports compared all 8,281 canonical rows for January 1950,
+leap-month February 1952, and July 2023. August 2026 compared all six required
+land, ocean, polar, and dateline samples without attempting an Open-Meteo
+global refill.
+
+The review confirms that retrieval, units, dates, cyclic coordinates, poles,
+and representative values are coherent, but it does not justify an immediate
+provider switch. CORe reanalysis and the active two-model CMIP6 average show
+material expected differences, especially for precipitation and temperature
+extrema, and only four CORe months are currently populated. Keep
+`open_meteo_cmip6` active, keep the provider families separate, and continue
+the resumable edge-period CORe import. Revisit activation only when stored CORe
+coverage and foreground cache-miss behavior can serve the advertised date
+range without mixing products or requiring synchronous archive downloads.
 
 ## Delivery order
 

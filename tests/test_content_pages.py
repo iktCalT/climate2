@@ -19,9 +19,9 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b'href="/maps"', response.data)
         self.assertIn(b'href="/locations"', response.data)
         self.assertIn(b"Climate-model output", response.data)
-        self.assertIn(b"anonymous NOAA CORe bulk importer", response.data)
-        self.assertIn(b"read-only report", response.data)
-        self.assertIn(b"explicit provider decision", response.data)
+        self.assertIn(b"NOAA CORe", response.data)
+        self.assertIn(b"passed historical, leap-month, recent-year", response.data)
+        self.assertIn(b"never silently mixes reanalysis", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):
         response = self.client.get("/references")
@@ -49,7 +49,11 @@ class ContentPageTests(unittest.TestCase):
             b"open_meteo_cmip6",
             b"noaa_core",
             b"read-only PostgreSQL report",
-            b"8,281 January 1950 canonical rows",
+            b"all 8,281 canonical rows for January 1950",
+            b"February 1952",
+            b"July 2023",
+            b"August 2026",
+            b"does not silently",
         ):
             self.assertIn(expected, response.data)
 
