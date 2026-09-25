@@ -11,14 +11,14 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
 - **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future NOAA CORe reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
-- **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. If a daily file omits both extrema, the importer may recover them only from all eight exact 0–3 hour extrema pairs in NOAA's official 3-hourly archive; any incomplete fallback rejects the month. PostgreSQL is the checkpoint, and the default batch is one month.
+- **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. If a daily file omits both extrema, the importer may recover them only from all eight exact 0–3 hour extrema pairs in NOAA's official 3-hourly archive; any incomplete fallback rejects the month. PostgreSQL is the checkpoint, the default batch is one month, and full 1950–present selection is explicit rather than automatic.
 - **Read-only provider review:** `compare_climate_providers.py` compares up to 12 imported months against the active Open-Meteo rows already in PostgreSQL. It reports canonical-grid coverage, per-metric deltas, and stable land, ocean, polar, and dateline samples as Markdown without contacting either provider, writing the database, or switching the website.
 
 The displayed values are climate-model output, not direct station observations. See the in-app References page for data and software attribution.
 
 ## Provider status
 
-- **NOAA CORe edge-period population:** the local PostgreSQL checkpoint contains all 92 requested months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema, and a final dry run reported 92/92 complete. Open-Meteo remains the active website provider because CORe reanalysis and the two-model CMIP6 average are materially different products; activation remains a separate explicit decision. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **NOAA CORe backfill:** the local PostgreSQL checkpoint contains all 92 requested edge-period months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema. An opt-in `1950-present` period now makes the missing middle decades resumable in the same bounded batches; its first live batch added all 12 months of 1954 and brought the checkpoint to 104/920 complete months. Open-Meteo remains the active website provider until that backfill and a separate activation decision are complete because CORe reanalysis and the two-model CMIP6 average are materially different products. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
@@ -112,6 +112,8 @@ grid. It needs no account or secret:
 .venv/bin/python import_noaa_core.py --dry-run
 .venv/bin/python import_noaa_core.py --period 1950-1953
 .venv/bin/python import_noaa_core.py --period 2023-2026
+.venv/bin/python import_noaa_core.py --period 1950-present --dry-run
+.venv/bin/python import_noaa_core.py --period 1950-present --limit 12
 ```
 
 Only complete calendar months are eligible. One month is imported per run by
@@ -125,7 +127,10 @@ hour extrema pairs from that day's official 3-hourly files; it rejects partial
 daily or 3-hourly evidence rather than interpolating or skipping a day. The
 local checkpoint completed all 92 edge-period months on 2026-09-25. These rows
 do not change website output because all current reads still select
-`open_meteo_cmip6`.
+`open_meteo_cmip6`. The `1950-present` period is opt-in and dynamically stops
+at the latest complete month; use `--through YYYY-MM` to set an earlier bound.
+Default selection remains the two recorded edge periods, so a normal rerun
+does not unexpectedly begin the much larger full-history job.
 
 Compare only rows already stored in PostgreSQL after importing review months:
 

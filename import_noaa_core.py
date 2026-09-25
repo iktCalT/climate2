@@ -20,7 +20,9 @@ from noaa_core import (
 CORE_PERIODS = {
     "1950-1953": (date(1950, 1, 1), date(1953, 12, 1)),
     "2023-2026": (date(2023, 1, 1), date(2026, 12, 1)),
+    "1950-present": (date(1950, 1, 1), None),
 }
+DEFAULT_CORE_PERIODS = ("1950-1953", "2023-2026")
 DEFAULT_MONTH_LIMIT = 1
 MAX_MONTH_LIMIT = 12
 
@@ -64,11 +66,12 @@ def selected_months(periods=None, explicit_months=None, through=None, today=None
     if explicit_months:
         requested = list(explicit_months)
     else:
-        names = list(CORE_PERIODS) if not periods else list(periods)
+        names = list(DEFAULT_CORE_PERIODS) if not periods else list(periods)
         requested = []
         for name in names:
             start, end = CORE_PERIODS[name]
-            requested.extend(months_between(start, min(end, latest)))
+            period_end = latest if end is None else min(end, latest)
+            requested.extend(months_between(start, period_end))
 
     unique = sorted(set(requested))
     invalid = [month for month in unique if month > latest]
@@ -166,7 +169,10 @@ def parse_args(argv=None):
         "--period",
         action="append",
         choices=tuple(CORE_PERIODS),
-        help="edge period to import; repeat for both (default: both)",
+        help=(
+            "period to import; repeat as needed "
+            "(default: the two recorded edge periods)"
+        ),
     )
     selection.add_argument(
         "--month",

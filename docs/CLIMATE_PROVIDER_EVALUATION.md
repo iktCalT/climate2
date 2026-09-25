@@ -101,6 +101,17 @@ the month complete without contacting NOAA. This verifies retrieval, decoding,
 unit conversion, canonical dateline/pole sampling, transactional storage, and
 the resume checkpoint.
 
+The recorded edge-period import subsequently completed all 92 months across
+1950–1953 and 2023–2026. May 2026 exercised the fail-closed archive-gap path:
+NOAA's May 19 daily file omitted both 2 m extrema, so the importer required and
+aggregated the exact minimum and maximum records from all eight official
+3-hourly files. The month passed live no-write validation before its atomic
+write. An explicit `1950-present` period now selects January 1950 through the
+latest complete month while retaining the same bounded, resumable behavior;
+the default remains limited to the two recorded edge periods. The first live
+full-history batch atomically committed every month of 1954, moving the local
+checkpoint from 92 of 920 to 104 of 920 complete months.
+
 The read-only `compare_climate_providers.py` command now makes the activation
 evidence reproducible without contacting a provider or modifying PostgreSQL. A
 live January 1950 report found 8,281 complete canonical rows for each provider
@@ -139,16 +150,17 @@ not proof that either dataset is wrong.
 Keep `open_meteo_cmip6` as the active website provider. The field, unit,
 coordinate, pole, dateline, historical, leap-month, recent-year, and newest-
 month checks are sufficient to continue the resumable NOAA import, but not to
-change live reads. Only January 1950, February 1952, July 2023, and August 2026
-are currently complete under `noaa_core`; switching now would leave most of the
-advertised timeline unavailable. Mixing providers by month would also make
-same-scale date comparisons scientifically confusing.
+change live reads. All 92 recorded edge-period months are now complete under
+`noaa_core`, but the middle decades are not; switching now would still leave
+most of the advertised timeline unavailable. Mixing providers by month would
+also make same-scale date comparisons scientifically confusing.
 
-Continue importing the recorded 1950–1953 and 2023–2026 edge periods under
-`noaa_core`. Revisit activation only after a separate design can serve missing
-months without a slow synchronous archive download and without silently
-combining reanalysis with the CMIP6 series. Any future switch remains an
-explicit, separately recorded change.
+Use the explicit bounded full-history backfill under `noaa_core` rather than a
+slow synchronous archive download during a visitor request. Revisit activation
+only after January 1950 through the latest complete month is present and a
+separate review defines foreground behavior without silently combining
+reanalysis with the CMIP6 series. Any future switch remains an explicit,
+separately recorded change.
 
 ## Alternatives not selected
 
@@ -200,7 +212,9 @@ or near-real-time global coverage used by this map.
    and dateline points across 1950, recent complete years, leap years, and the
    newest available month. Completed on 2026-09-25 with January 1950, February
    1952, July 2023, and August 2026.
-7. Activate CORe only after a separate review documents sample differences and
+7. Backfill January 1950 through the latest complete month with the explicit,
+   bounded `1950-present` period; keep the two edge periods as the default.
+8. Activate CORe only after full-history coverage and a separate review
    explicitly switches site reads from `open_meteo_cmip6` to `noaa_core`.
 
 ## Primary sources
