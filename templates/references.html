@@ -45,7 +45,7 @@
             <a class="reference-card" href="https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt" target="_blank" rel="noopener noreferrer">
                 <span class="reference-type">Field documentation</span>
                 <strong>NOAA CORe retrieval guide</strong>
-                <p>File layout, indexed record selection, variable definitions, timing semantics, and public-domain notice.</p>
+                <p>Monthly, daily, and 3-hourly file layout, indexed record selection, variable definitions, timing semantics, and public-domain notice. The importer uses the documented 3-hourly 0–3 hour extrema only when both daily extrema are absent.</p>
                 <span class="external-link">ftp.cpc.ncep.noaa.gov ↗</span>
             </a>
             <a class="reference-card" href="https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf" target="_blank" rel="noopener noreferrer">
@@ -108,18 +108,22 @@
             convenient monthly high/low fields are averages of daily extrema.
             The importer therefore derives monthly extremes from daily CORe
             records, validates every field with ECMWF ecCodes, and writes a
-            separate <code>noaa_core</code> family. January 1950 and August 2026
-            passed live no-write validation, and the PostgreSQL resume checkpoint
-            was verified with January 1950. A read-only PostgreSQL report also
+            separate <code>noaa_core</code> family. When both daily extrema are
+            absent, it requires all eight exact 0–3 hour extrema pairs from the
+            documented 3-hourly archive and rejects incomplete evidence. May
+            2026 live validation exercised this path for May 19. The local
+            PostgreSQL checkpoint now contains all 92 requested months across
+            1950–1953 and 2023–2026, each with 8,281 canonical rows and all four
+            metrics. A read-only PostgreSQL report also
             compared all 8,281 canonical rows for January 1950, leap-month
             February 1952, and July 2023. Six bounded Open-Meteo requests also
             completed the required August 2026 land, ocean, polar, and dateline
             samples without attempting a global refill. Expected differences
             were material for precipitation and temperature extrema, so they
             are review evidence rather than automatic pass/fail thresholds.
-            Open-Meteo and <code>open_meteo_cmip6</code> remain active while
-            NOAA edge-period coverage is populated; the site does not silently
-            mix the reanalysis and two-model CMIP6 products.
+            Open-Meteo and <code>open_meteo_cmip6</code> remain active pending
+            a separate provider decision; the site does not silently mix the
+            reanalysis and two-model CMIP6 products.
         </aside>
     </section>
 
