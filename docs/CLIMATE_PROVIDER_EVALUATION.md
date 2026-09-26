@@ -108,10 +108,10 @@ aggregated the exact minimum and maximum records from all eight official
 3-hourly files. The month passed live no-write validation before its atomic
 write. An explicit `1950-present` period now selects January 1950 through the
 latest complete month while retaining the same bounded, resumable behavior;
-the default remains limited to the two recorded edge periods. The first twelve
-live full-history batches atomically committed every month of 1954–1965,
-moving the local checkpoint from 92 of 920 to 236 of 920 complete months. The
-next bounded batch begins with January 1966.
+the default remains limited to the two recorded edge periods. The first thirteen
+live full-history batches atomically committed every month of 1954–1966,
+moving the local checkpoint from 92 of 920 to 248 of 920 complete months. The
+next bounded batch begins with January 1967.
 
 The read-only `compare_climate_providers.py` command now makes the activation
 evidence reproducible without contacting a provider or modifying PostgreSQL. A
