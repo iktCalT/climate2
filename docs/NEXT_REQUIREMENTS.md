@@ -435,7 +435,10 @@ is now 152 of 920 complete months. A sixth bounded live run validated and
 atomically committed January–December 1959. The checkpoint is now 164 of 920
 complete months. A seventh bounded live run validated and atomically committed
 January–December 1960. The checkpoint is now 176 of 920 complete months, and
-the next resumable batch is January–December 1961.
+the next resumable batch is January–December 1961. An eighth bounded live run
+validated and atomically committed January–December 1961. The checkpoint is
+now 188 of 920 complete months, and the next resumable batch is
+January–December 1962.
 
 ## 20. United States default map view and provider-accurate footer
 
