@@ -61,6 +61,20 @@ class ContentPageTests(unittest.TestCase):
         ):
             self.assertIn(expected, response.data)
 
+    def test_footer_attribution_follows_the_active_climate_provider(self):
+        original_provider = app.config["CLIMATE_PROVIDER"]
+        try:
+            app.config["CLIMATE_PROVIDER"] = "noaa_core"
+            response = self.client.get("/")
+        finally:
+            app.config["CLIMATE_PROVIDER"] = original_provider
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'data-climate-provider="noaa_core"', response.data)
+        self.assertIn(b"Climate reanalysis data", response.data)
+        self.assertIn(b">NOAA CORe</a>", response.data)
+        self.assertNotIn(b'aria-label="Open-Meteo Climate API"', response.data)
+
 
 if __name__ == "__main__":
     unittest.main()

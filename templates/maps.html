@@ -21,6 +21,7 @@
                 Move any map to synchronize every viewport. All panels share the scale and legend below.
             </p>
         {% endif %}
+        <p class="text-muted">The initial view opens over the contiguous United States; pan or zoom anywhere within the supported world bounds.</p>
         <section class="map-scale-panel" aria-labelledby="map-scale-heading">
             <div class="map-scale-header">
                 <div>
@@ -163,8 +164,8 @@
                 map: new Map({
                     container: `climate-map-${index}`,
                     style: "https://demotiles.maplibre.org/style.json",
-                    center: [0, 0],
-                    zoom: 2.25,
+                    center: [-98.5, 39.5],
+                    zoom: 3.25,
                     maxZoom: 10,
                     renderWorldCopies: false,
                 }),

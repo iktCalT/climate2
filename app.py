@@ -10,6 +10,7 @@ from pathlib import Path
 from flask import Flask, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
+from db import ACTIVE_CLIMATE_PROVIDER
 from helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
 from helpers_data import get_data_locations, get_location_history
 from map_data import viewport_geojson
@@ -40,6 +41,7 @@ def default_map_month(now=None):
 
 # Configure application
 app = Flask(__name__)
+app.config["CLIMATE_PROVIDER"] = ACTIVE_CLIMATE_PROVIDER
 app.config["USER_DATABASE_PATH"] = os.environ.get("USER_DATABASE_PATH", "static/users.db")
 
 # Configure session to use filesystem (instead of signed cookies)
@@ -94,7 +96,10 @@ def admin_required(view):
 
 @app.context_processor
 def inject_user_permissions():
-    return {"is_admin": current_user_is_admin()}
+    return {
+        "is_admin": current_user_is_admin(),
+        "climate_provider": app.config["CLIMATE_PROVIDER"],
+    }
 
 
 @app.after_request
