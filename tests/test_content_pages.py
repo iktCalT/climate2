@@ -23,6 +23,7 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b"all 92 requested edge-period months", response.data)
         self.assertIn(b"explicit bounded full-history backfill", response.data)
         self.assertIn(b"1954\xe2\x80\x931966", response.data)
+        self.assertIn(b"newest-first from 2026 through 2016", response.data)
         self.assertIn(b"never silently mixes reanalysis", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):
@@ -52,6 +53,7 @@ class ContentPageTests(unittest.TestCase):
             b"noaa_core",
             b"all eight exact 0\xe2\x80\x933 hour extrema pairs",
             b"all 92 requested months",
+            b"newest-first 2016\xe2\x80\x932026 backfill",
             b"read-only PostgreSQL report",
             b"all 8,281 canonical rows for January 1950",
             b"February 1952",

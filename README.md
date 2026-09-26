@@ -20,7 +20,7 @@ The shared footer follows the active climate provider. It currently credits Open
 
 ## Provider status
 
-- **NOAA CORe backfill:** the local PostgreSQL checkpoint contains all 92 requested edge-period months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema. An opt-in `1950-present` period makes the missing middle decades resumable in the same bounded batches; live batches have added all months of 1954–1966 and brought the checkpoint to 248/920 complete months, with 1967 next. Open-Meteo remains the active website provider until that backfill and a separate activation decision are complete because CORe reanalysis and the two-model CMIP6 average are materially different products. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **NOAA CORe backfill:** the local PostgreSQL checkpoint contains all 92 requested edge-period months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema. An opt-in `1950-present` period makes the missing middle decades resumable in the same bounded batches; live batches have added all months of 1954–1966 and 2022 and brought the checkpoint to 260/920 complete months, with January 1967 the oldest gap. Current priority is now newest-first within 2016–2026, skipping already-complete months: 56/128 eligible months in that window are complete, December–January 2021 is next, and 2016–2021 remains pending. Open-Meteo remains the active website provider until that backfill and a separate activation decision are complete because CORe reanalysis and the two-model CMIP6 average are materially different products. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 ## Architecture
 
@@ -116,6 +116,8 @@ grid. It needs no account or secret:
 .venv/bin/python import_noaa_core.py --period 2023-2026
 .venv/bin/python import_noaa_core.py --period 1950-present --dry-run
 .venv/bin/python import_noaa_core.py --period 1950-present --limit 12
+.venv/bin/python import_noaa_core.py --period 2016-2026 --newest-first --dry-run
+.venv/bin/python import_noaa_core.py --period 2016-2026 --newest-first --limit 12
 ```
 
 Only complete calendar months are eligible. One month is imported per run by
@@ -133,6 +135,13 @@ do not change website output because all current reads still select
 at the latest complete month; use `--through YYYY-MM` to set an earlier bound.
 Default selection remains the two recorded edge periods, so a normal rerun
 does not unexpectedly begin the much larger full-history job.
+
+The current backfill priority is newest-first within January 2016–December
+2026. Use `--period 2016-2026 --newest-first` to work backward from the latest
+eligible month, skipping complete PostgreSQL months before applying the batch
+limit. Re-run the same command to continue toward January 2016. The 2026 end
+is still capped at the latest complete month; current and future months are
+never imported. Without `--newest-first`, selection remains oldest-first.
 
 Compare only rows already stored in PostgreSQL after importing review months:
 

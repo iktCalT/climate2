@@ -111,7 +111,14 @@ latest complete month while retaining the same bounded, resumable behavior;
 the default remains limited to the two recorded edge periods. The first thirteen
 live full-history batches atomically committed every month of 1954–1966,
 moving the local checkpoint from 92 of 920 to 248 of 920 complete months. The
-next bounded batch begins with January 1967.
+oldest missing month is January 1967. The owner has changed the current
+priority to newest-first within 2016–2026. The explicit `2016-2026` period
+with `--newest-first` skips complete months before applying the unchanged
+12-month limit and stops at the latest complete month, never after December
+2026 or before January 2016. Default selections and ordering are unchanged.
+The first reverse batch committed December–January 2022. Read-only checkpoint
+checks confirmed 56 of 128 recent-window months and 260 of 920 full-history
+months complete, with December–January 2021 next in the prioritized order.
 
 The read-only `compare_climate_providers.py` command now makes the activation
 evidence reproducible without contacting a provider or modifying PostgreSQL. A

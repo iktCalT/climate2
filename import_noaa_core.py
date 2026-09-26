@@ -20,6 +20,7 @@ from noaa_core import (
 CORE_PERIODS = {
     "1950-1953": (date(1950, 1, 1), date(1953, 12, 1)),
     "2023-2026": (date(2023, 1, 1), date(2026, 12, 1)),
+    "2016-2026": (date(2016, 1, 1), date(2026, 12, 1)),
     "1950-present": (date(1950, 1, 1), None),
 }
 DEFAULT_CORE_PERIODS = ("1950-1953", "2023-2026")
@@ -57,7 +58,9 @@ def months_between(start, end):
     return months
 
 
-def selected_months(periods=None, explicit_months=None, through=None, today=None):
+def selected_months(
+    periods=None, explicit_months=None, through=None, today=None, newest_first=False
+):
     """Return stable, unique, complete calendar months for one run."""
     latest = last_complete_month(today)
     if through is not None:
@@ -73,7 +76,7 @@ def selected_months(periods=None, explicit_months=None, through=None, today=None
             period_end = latest if end is None else min(end, latest)
             requested.extend(months_between(start, period_end))
 
-    unique = sorted(set(requested))
+    unique = sorted(set(requested), reverse=newest_first)
     invalid = [month for month in unique if month > latest]
     if invalid:
         raise ValueError(
@@ -91,11 +94,13 @@ def run(
     validate_only=False,
     timeout_seconds=60.0,
     retries=3,
+    newest_first=False,
 ):
     months = selected_months(
         periods=periods,
         explicit_months=explicit_months,
         through=through,
+        newest_first=newest_first,
     )
     with weather_db() as con:
         completed = completed_core_months(con, months)
@@ -186,6 +191,11 @@ def parse_args(argv=None):
         help="do not select period months after YYYY-MM",
     )
     parser.add_argument(
+        "--newest-first",
+        action="store_true",
+        help="process pending months newest to oldest (default: oldest first)",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=DEFAULT_MONTH_LIMIT,
@@ -237,6 +247,7 @@ def main(argv=None):
             validate_only=args.validate_only,
             timeout_seconds=args.timeout_seconds,
             retries=args.retries,
+            newest_first=args.newest_first,
         )
     except ValueError as error:
         print(f"Importer stopped: {error}")
