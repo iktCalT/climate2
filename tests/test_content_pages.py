@@ -22,7 +22,7 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b"NOAA CORe", response.data)
         self.assertIn(b"all 92 requested edge-period months", response.data)
         self.assertIn(b"explicit bounded full-history backfill", response.data)
-        self.assertIn(b"1954\xe2\x80\x931958", response.data)
+        self.assertIn(b"1954\xe2\x80\x931959", response.data)
         self.assertIn(b"never silently mixes reanalysis", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):
