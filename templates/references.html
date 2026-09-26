@@ -118,7 +118,13 @@
             backfill from January 1950 through the latest complete month; it
             does not change the active website provider. Its first thirteen live
             batches added all months of 1954–1966, bringing the implementation
-            checkpoint to 248 of 920 complete months, with 1967 next. A
+            checkpoint to 248 of 920 complete months. The current priority is
+            an explicit newest-first 2016–2026 backfill, skipping completed
+            months and excluding current or future months. It retains the
+            12-month maximum and month-atomic checkpoint. The first reverse
+            batch added all of 2022: 56 of 128 recent-window months and 260 of
+            920 full-history months are complete, with December–January 2021
+            next. The 2016–2021 portion remains pending. A
             read-only PostgreSQL report also
             compared all 8,281 canonical rows for January 1950, leap-month
             February 1952, and July 2023. Six bounded Open-Meteo requests also

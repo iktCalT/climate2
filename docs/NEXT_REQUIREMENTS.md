@@ -479,6 +479,38 @@ the footer renders the existing NOAA CORe source link when that value is
 `noaa_core` and otherwise keeps the current Open-Meteo and CMIP6 attribution.
 Tests cover both the U.S. viewport constants and the conditional NOAA footer.
 
+## 21. Newest-first NOAA backfill for 2016–2026
+
+**Status:** Implemented on 2026-09-26 at the owner's request; reverse backfill
+is in progress.
+
+Prioritize recent history instead of continuing the oldest-first middle-decade
+backfill. Add an explicit `2016-2026` period and opt-in `--newest-first` order
+so pending months run from the latest complete month of 2026 backward through
+January 2016. Skip already-complete PostgreSQL months before applying the batch
+limit. Keep chronological order and the two edge periods as the defaults,
+deduplicate overlapping selections, honor `--through`, and exclude incomplete
+or future months. Retain the one-month default, 12-month maximum, month-atomic
+writes, fail-fast validation, no-write dry runs, and unchanged active provider.
+
+The existing 2023–2026 checkpoint is already complete through August 2026, so
+the first missing reverse batch is expected to be December–January 2022.
+Record verified progress in the README and website; do not claim that the
+entire 2016–2026 range is complete until PostgreSQL confirms it. Reuse the
+existing NOAA citations and never publish database contents or credentials.
+
+The importer now supports the explicit period and ordering flag. Tests cover
+complete-month and period bounds, deduplication, the unchanged default order,
+skipping completed months before the limit, resume order, and a no-write CLI
+dry run. A live dry run confirmed 44 of 128 requested months complete and
+selected December–January 2022 as the first reverse batch.
+
+All 12 months of that batch validated and committed atomically in descending
+order. Follow-up dry runs confirmed 56 of 128 complete months in the requested
+2016–2026 window and 260 of 920 complete months overall. The next prioritized
+batch is December–January 2021; 2016–2021 remains pending. The original
+oldest-first selection still begins at January 1967 when explicitly used.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -501,3 +533,4 @@ Tests cover both the U.S. viewport constants and the conditional NOAA footer.
 18. Recover verified daily-extrema archive gaps from exact official 3-hourly extrema without approximation.
 19. Add an explicit, bounded, resumable NOAA backfill for January 1950 through the latest complete month.
 20. Open maps over the contiguous United States and make footer attribution follow the active provider.
+21. Prioritize NOAA backfill newest-first from 2026 through 2016, skipping complete months.
