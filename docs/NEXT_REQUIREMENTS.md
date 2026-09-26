@@ -430,6 +430,31 @@ months. A third bounded live run validated and atomically committed
 January–December 1956. The checkpoint is now 128 of 920 complete months, and
 the next resumable batch is January–December 1957.
 
+## 20. United States default map view and provider-accurate footer
+
+**Status:** Implemented on 2026-09-25. NOAA remains inactive, so the current
+footer still truthfully displays Open-Meteo and CMIP6.
+
+Open the interactive map over the contiguous United States instead of the
+current whole-world, zero-longitude view. Use one stable initial center and
+zoom for every map and comparison panel, while preserving the existing shared
+viewport synchronization, manual color scale, city-scale maximum zoom, and
+user-controlled pan and zoom behavior.
+
+Keep the footer attribution truthful to the provider used for live website
+reads. It must continue to identify Open-Meteo and CMIP6 while
+`open_meteo_cmip6` is active, but it must change to NOAA CORe when a separately
+recorded activation change switches the active provider to `noaa_core`. Reuse
+the NOAA source already cited in the README and References page; do not claim
+that NOAA powers the website before that provider switch is complete.
+
+All map and comparison panels now start at longitude -98.5, latitude 39.5,
+and zoom 3.25, framing the contiguous United States while retaining full
+pan/zoom freedom. Flask injects the active provider into the shared layout;
+the footer renders the existing NOAA CORe source link when that value is
+`noaa_core` and otherwise keeps the current Open-Meteo and CMIP6 attribution.
+Tests cover both the U.S. viewport constants and the conditional NOAA footer.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -451,3 +476,4 @@ the next resumable batch is January–December 1957.
 17. Generate a bounded, read-only CORe-versus-Open-Meteo comparison report before any activation decision.
 18. Recover verified daily-extrema archive gaps from exact official 3-hourly extrema without approximation.
 19. Add an explicit, bounded, resumable NOAA backfill for January 1950 through the latest complete month.
+20. Open maps over the contiguous United States and make footer attribution follow the active provider.
