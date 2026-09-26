@@ -116,9 +116,10 @@ priority to newest-first within 2016–2026. The explicit `2016-2026` period
 with `--newest-first` skips complete months before applying the unchanged
 12-month limit and stops at the latest complete month, never after December
 2026 or before January 2016. Default selections and ordering are unchanged.
-The first reverse batch committed December–January 2022. Read-only checkpoint
-checks confirmed 56 of 128 recent-window months and 260 of 920 full-history
-months complete, with December–January 2021 next in the prioritized order.
+The first two reverse batches committed all of 2021–2022 newest-first.
+Read-only checkpoint checks confirmed 68 of 128 recent-window months and
+272 of 920 full-history months complete, with December–January 2020 next in
+the prioritized order.
 
 The read-only `compare_climate_providers.py` command now makes the activation
 evidence reproducible without contacting a provider or modifying PostgreSQL. A
