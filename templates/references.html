@@ -118,13 +118,16 @@
             backfill from January 1950 through the latest complete month; it
             does not change the active website provider. Its first thirteen live
             batches added all months of 1954–1966, bringing the implementation
-            checkpoint to 248 of 920 complete months. The current priority is
-            an explicit newest-first 2016–2026 backfill, skipping completed
-            months and excluding current or future months. It retains the
+            checkpoint to 248 of 920 complete months. The former priority was
+            an explicit newest-first 2016–2026 backfill. That work retained the
             12-month maximum and month-atomic checkpoint. The first three reverse
             batches added all of 2020–2022: 80 of 128 recent-window months and
             284 of 920 full-history months are complete, with December–January
-            2019 next. The 2016–2019 portion remains pending. A
+            2019 formerly next. Routine acquisition now stops at the first and
+            last five years: 1950–1954 and 2022–2026, excluding incomplete months.
+            Administrators explicitly start bounded, resumable NOAA batches on
+            the Data page; existing rows are preserved and full-history fetching
+            is no longer a prerequisite. A
             read-only PostgreSQL report also
             compared all 8,281 canonical rows for January 1950, leap-month
             February 1952, and July 2023. Six bounded Open-Meteo requests also
@@ -133,11 +136,16 @@
             were material for precipitation and temperature extrema, so they
             are review evidence rather than automatic pass/fail thresholds.
             Open-Meteo and <code>open_meteo_cmip6</code> remain active pending
-            full-history coverage and a separate provider decision; the site
+            a separate validated provider decision; the site
             does not silently mix the reanalysis and two-model CMIP6 products.
             The shared footer follows that active-provider setting: it credits
             Open-Meteo and CMIP6 now and will display NOAA CORe only after an
             explicit activation switches live reads to <code>noaa_core</code>.
+            The inherited Open-Meteo cache has a known quality limitation: at
+            36°S, 104°W, January 2021 was stored near 52.37 °C, while a fresh
+            request through the current importer returned 18.81 °C. The same
+            suspect value exists in the legacy SQLite source; it has not been
+            repaired. Manual 2 °C-detail presets improve contrast, not accuracy.
         </aside>
     </section>
 
@@ -151,6 +159,8 @@
         </div>
         <div class="reference-grid reference-grid-three">
             {% set software = [
+                ("Python threading", "PSF-licensed standard library for bounded background administrator batches", "https://docs.python.org/3/library/threading.html"),
+                ("Node.js", "MIT-licensed runtime (with bundled notices) for dependency-free map-scale tests", "https://nodejs.org/"),
                 ("ECMWF ecCodes Python", "Apache-2.0 GRIB2 decoder for selected NOAA CORe records", "https://github.com/ecmwf/eccodes-python"),
                 ("Flask", "Python web framework", "https://flask.palletsprojects.com/en/stable/"),
                 ("Flask-Session", "Server-side user sessions", "https://flask-session.readthedocs.io/en/latest/"),

@@ -1,5 +1,14 @@
 # Climate provider evaluation
 
+**Current scope (2026-09-26):** acquisition is now administrator-managed for
+1950–1954 and 2022–2026, excluding incomplete months. This supersedes the
+full-history and reverse 2016–2026 backfill priorities recorded below.
+Both five-year windows are already complete through August 2026 (60 and 56
+months respectively). Existing middle-year rows remain intact. The active
+provider has not changed; a switch still requires separate validation, not
+completion of the full-history backfill. The inherited Open-Meteo ocean-cache
+anomaly documented on the References page remains unresolved.
+
 This document records the result of requirements 11 and 16 in
 [`NEXT_REQUIREMENTS.md`](NEXT_REQUIREMENTS.md). Research was updated on
 2026-09-24 using provider-owned documentation and direct inspection of NOAA's

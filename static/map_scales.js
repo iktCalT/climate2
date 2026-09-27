@@ -18,8 +18,20 @@ const PRECIPITATION_COLORS = {
     heaviest: "#08306b",
 };
 
+// Narrow, manually selected ranges amplify small absolute-temperature changes.
+// The stops are 2 °C apart; rendering remains continuous between stops.
+function detailTemperatureScale(id, label, min) {
+    const colors = ["#053061", "#2166ac", "#4393c3", "#67a9cf", "#d1e5f0",
+        "#f7f7f7", "#fee090", "#fdae61", "#f46d43", "#d73027", "#67001f"];
+    return {id, label, min, max: min + 20, unit: "°C",
+        stops: colors.map((color, index) => [min + index * 2, color])};
+}
+
 export const SCALE_PRESETS = {
     temperature: {
+        detail_cold: detailTemperatureScale("detail_cold", "Cold detail · −10 to 10 °C (2 °C stops)", -10),
+        detail_mild: detailTemperatureScale("detail_mild", "Mild detail · 0 to 20 °C (2 °C stops)", 0),
+        detail_warm: detailTemperatureScale("detail_warm", "Warm detail · 20 to 40 °C (2 °C stops)", 20),
         global: {
             id: "global",
             label: "Global extremes",

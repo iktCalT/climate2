@@ -180,3 +180,51 @@ class AdminRoleTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
         prefetch.assert_not_called()
+
+    def test_noaa_api_requires_current_admin_and_csrf(self):
+        with patch("app.start_import") as start, patch("app.import_status") as status:
+            self.assertEqual(self.client.get("/api/admin/import").status_code, 302)
+            user_id = self.create_user("member", False)
+            self.sign_in_as(user_id)
+            self.assertEqual(self.client.get("/api/admin/import").status_code, 403)
+            self.assertEqual(self.client.post("/api/admin/import", json={}).status_code, 403)
+            start.assert_not_called()
+            status.assert_not_called()
+            set_admin_status("member", True, self.user_database_path)
+            self.assertEqual(self.client.get("/admin/data").status_code, 200)
+            self.assertEqual(self.client.post("/api/admin/import", json={}).status_code, 403)
+            with self.client.session_transaction() as session:
+                token = session["import_csrf"]
+            start.return_value = {"started": True, "message": "Started"}
+            response = self.client.post("/api/admin/import", json={"window": "first", "limit": 1},
+                                        headers={"X-CSRF-Token": token})
+            self.assertEqual(response.status_code, 202)
+            start.assert_called_once_with("first", 1)
+            set_admin_status("member", False, self.user_database_path)
+            self.assertEqual(self.client.get("/api/admin/import").status_code, 403)
+
+    def test_noaa_api_reports_conflict_and_sanitizes_failures(self):
+        from admin_import import ImportBusy
+        self.sign_in_as(self.create_user("climateadmin", True))
+        self.client.get("/admin/data")
+        with self.client.session_transaction() as session:
+            token = session["import_csrf"]
+        with patch("app.start_import", side_effect=ImportBusy("Already running")):
+            self.assertEqual(self.client.post("/api/admin/import", json={"window": "first"},
+                headers={"X-CSRF-Token": token}).status_code, 409)
+        with patch("app.import_status", side_effect=RuntimeError("sensitive diagnostic")), self.assertLogs("app", "ERROR"):
+            response = self.client.get("/api/admin/import")
+        self.assertEqual(response.status_code, 503)
+        self.assertNotIn(b"sensitive diagnostic", response.data)
+
+    def test_noaa_invalid_window_and_limit_do_not_start_work(self):
+        self.sign_in_as(self.create_user("climateadmin", True))
+        self.client.get("/admin/data")
+        with self.client.session_transaction() as session:
+            token = session["import_csrf"]
+        with patch("admin_import._connect") as connect:
+            for payload in ({"window": "all"}, {"window": "first", "limit": 13},
+                            {"window": "last", "limit": True}, {"window": []}, []):
+                self.assertEqual(self.client.post("/api/admin/import", json=payload,
+                    headers={"X-CSRF-Token": token}).status_code, 400)
+            connect.assert_not_called()

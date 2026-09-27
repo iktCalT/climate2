@@ -20,10 +20,11 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b'href="/locations"', response.data)
         self.assertIn(b"Climate-model output", response.data)
         self.assertIn(b"NOAA CORe", response.data)
-        self.assertIn(b"all 92 requested edge-period months", response.data)
-        self.assertIn(b"explicit bounded full-history backfill", response.data)
-        self.assertIn(b"1954\xe2\x80\x931966", response.data)
-        self.assertIn(b"newest-first from 2026 through 2016", response.data)
+        self.assertIn(b"administrator-managed", response.data)
+        self.assertIn(b"1950\xe2\x80\x931954", response.data)
+        self.assertIn(b"2022\xe2\x80\x932026", response.data)
+        self.assertIn(b"2 \xc2\xb0C color stops", response.data)
+        self.assertIn(b"remain uncorrected", response.data)
         self.assertIn(b"never silently mixes reanalysis", response.data)
 
     def test_references_cover_data_stack_and_project_origin(self):

@@ -518,6 +518,47 @@ months and 284 of 920 full-history months complete. December–January 2019 is
 next; 2016–2019 remains pending. The original oldest-first selection still
 begins at January 1967 when explicitly used.
 
+## 22. Administrator-owned edge-window fetching and finer temperature scales
+
+**Status:** Implemented on 2026-09-26 at the owner's request. Supersedes the
+full-history and 2016–2026 backfill priorities above; preserve all saved rows.
+
+Stop spending development turns on manual year-by-year imports. Limit the
+current acquisition scope to the first and last five calendar years of the
+1950–2026 project: 1950–1954 and 2022–2026, through the latest complete month.
+Expose the existing NOAA fetching/validation functions through a reusable
+bounded service and an administrator-only frontend. An explicit click starts
+1–12 missing months in a background batch, not a long blocking HTTP request.
+Use a PostgreSQL advisory lock to reject overlapping administrator batches,
+persist safe job status, show coverage and progress, and allow a restart to
+resume from committed months after a failure or server restart. Require a
+session-bound CSRF token and check current administrator rights on every
+start/status request. Do not expose provider credentials or raw exceptions.
+Do not launch any real downloads merely to test the interface.
+
+Add manual 2°C-detail temperature presets over narrow 20°C ranges, retain
+existing presets/custom bounds and saved selections, and keep one shared
+scale across comparison maps. Explain clipping and that narrower colors do
+not increase measurement accuracy or repair the inherited suspicious ocean
+cache. Keep the active provider unchanged pending a separate validated switch;
+full-history completion is no longer an acquisition prerequisite. Shorten
+public-facing operational history into a clear data-status/limitations note.
+Keep broader saved history available; do not delete data or silently change
+date availability. Cite reused NOAA/software resources in README and References.
+
+Implemented `/admin/data` and its role-checked, CSRF-protected start/status API,
+reusing the NOAA monthly importer behind a PostgreSQL-locked background batch.
+The additive job-status table records safe progress; an unlocked stale running
+job is reported as interrupted and can resume manually. Existing CLI tools are
+retained, but must not run concurrently with the admin worker. Browser checks
+used an isolated account and disabled map fetching. Live read-only coverage
+checks confirmed 60/60 months for 1950–1954 and 56/56 for 2022–August 2026;
+neither window needed downloads. Tests cover lock conflicts, bounded selection,
+failure/resume status, authorization, CSRF, and saved manual scale persistence.
+Three narrow temperature presets now offer 2°C stops; comparisons still share
+one manually selected scale. Homepage and map copy explain the changed scope
+and the unresolved inherited ocean-cache limitation.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -541,3 +582,4 @@ begins at January 1967 when explicitly used.
 19. Add an explicit, bounded, resumable NOAA backfill for January 1950 through the latest complete month.
 20. Open maps over the contiguous United States and make footer attribution follow the active provider.
 21. Prioritize NOAA backfill newest-first from 2026 through 2016, skipping complete months.
+22. Replace manual backfill work with administrator-owned five-year edge-window batches and improve manual temperature-scale detail and website clarity.

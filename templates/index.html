@@ -65,7 +65,7 @@
             <p class="eyebrow">Compare directly</p>
             <h2>One scale, multiple months, synchronized views.</h2>
         </div>
-        <p>Choose two through four distinct months and move any panel to keep every viewport aligned. Temperature and precipitation comparisons share one preset or validated custom range, so identical colors always mean identical values. The local NOAA CORe checkpoint covers all 92 requested edge-period months, and its explicit bounded full-history backfill now covers 1954–1966 and 2020–2022. Backfill priority is now newest-first from 2026 through 2016, skipping saved months and excluding incomplete months. The recent-window checkpoint is 80 of 128 months complete, with December–January 2019 next; 2016–2019 remains pending. Open-Meteo stays active until full-history coverage and a separate provider decision are complete, so the site never silently mixes reanalysis with its two-model CMIP6 series.</p>
+        <p>Compare two through four months with synchronized views and one shared manual scale. Choose a temperature detail preset with 2 °C color stops, or set your own range. NOAA CORe fetching is now administrator-managed and limited to 1950–1954 and 2022–2026 through the latest complete month. Existing history stays available; the site never silently mixes reanalysis with CMIP6 model output.</p>
     </section>
 
     <section class="data-note text-start">
@@ -73,7 +73,7 @@
             <p class="eyebrow">Know the data</p>
             <h2>Climate-model output, not direct station observations.</h2>
         </div>
-        <p>Open-Meteo provides downscaled CMIP6 climate-model data. Use this site to explore broad patterns and modelled history, and review the sources and limitations before drawing conclusions.</p>
+        <p>Open-Meteo provides downscaled CMIP6 climate-model data, not observed weather for an exact date. Some inherited ocean temperatures disagree with fresh source checks and remain uncorrected. Finer colors cannot fix those values; review the limitations before drawing conclusions.</p>
         <a class="btn btn-climate-secondary" href="/references">Read references</a>
     </section>
 {% endblock %}
