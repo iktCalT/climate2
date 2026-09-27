@@ -101,6 +101,14 @@
             Open-Meteo states that past and recent values from this Climate API are model output used for validation—not direct measurements. Results should be treated as modelled climate information.
         </aside>
         <aside class="reference-callout">
+            Public Maps and Locations read saved active-provider data only and never
+            download missing climate values. Administrators control acquisition.
+            Missing coverage is not queued; spatial display estimates are labelled.
+            Location chart URLs follow the current data content, so a new page request
+            reflects imports or cleanup. Seasonal averages use available months and
+            may be incomplete. Old generated files are not automatically deleted.
+        </aside>
+        <aside class="reference-callout">
             Provider research selected NOAA CORe as the bulk import source. It
             is global from 1950 to near real time, available through
             anonymous HTTPS, and documented by NOAA as public domain. It is a
@@ -160,6 +168,7 @@
         <div class="reference-grid reference-grid-three">
             {% set software = [
                 ("Python threading", "PSF-licensed standard library for bounded background administrator batches", "https://docs.python.org/3/library/threading.html"),
+                ("Python hashlib", "PSF-licensed standard library; SHA-256 content keys prevent stale location chart reuse after imports or cleanup", "https://docs.python.org/3/library/hashlib.html"),
                 ("Node.js", "MIT-licensed runtime (with bundled notices) for dependency-free map-scale tests", "https://nodejs.org/"),
                 ("ECMWF ecCodes Python", "Apache-2.0 GRIB2 decoder for selected NOAA CORe records", "https://github.com/ecmwf/eccodes-python"),
                 ("Flask", "Python web framework", "https://flask.palletsprojects.com/en/stable/"),

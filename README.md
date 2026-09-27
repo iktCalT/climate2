@@ -3,12 +3,12 @@
 > [!IMPORTANT]
 > This repository is an AI-assisted refactor produced with [OpenAI Codex](https://openai.com/codex/) (GPT-5). It is derived from [iktCalT/climate](https://github.com/iktCalT/climate), which its human author implemented as a CS50 final project with substantial guidance from [ChatGPT](https://chatgpt.com/). Keep this work in the `climate2` fork; do not push these commits to the original repository.
 
-Climate is a Flask website for exploring modelled historical climate data. It reads weather values from a local PostgreSQL cache and asks the [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) for missing data before saving and displaying it.
+Climate is a Flask website for exploring modelled historical climate data. Public browsing reads saved values from a local PostgreSQL cache without contacting climate providers. Administrators manage acquisition separately; the active dataset is still [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) CMIP6 output.
 
 ## Current features
 
-- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month, and starts over the contiguous United States. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. The global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells. As the viewport shrinks, cell size decreases more slowly so fewer cells are displayed, stopping at 0.5-degree latitude by 1-degree longitude cells and city-scale zoom level 10. Tiles reuse direct or sufficiently nearby PostgreSQL observations without requiring the sample to match the tile or zoom center. A settled viewport requests at most one distributed batch of four locations that have no suitable cached neighbor and persists all four metrics for each location. Temporary estimates remain visibly distinguished from cached values in every comparison panel.
-- **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
+- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month, and starts over the contiguous United States. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. The global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells. As the viewport shrinks, cell size decreases more slowly so fewer cells are displayed, stopping at 0.5-degree latitude by 1-degree longitude cells and city-scale zoom level 10. Tiles reuse direct or sufficiently nearby PostgreSQL observations without requiring the sample to match the tile or zoom center. Public viewport requests never fetch missing climate cells. Missing coverage and display-only spatial estimates remain visibly distinguished from cached values in every comparison panel; nothing is queued for download.
+- **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. Only saved active-provider monthly values are read; gaps stay missing, with coverage counts and a clear empty state. Seasonal means use available months and may represent incomplete seasons. Rendered chart URLs are keyed to current data content so imports and cleanup are reflected on the next page request.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can start/resume bounded NOAA edge-window batches and view live coverage through `/admin/data`. The older Open-Meteo point-grid tool remains at `/update` for advanced use.
 - **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future NOAA CORe reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
 - **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. If a daily file omits both extrema, the importer may recover them only from all eight exact 0–3 hour extrema pairs in NOAA's official 3-hourly archive; any incomplete fallback rejects the month. PostgreSQL is the checkpoint, the default batch is one month, and full 1950–present selection is explicit rather than automatic.
@@ -31,8 +31,8 @@ coverage directly from PostgreSQL rather than relying on this dated snapshot.
 
 ```text
 Browser -> Flask -> provider-scoped PostgreSQL weather cache
-                    |
-                    +-- missing months/cells -> Open-Meteo -> PostgreSQL
+
+Administrator tools -> Open-Meteo or NOAA importer -> PostgreSQL
 
 NOAA CORe -> indexed GRIB2 importer -> PostgreSQL (`noaa_core`, inactive)
 
@@ -92,7 +92,7 @@ If you still have the legacy weather database, its non-personal climate rows can
 .venv/bin/python migrate_weather_sqlite.py static/weather.db
 ```
 
-The migration is optional and safe to rerun. Otherwise, the application gradually fills PostgreSQL from Open-Meteo as data is requested. PostgreSQL climate rows do not expire automatically, so a value cached yesterday is reused today; administrators can deliberately force an update. As a secondary safeguard, identical Open-Meteo HTTP responses are cached locally for seven days.
+The migration is optional and safe to rerun. Public browsing never fills PostgreSQL automatically: administrators use the existing Open-Meteo point-grid tool or NOAA importer for deliberate acquisition. NOAA rows remain separate and inactive. PostgreSQL climate rows do not expire automatically; administrators can deliberately update or clean them. Identical Open-Meteo responses used by acquisition tools are cached locally for seven days. Cache-only browsing removes climate-provider network waits, but database, chart rendering, and basemap/asset loading still take time. Sparse or empty views are expected where active-provider data has not been imported.
 
 To resumably fill the canonical global grid for 1950–1953 and 2023–2026,
 run a bounded batch repeatedly:
@@ -174,9 +174,10 @@ Cleanup shares the admin import lock, uses 2-second lock and 30-second statement
 timeouts, and rolls back SQL failures. Pause CLI imports before cleanup.
 Accounts, profiles, location definitions, downloaded files, and rendered caches
 are untouched. This is manual pruning, **not an enforced retention policy**:
-browsing removed dates or running import tools can refill the cache, potentially
-making the first request slower. Existing rendered charts may still show old
-data. Pruning alone is not a guarantee of faster indexed queries.
+public browsing no longer refills removed rows, but explicit import tools can.
+New location page requests use a chart URL based on current cached data; an
+already-open chart or a directly accessed old generated file can still show old
+values. Pruning alone is not a guarantee of faster indexed queries.
 
 The bounded SQL follows PostgreSQL's documented
 [batch DELETE pattern](https://www.postgresql.org/docs/18/sql-delete.html).
@@ -276,6 +277,7 @@ Current data and evaluated providers:
 Current application software and delivery services:
 
 - [Python threading](https://docs.python.org/3/library/threading.html) (Python Software Foundation licence) runs bounded background admin batches; no task-queue dependency was added.
+- [Python hashlib](https://docs.python.org/3/library/hashlib.html) (Python Software Foundation licence) creates SHA-256 data-content keys for location chart reuse without stale results after imports or cleanup.
 - [Node.js](https://nodejs.org/) runs the dependency-free map-scale tests (`node tests/test_map_scales.mjs`); Node is MIT-licensed with bundled third-party notices in its [licence](https://github.com/nodejs/node/blob/main/LICENSE).
 
 - [ECMWF ecCodes Python](https://github.com/ecmwf/eccodes-python) decodes the selected NOAA GRIB2 records and is distributed under Apache License 2.0. Its PyPI installation includes the binary ecCodes library on macOS and Linux.

@@ -42,8 +42,9 @@
         including the active Open-Meteo cache. Accounts, profiles, and location
         definitions are not changed.</p>
     <p>Back up the database first for exact recovery. Re-fetching may produce
-        revised values. Pause command-line imports before cleanup. Browsing other
-        dates may fetch removed rows again; this is not an automatic retention rule.</p>
+        revised values. Pause command-line imports before cleanup. Public browsing
+        does not refill removed rows; explicit import tools still can. This is not
+        an automatic retention rule.</p>
     <p class="small text-muted">Smaller storage does not guarantee faster queries.
         Database files may not shrink immediately; normal PostgreSQL maintenance
         reuses freed space. No disruptive full-database compaction runs here.</p>

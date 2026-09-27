@@ -278,16 +278,20 @@ def get_location_history(
     date_end,
     fields=("temp_mean", "precip"),
     con=None,
+    fetch_missing=True,
 ):
     """Serve cached history, fetching and storing only missing month ranges.
 
     Returns ``(history, fetched)`` where ``fetched`` reports whether Open-Meteo
-    was contacted. The returned data always comes from PostgreSQL.
+    was contacted. The returned data always comes from PostgreSQL. Public
+    browsing passes fetch_missing=False and retains missing months as NaN.
     """
     fields = tuple(fields)
     expected_months = _expected_months(date_start, date_end)
     with weather_db(con) as db:
         history = load_location_history(location, date_start, date_end, fields, con=db)
+        if not fetch_missing:
+            return history.reindex(expected_months), False
         missing_ranges = _missing_month_ranges(history, expected_months, fields)
         if not missing_ranges:
             return history.reindex(expected_months), False

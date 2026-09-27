@@ -16,8 +16,8 @@
             <h1>Explore climate history, one place or one map at a time.</h1>
             <p class="lead-copy">
                 Browse monthly temperature and precipitation from 1950 through the
-                current month. Climate checks begin in the local PostgreSQL cache and
-                fetch missing values from Open-Meteo when needed.
+                current month using saved PostgreSQL data only. Browsing never
+                downloads missing climate values; administrators manage imports separately.
             </p>
             <div class="d-flex flex-wrap gap-3">
                 <a class="btn btn-climate-primary" href="/maps">Open climate maps</a>
@@ -35,7 +35,7 @@
     <section class="home-facts" aria-label="Project highlights">
         <div><strong>1950 → now</strong><span>selectable months</span></div>
         <div><strong>4 variables</strong><span>temperature and precipitation</span></div>
-        <div><strong>Cache first</strong><span>PostgreSQL before API calls</span></div>
+        <div><strong>Saved data only</strong><span>No climate downloads while browsing</span></div>
     </section>
 
     <section class="feature-grid text-start">
@@ -55,7 +55,7 @@
             <div class="feature-number">02</div>
             <p class="eyebrow">Locations</p>
             <h2>Follow one coordinate through time</h2>
-            <p>Enter latitude and longitude to build a monthly history chart. Cached months load locally; gaps are fetched and saved for the next visit.</p>
+            <p>Enter latitude and longitude to build a seasonal history chart from saved monthly values. Missing months stay visibly unavailable rather than triggering downloads.</p>
             <a class="feature-link" href="/locations">Explore a coordinate <span aria-hidden="true">→</span></a>
         </article>
     </section>

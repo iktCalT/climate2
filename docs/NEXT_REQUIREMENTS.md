@@ -589,6 +589,40 @@ rollback and conflicts with the import lock. Browser verification used a
 disposable account with deletion disabled and verified live read-only counts
 and disabled deletion before confirmation. No application data was removed.
 
+## 24. Cache-only public browsing without hidden provider waits
+
+Status: Implemented.
+
+Problem: map requests still fetch missing cells synchronously, and location
+requests can download decades of missing history. This delays visitors and can
+silently refill data removed by cleanup. Following the owner's move to
+administrator-controlled acquisition, make public Maps and Locations read only
+the existing active-provider PostgreSQL cache. Keep administrator and CLI
+fetching available and keep provider identity and manual comparison scales
+unchanged. Do not restrict access to already saved historical dates or switch
+to NOAA as part of this change. Missing data must remain visibly unavailable,
+not queued for an automatic fetch; spatial display estimates remain labelled.
+
+Locations should show missing-month coverage and an empty-state message rather
+than fetching or displaying an old cached chart. Key rendered chart files to
+their current data content so an import or cleanup cannot leave a stale chart
+on the next page request. Do not remove old files or climate rows. Seasonal
+means still use available months; explicitly disclose incomplete seasons.
+Update README and website descriptions/citations and test that public requests
+never invoke acquisition, including empty caches and caller-supplied fetch flags.
+This removes provider-network waits, not a promise of constant query latency.
+
+Public routes now enforce cache-only reads regardless of caller fetch flags.
+The reusable history helper retains explicit acquisition support for non-public
+tools. Location pages report any-value/all-field monthly coverage, never render
+a stale chart for empty data, and use SHA-256 content-keyed render names. Updated
+map status replaces misleading pending-download wording. The active provider,
+US initial view, and shared manual scales are unchanged. Full regression tests
+ran in a disposable PostgreSQL schema, not the application tables. Read-only
+local map/populated-location/empty-location requests took roughly 13–89 ms in
+one smoke check with acquisition blocked; this is not a general benchmark.
+No application climate rows were deleted or downloaded during this change.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -614,3 +648,4 @@ and disabled deletion before confirmation. No application data was removed.
 21. Prioritize NOAA backfill newest-first from 2026 through 2016, skipping complete months.
 22. Replace manual backfill work with administrator-owned five-year edge-window batches and improve manual temperature-scale detail and website clarity.
 23. Add previewable, explicitly confirmed administrator cleanup outside the retained five-year windows.
+24. Remove hidden climate-provider downloads from public browsing and make missing/stale-data states explicit.
