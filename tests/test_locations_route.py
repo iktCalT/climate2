@@ -28,7 +28,7 @@ class LocationsRouteTests(unittest.TestCase):
         app.config.update(TESTING=True)
         self.client = app.test_client()
 
-    def test_history_is_drawn_after_a_cache_miss(self):
+    def test_saved_history_is_drawn_without_requesting_downloads(self):
         history = pd.DataFrame(
             {
                 "temp_mean": [10.0],
@@ -38,12 +38,13 @@ class LocationsRouteTests(unittest.TestCase):
             },
             index=pd.to_datetime(["1951-01-01"]),
         )
-        with patch("app.get_location_history", return_value=(history, True)) as load:
+        with patch("app.get_location_history", return_value=(history, False)) as load:
             with patch("app.draw_chart") as draw:
                 response = self.client.get("/locations?latitude=1&longitude=2")
 
         self.assertEqual(response.status_code, 200)
         load.assert_called_once()
+        self.assertIs(load.call_args.kwargs["fetch_missing"], False)
         self.assertEqual(load.call_args.kwargs["date_start"], "1951-01-01")
         self.assertEqual(
             load.call_args.kwargs["fields"],
@@ -95,10 +96,53 @@ class LocationsRouteTests(unittest.TestCase):
 
     def test_map_api_returns_viewport_geojson(self):
         payload = {"type": "FeatureCollection", "features": [], "metadata": {"step": 4, "fetched": 0, "missing": 0}}
-        with patch("app.viewport_geojson", return_value=payload):
-            response = self.client.get("/api/map-data?month=1950-01&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2")
+        with patch("app.viewport_geojson", return_value=payload) as viewport:
+            response = self.client.get("/api/map-data?month=1950-01&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2&fetch_missing=true")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json["type"], "FeatureCollection")
+        self.assertIs(viewport.call_args.kwargs["fetch_missing"], False)
+
+    def test_empty_location_shows_no_stale_chart_and_no_download(self):
+        history = pd.DataFrame(float("nan"), index=pd.date_range("2022-01-01", periods=3, freq="MS"),
+                               columns=["temp_mean", "temp_max", "temp_min", "precip"])
+        with (patch("app.get_location_history", return_value=(history, False)) as load,
+              patch("app.os.path.isfile", return_value=True), patch("app.draw_chart") as draw):
+            response = self.client.get("/locations?latitude=0&longitude=0&fetch_missing=true")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"No saved climate data", response.data)
+        self.assertIn(b"0 of 3 months", response.data)
+        self.assertNotIn(b"<iframe", response.data)
+        self.assertIs(load.call_args.kwargs["fetch_missing"], False)
+        draw.assert_not_called()
+
+    def test_chart_url_changes_when_values_or_coverage_change(self):
+        original = pd.DataFrame({"temp_mean": [10., 11.], "temp_max": [15., 16.],
+                                 "temp_min": [5., 6.], "precip": [2., 3.]},
+                                index=pd.to_datetime(["2022-01-01", "2022-02-01"]))
+        updated = original.copy()
+        updated.iloc[0, 0] = 10.5
+        pruned = original.copy()
+        pruned.iloc[0] = float("nan")
+        names = []
+        for history in (original, updated, pruned):
+            with (patch("app.get_location_history", return_value=(history, False)),
+                  patch("app.os.path.isfile", return_value=False), patch("app.draw_chart") as draw):
+                response = self.client.get("/locations?latitude=1&longitude=2")
+            self.assertEqual(response.status_code, 200)
+            names.append(draw.call_args.kwargs["filename"])
+        self.assertEqual(len(set(names)), 3)
+        self.assertIn(b"1 of 2 months", response.data)
+
+    def test_empty_map_cache_never_invokes_provider(self):
+        with (patch("map_data.weather_db"),
+              patch("map_data._query_weather_rows", return_value=[]),
+              patch("map_data._fetch_missing_cells", side_effect=AssertionError("download forbidden")) as fetch):
+            response = self.client.get("/api/map-data?month=1950-01&climate_type=temp_mean&south=0&west=0&north=1&east=1&zoom=5")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["features"], [])
+        self.assertTrue(response.json["metadata"]["cache_only"])
+        self.assertGreater(response.json["metadata"]["missing"], 0)
+        fetch.assert_not_called()
 
     def test_maps_and_api_accept_the_current_month(self):
         with patch("app.latest_map_month", return_value="2026-08"):
@@ -374,7 +418,9 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b'panel.map.setProjection({type: "mercator"})', response.data)
         self.assertIn(b"FullscreenControl", response.data)
         self.assertIn(b"panel.map.addControl(new FullscreenControl())", response.data)
-        self.assertIn(b"loaded from PostgreSQL before this batch", response.data)
+        self.assertIn(b"no climate downloads", response.data)
+        self.assertIn(b"without cached coverage", response.data)
+        self.assertNotIn(b"refresh pending", response.data)
         self.assertIn(b"nearby-cache cells", response.data)
         self.assertIn(b"metadata.rows", response.data)
         self.assertIn(b"Open-Meteo CMIP6", response.data)

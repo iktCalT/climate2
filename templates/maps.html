@@ -22,6 +22,9 @@
             </p>
         {% endif %}
         <p class="text-muted">The initial view opens over the contiguous United States; pan or zoom anywhere within the supported world bounds.</p>
+        <p class="small text-muted">Saved climate data only: browsing never downloads missing cells.
+            Unavailable cells are not queued; any display-only spatial estimates are labelled.
+            Administrators manage imports separately.</p>
         <section class="map-scale-panel" aria-labelledby="map-scale-heading">
             <div class="map-scale-header">
                 <div>
@@ -340,11 +343,11 @@
                         `${metadata.tiles} cells`,
                         `${metadata.rows} × ${metadata.columns} grid`,
                         `${formatStep(metadata.latitude_step)}° × ${formatStep(metadata.longitude_step)}°`,
-                        `${metadata.cached} loaded from PostgreSQL before this batch`,
+                        "Saved data only · no climate downloads",
                         `${metadata.direct} direct cells`,
                         `${metadata.reused_nearby} nearby-cache cells`,
-                        `${metadata.fetched} newly fetched from Open-Meteo`,
-                        `${metadata.missing} pending`,
+                        `${metadata.missing} without cached coverage`,
+                        data.features.length === 0 ? "No saved climate data for this view and month" : "",
                     ].filter(Boolean).join(" · ");
                 } catch (error) {
                     if (error.name !== "AbortError") {
@@ -392,7 +395,7 @@
                         const labels = {
                             direct_cache: "Direct PostgreSQL observation",
                             nearby_cache: "Reused nearby PostgreSQL observation",
-                            display_estimate: "Display-only nearest estimate (refresh pending)",
+                            display_estimate: "Display-only nearest estimate (no cached coverage; not queued)",
                         };
                         const label = labels[properties.source] || "Climate observation";
                         new Popup()

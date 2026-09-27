@@ -157,6 +157,21 @@ class PostgreSQLWeatherTests(unittest.TestCase):
 
 
 class ConfigurationTests(unittest.TestCase):
+    def test_cache_only_history_preserves_gaps_without_acquisition(self):
+        saved = pd.DataFrame({"temp_mean": [10.], "precip": [None]},
+                             index=pd.to_datetime(["2022-02-01"]))
+        with (patch("helpers_data.weather_db"),
+              patch("helpers_data.load_location_history", return_value=saved) as load,
+              patch("helpers_data.get_data", side_effect=AssertionError("download forbidden")) as fetch):
+            history, fetched = get_location_history((1, 2), "2022-01-01", "2022-03-31", fetch_missing=False)
+        self.assertFalse(fetched)
+        self.assertEqual(len(history), 3)
+        self.assertTrue(history.loc["2022-01-01"].isna().all())
+        self.assertEqual(history.loc["2022-02-01", "temp_mean"], 10.)
+        self.assertTrue(pd.isna(history.loc["2022-02-01", "precip"]))
+        fetch.assert_not_called()
+        load.assert_called_once()
+
     def test_missing_database_url_uses_local_default(self):
         original = os.environ.pop("DATABASE_URL", None)
         try:

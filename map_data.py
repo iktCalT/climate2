@@ -400,5 +400,6 @@ def viewport_geojson(
             "columns": len(lon_edges) - 1,
             "tiles": len(cells),
             "provider": ACTIVE_CLIMATE_PROVIDER,
+            "cache_only": not fetch_missing,
         },
     }

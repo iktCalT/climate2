@@ -6,13 +6,13 @@
 
 {% block main %}
 
-    {% if filename %}
+    {% if lat is defined %}
         <div class="row">
             <div class="col"></div>
             <div class="col">
                 <p class="text-center fs-3">Latitude: {{ lat }}°N</p>
                 <p class="text-center fs-3">Longitude: {{ lon }}°E</p>
-                <p class="text-center text-muted small">Refreshing rechecks PostgreSQL and only contacts Open-Meteo if a month or field is missing.</p>
+                <p class="text-center text-muted small">Refreshing rechecks PostgreSQL. Browsing never downloads climate data.</p>
             </div>
             <div class="col my-auto">
                 <form action="/locations" method="get">
@@ -20,14 +20,26 @@
                 </form>
             </div>
         </div>
-        <iframe src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px" 
+        <p role="status">{{ available_months }} of {{ total_months }} months have saved values;
+            {{ complete_months }} have all four fields. Missing data is not queued for download.</p>
+        {% if filename %}
+        <p class="small text-muted">Seasonal means use the available cached months and may represent incomplete seasons.
+            Gaps are not filled with newly downloaded data.</p>
+        <iframe title="Cached seasonal climate history" src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px"
         class="my-3" style="border:none;"></iframe>
+        {% else %}
+        <div class="alert alert-info" role="status">No saved climate data for these exact coordinates.
+            Try another location or ask an administrator to import data for the active provider.
+            No external climate request was made.</div>
+        {% endif %}
         
     {% else %}
         <form action="/locations" method="get" class="mx-auto" style="width:60%">
             <div class="mb-3 row">
                 <h5>Explore a location from 1951 through the current month</h5>
-                <p class="text-muted">Enter coordinates to chart modelled mean, maximum, and minimum temperature with precipitation. PostgreSQL is checked first; only missing months or fields are fetched from Open-Meteo and saved.</p>
+                <p class="text-muted">Enter coordinates to chart saved modelled mean, maximum, and minimum temperature with precipitation.
+                    Only the active provider's PostgreSQL cache is read. Missing months stay unavailable;
+                    administrators manage data imports separately.</p>
                 <div class="form-group col-sm-6">
                     <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
                     <input autocomplete="off" class="form-control ms-auto w-100" name="latitude"

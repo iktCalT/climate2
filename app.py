@@ -2,6 +2,7 @@ import os
 import numpy as np
 import sqlite3
 import secrets
+import hashlib
 
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -23,7 +24,7 @@ DEFAULT_MAP_DATA_TYPE = "temp_mean"
 FIRST_DAY_MAP_FALLBACK_HOURS = 6
 START = "1950-01"
 LOCATION_HISTORY_START = "1951-01-01"
-LOCATION_CHART_VERSION = "v4"
+LOCATION_CHART_VERSION = "v5"
 MAX_ADMIN_PREFETCH_POINTS = 100
 ALLOWED_PROFILE_IMAGE_EXTENSIONS = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
 
@@ -137,20 +138,34 @@ def locations():
     
     strlat = f"{lat:.2f}"
     strlon = f"{lon:.2f}"
-    filename = f"location_data/{LOCATION_CHART_VERSION}_{strlat}_{strlon}.html"
     try:
-        data, fetched = get_location_history(
+        data, _ = get_location_history(
             location=(lat, lon),
             date_start=LOCATION_HISTORY_START,
             date_end=datetime.today().strftime("%Y-%m-%d"),
             fields=tuple(DATA_TYPES),
+            fetch_missing=False,
         )
-    except RuntimeError:
+    except Exception:
+        app.logger.exception("Cached location history unavailable")
         return apology("Climate data is temporarily unavailable", 503)
-    if fetched or not os.path.isfile("static/" + filename):
-        draw_chart(lat, lon, data, filename=filename.split("/")[1])
+    available_months = int(data.notna().any(axis=1).sum())
+    complete_months = int(data.notna().all(axis=1).sum())
+    filename = None
+    if available_months:
+        # Data and coordinates identify the chart, so cleanup/imports invalidate
+        # an old render without deleting files or trusting a stale file's mtime.
+        content = f"{lat!r},{lon!r},{ACTIVE_CLIMATE_PROVIDER}:" + data.to_json(
+            orient="split", date_format="iso", double_precision=15
+        )
+        digest = hashlib.sha256(content.encode()).hexdigest()
+        filename = f"location_data/{LOCATION_CHART_VERSION}_{strlat}_{strlon}_{digest}.html"
+        if not os.path.isfile("static/" + filename):
+            draw_chart(lat, lon, data, filename=filename.split("/")[1])
     return render_template(
-        "locations.html", imgname=imgname, lat=lat, lon=lon, filename=filename
+        "locations.html", imgname=imgname, lat=lat, lon=lon, filename=filename,
+        available_months=available_months, complete_months=complete_months,
+        total_months=len(data),
     )
 
 
@@ -272,7 +287,7 @@ def map_data():
         return jsonify(error="Unsupported month or climate type"), 400
     try:
         return jsonify(
-            viewport_geojson(month, climate_type, south, west, north, east, zoom)
+            viewport_geojson(month, climate_type, south, west, north, east, zoom, fetch_missing=False)
         )
     except ValueError as error:
         return jsonify(error=str(error)), 400
