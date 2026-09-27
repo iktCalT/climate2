@@ -32,9 +32,34 @@
     <p id="import-message" class="mt-3" role="status" aria-live="polite"></p>
     <p class="small text-muted">The app server must stay running. You may close this
         page while it works. If the server restarts, return here and resume;
-        already committed months remain saved. This tool never deletes data.</p>
+        already committed months remain saved. Fetching never deletes data.</p>
     <a href="/references">NOAA source, licence, and data limitations</a>
 </form>
+<section class="text-start mx-auto mt-5" style="max-width:640px" aria-labelledby="cleanup-title">
+    <h2 id="cleanup-title">Keep a smaller climate cache</h2>
+    <p>Keep <strong>1950–1954 and 2022–2026</strong>. Cleanup permanently removes
+        climate rows outside those years from <strong>every provider</strong>,
+        including the active Open-Meteo cache. Accounts, profiles, and location
+        definitions are not changed.</p>
+    <p>Back up the database first for exact recovery. Re-fetching may produce
+        revised values. Pause command-line imports before cleanup. Browsing other
+        dates may fetch removed rows again; this is not an automatic retention rule.</p>
+    <p class="small text-muted">Smaller storage does not guarantee faster queries.
+        Database files may not shrink immediately; normal PostgreSQL maintenance
+        reuses freed space. No disruptive full-database compaction runs here.</p>
+    <button id="cleanup-preview" class="btn btn-climate-secondary" type="button">Preview cleanup (no deletion)</button>
+    <ul id="cleanup-counts" class="mt-3"></ul>
+    <form id="cleanup-form">
+        <div class="form-check my-3">
+            <input id="cleanup-confirm" type="checkbox" class="form-check-input" required disabled>
+            <label for="cleanup-confirm" class="form-check-label">I have backed up what I need and confirm permanent deletion outside 1950–1954 and 2022–2026.</label>
+        </div>
+        <button id="cleanup-delete" class="btn btn-danger" type="submit" disabled>Delete up to 50,000 rows</button>
+    </form>
+    <p id="cleanup-message" class="mt-3" role="status" aria-live="polite"></p>
+    <p class="small">Each click deletes only one batch. Preview and confirm again
+        to continue; there is no automatic deletion loop. Preview expires after 10 minutes.</p>
+</section>
 <script type="module">
     const token = {{ csrf_token | tojson }};
     const form = document.getElementById("import-form");
@@ -102,6 +127,61 @@
     });
     document.getElementById("import-refresh").addEventListener("click", refresh);
     window.addEventListener("pagehide", () => clearTimeout(timer));
+    const previewButton = document.getElementById("cleanup-preview");
+    const deleteButton = document.getElementById("cleanup-delete");
+    const confirmation = document.getElementById("cleanup-confirm");
+    const cleanupMessage = document.getElementById("cleanup-message");
+    let previewToken = null;
+    function resetCleanup() {
+        previewToken = null;
+        confirmation.checked = false;
+        confirmation.disabled = true;
+        deleteButton.disabled = true;
+    }
+    previewButton.addEventListener("click", async () => {
+        resetCleanup();
+        previewButton.disabled = true;
+        document.getElementById("cleanup-counts").replaceChildren();
+        cleanupMessage.textContent = "Counting climate rows… No data is being deleted.";
+        try {
+            const data = await readResponse(await fetch("/api/admin/cleanup", {cache: "no-store"}));
+            document.getElementById("cleanup-counts").replaceChildren(...data.providers.map(row => {
+                const item = document.createElement("li");
+                item.textContent = `${row.provider}: keep ${row.kept.toLocaleString()} rows; remove ${row.removable.toLocaleString()} rows.`;
+                return item;
+            }));
+            previewToken = data.preview_token;
+            confirmation.disabled = data.removable === 0;
+            cleanupMessage.textContent = data.removable ? "Review the counts and confirm one deletion batch below. Counts can change with concurrent activity." : "Nothing to clean up.";
+        } catch (error) {
+            cleanupMessage.textContent = error.message;
+        } finally {
+            previewButton.disabled = false;
+        }
+    });
+    confirmation.addEventListener("change", () => {
+        deleteButton.disabled = !previewToken || !confirmation.checked;
+    });
+    document.getElementById("cleanup-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        if (!previewToken || !confirmation.checked || deleteButton.disabled) return;
+        const selectedToken = previewToken;
+        resetCleanup();
+        previewButton.disabled = true;
+        cleanupMessage.textContent = "Cleaning one bounded batch…";
+        try {
+            const data = await readResponse(await fetch("/api/admin/cleanup", {
+                method: "POST", headers: {"Content-Type": "application/json", "X-CSRF-Token": token},
+                body: JSON.stringify({confirm: true, preview_token: selectedToken}),
+            }));
+            cleanupMessage.textContent = `Deleted ${data.deleted.toLocaleString()} climate rows outside the retained years. Preview again for updated counts. Exact recovery requires your backup.`;
+        } catch (error) {
+            cleanupMessage.textContent = error.message + " Preview again before retrying.";
+        } finally {
+            previewButton.disabled = false;
+            await refresh();
+        }
+    });
     refresh();
 </script>
 {% endblock %}

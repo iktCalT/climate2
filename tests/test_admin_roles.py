@@ -72,6 +72,61 @@ class AdminRoleTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertFalse(is_admin)
 
+    def test_cleanup_requires_current_admin_and_csrf(self):
+        with patch("app.cleanup_preview") as preview, patch("app.cleanup_batch") as delete:
+            self.assertEqual(self.client.get("/api/admin/cleanup").status_code, 302)
+            self.sign_in_as(self.create_user("member", False))
+            self.assertEqual(self.client.get("/api/admin/cleanup").status_code, 403)
+            self.assertEqual(self.client.post("/api/admin/cleanup", json={}).status_code, 403)
+            self.sign_in_as(self.create_user("admin", True))
+            self.assertEqual(self.client.post("/api/admin/cleanup", json={}).status_code, 403)
+            preview.assert_not_called()
+            delete.assert_not_called()
+
+    def test_cleanup_needs_preview_confirmation_and_cannot_replay(self):
+        self.sign_in_as(self.create_user("admin", True))
+        self.client.get("/admin/data")
+        with self.client.session_transaction() as flask_session:
+            csrf = flask_session["import_csrf"]
+        headers = {"X-CSRF-Token": csrf}
+        with (patch("app.cleanup_preview", return_value={"removable": 10}) as preview,
+              patch("app.cleanup_batch", return_value={"deleted": 10}) as delete):
+            self.assertEqual(self.client.post("/api/admin/cleanup", json={"confirm": True}, headers=headers).status_code, 400)
+            data = self.client.get("/api/admin/cleanup").get_json()
+            delete.assert_not_called()
+            payload = {"preview_token": data["preview_token"], "confirm": False}
+            self.assertEqual(self.client.post("/api/admin/cleanup", json=payload, headers=headers).status_code, 400)
+            payload["confirm"] = True
+            self.assertEqual(self.client.post("/api/admin/cleanup", json=payload, headers=headers).get_json()["deleted"], 10)
+            self.assertEqual(self.client.post("/api/admin/cleanup", json=payload, headers=headers).status_code, 400)
+            delete.assert_called_once()
+
+    def test_cleanup_expired_preview_and_revoked_admin_are_rejected(self):
+        user_id = self.create_user("admin", True)
+        self.sign_in_as(user_id)
+        with self.client.session_transaction() as flask_session:
+            flask_session["import_csrf"] = "test-csrf"
+            flask_session["cleanup_preview"] = ["test-preview", 0]
+        with patch("app.cleanup_batch") as delete:
+            self.assertEqual(self.client.post("/api/admin/cleanup", json={"confirm": True, "preview_token": "test-preview"}, headers={"X-CSRF-Token": "test-csrf"}).status_code, 400)
+            set_admin_status("admin", False, self.user_database_path)
+            self.assertEqual(self.client.get("/api/admin/cleanup").status_code, 403)
+            delete.assert_not_called()
+
+    def test_cleanup_errors_are_sanitized(self):
+        from admin_import import ImportBusy
+        self.sign_in_as(self.create_user("admin", True))
+        self.client.get("/admin/data")
+        with self.client.session_transaction() as flask_session:
+            csrf = flask_session["import_csrf"]
+        with patch("app.cleanup_preview", return_value={"removable": 10}):
+            for error, status in [(ImportBusy("Busy"), 409), (RuntimeError("private connection details"), 503)]:
+                token = self.client.get("/api/admin/cleanup").get_json()["preview_token"]
+                with patch("app.cleanup_batch", side_effect=error):
+                    response = self.client.post("/api/admin/cleanup", json={"confirm": True, "preview_token": token}, headers={"X-CSRF-Token": csrf})
+                self.assertEqual(response.status_code, status)
+                self.assertNotIn(b"private connection details", response.data)
+
     def test_role_management_requires_an_existing_user(self):
         user_id = self.create_user("member", False)
 

@@ -16,6 +16,7 @@ from helpers import apology, draw_chart, is_valid_month, is_valid_username, logi
 from helpers_data import get_data_locations, get_location_history
 from map_data import viewport_geojson
 from admin_import import ImportBusy, import_status, start_import
+from admin_cleanup import cleanup_preview, cleanup_batch
 
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 DEFAULT_MAP_DATA_TYPE = "temp_mean"
@@ -439,6 +440,41 @@ def admin_import_api():
     except Exception:
         app.logger.exception("Administrator import status unavailable")
         return jsonify(error="Status unavailable. Check PostgreSQL and run database setup."), 503
+
+
+@app.route("/api/admin/cleanup", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_cleanup_api():
+    if request.method == "GET":
+        session.pop("cleanup_preview", None)
+        try:
+            result = cleanup_preview()
+            token = secrets.token_urlsafe(32)
+            session["cleanup_preview"] = [token, datetime.now(timezone.utc).timestamp()]
+            return jsonify({**result, "preview_token": token})
+        except Exception:
+            app.logger.exception("Administrator cleanup preview failed")
+            return jsonify(error="Cleanup preview unavailable. No data was deleted."), 503
+    token = request.headers.get("X-CSRF-Token", "")
+    expected = session.get("import_csrf")
+    if not expected or not secrets.compare_digest(token.encode(), expected.encode()):
+        return jsonify(error="Reload the administrator page before cleanup."), 403
+    payload = request.get_json(silent=True)
+    preview = session.get("cleanup_preview")
+    if (not isinstance(payload, dict) or payload.get("confirm") is not True
+            or not preview or not isinstance(payload.get("preview_token"), str)
+            or not secrets.compare_digest(payload["preview_token"].encode(), preview[0].encode())
+            or not 0 <= datetime.now(timezone.utc).timestamp() - preview[1] <= 600):
+        return jsonify(error="Preview cleanup again and confirm the permanent deletion."), 400
+    session.pop("cleanup_preview", None)
+    try:
+        return jsonify(cleanup_batch())
+    except ImportBusy as error:
+        return jsonify(error=str(error)), 409
+    except Exception:
+        app.logger.exception("Administrator cleanup failed")
+        return jsonify(error="Cleanup could not be confirmed. Preview current counts before retrying."), 503
 
 
 @app.route("/update", methods=["GET", "POST"])
