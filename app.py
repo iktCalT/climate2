@@ -18,6 +18,7 @@ from helpers_data import get_data_locations, get_location_history
 from map_data import viewport_geojson
 from admin_import import ImportBusy, import_status, start_import
 from admin_cleanup import cleanup_preview, cleanup_batch
+from cache_availability import saved_map_months
 
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 DEFAULT_MAP_DATA_TYPE = "temp_mean"
@@ -231,18 +232,28 @@ def maps():
     imgname = current_image_name()
     show_selector = request.args.get("select") == "1"
 
-    if show_selector and not months and not data_type:
-        return render_template(
-            "maps.html",
-            imgname=imgname,
-            data_types=DATA_TYPES,
-            start=START,
-            end=latest_month,
-        )
-
+    initial_saved_month = False
     if not months and not data_type:
-        months = [default_map_month()]
+        availability_error = None
+        try:
+            saved_months = saved_map_months(START, latest_month)
+        except Exception:
+            app.logger.exception("Saved map month discovery failed")
+            saved_months = []
+            availability_error = "Saved dates could not be checked. You can still enter a month manually."
+        stable_month = min(latest_month, default_map_month())
+        eligible = [row["month"] for row in saved_months
+                    if row["counts"][DEFAULT_MAP_DATA_TYPE] > 0 and row["month"] <= stable_month]
+        if show_selector or not eligible:
+            return render_template(
+                "maps.html", imgname=imgname, data_types=DATA_TYPES,
+                start=START, end=latest_month, saved_months=saved_months,
+                availability_error=availability_error,
+                no_default=not eligible and not show_selector and not availability_error,
+            )
+        months = [max(eligible)]
         data_type = DEFAULT_MAP_DATA_TYPE
+        initial_saved_month = True
     elif not months or not data_type:
         return apology("Month and climate data type are both required", 400)
 
@@ -267,6 +278,7 @@ def maps():
         comparison=len(months) > 1,
         start=START,
         end=latest_month,
+        initial_saved_month=initial_saved_month,
     )
 
 
