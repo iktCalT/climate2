@@ -9,7 +9,7 @@ Climate is a Flask website for exploring modelled historical climate data. It re
 
 - **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows mean temperature for the newest stable month by default, falling back to the previous month during the first six UTC hours of a new month, and starts over the contiguous United States. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. The global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells. As the viewport shrinks, cell size decreases more slowly so fewer cells are displayed, stopping at 0.5-degree latitude by 1-degree longitude cells and city-scale zoom level 10. Tiles reuse direct or sufficiently nearby PostgreSQL observations without requiring the sample to match the tile or zoom center. A settled viewport requests at most one distributed batch of four locations that have no suitable cached neighbor and persists all four metrics for each location. Temporary estimates remain visibly distinguished from cached values in every comparison panel.
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. PostgreSQL is checked first, and only missing monthly ranges are fetched.
-- **Accounts:** visitors and normal registered users can browse climate data. Administrators can pre-fetch a validated grid of at most 100 locations through `/update`.
+- **Accounts:** visitors and normal registered users can browse climate data. Administrators can start/resume bounded NOAA edge-window batches and view live coverage through `/admin/data`. The older Open-Meteo point-grid tool remains at `/update` for advanced use.
 - **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future NOAA CORe reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
 - **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. If a daily file omits both extrema, the importer may recover them only from all eight exact 0–3 hour extrema pairs in NOAA's official 3-hourly archive; any incomplete fallback rejects the month. PostgreSQL is the checkpoint, the default batch is one month, and full 1950–present selection is explicit rather than automatic.
 - **Read-only provider review:** `compare_climate_providers.py` compares up to 12 imported months against the active Open-Meteo rows already in PostgreSQL. It reports canonical-grid coverage, per-metric deltas, and stable land, ocean, polar, and dateline samples as Markdown without contacting either provider, writing the database, or switching the website.
@@ -20,7 +20,12 @@ The shared footer follows the active climate provider. It currently credits Open
 
 ## Provider status
 
-- **NOAA CORe backfill:** the local PostgreSQL checkpoint contains all 92 requested edge-period months across 1950–1953 and 2023–2026, with 8,281 canonical rows and all four metrics per month. May 2026 live validation exercised the exact 3-hourly extrema fallback for NOAA's missing May 19 daily extrema. An opt-in `1950-present` period makes the missing middle decades resumable in the same bounded batches; live batches have added all months of 1954–1966 and 2020–2022 and brought the checkpoint to 284/920 complete months, with January 1967 the oldest gap. Current priority is now newest-first within 2016–2026, skipping already-complete months: 80/128 eligible months in that window are complete, December–January 2019 is next, and 2016–2019 remains pending. Open-Meteo remains the active website provider until that backfill and a separate activation decision are complete because CORe reanalysis and the two-model CMIP6 average are materially different products. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **Current data scope:** administrator-started NOAA fetching is limited to 1950–1954 and 2022–2026, through the latest complete month. Manual full-history and 2016–2026 backfill work is no longer a priority; saved rows remain intact. Open-Meteo CMIP6 is still active pending a separate validated provider switch. Some inherited ocean temperatures disagree with fresh source checks and have not been repaired. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+
+On 2026-09-26, the administrator coverage check found both windows complete:
+60/60 months for 1950–1954 and 56/56 for 2022–August 2026. No additional
+downloads were needed for this interface change. The admin page reads current
+coverage directly from PostgreSQL rather than relying on this dated snapshot.
 
 ## Architecture
 
@@ -136,12 +141,26 @@ at the latest complete month; use `--through YYYY-MM` to set an earlier bound.
 Default selection remains the two recorded edge periods, so a normal rerun
 does not unexpectedly begin the much larger full-history job.
 
-The current backfill priority is newest-first within January 2016–December
-2026. Use `--period 2016-2026 --newest-first` to work backward from the latest
-eligible month, skipping complete PostgreSQL months before applying the batch
-limit. Re-run the same command to continue toward January 2016. The 2026 end
-is still capped at the latest complete month; current and future months are
-never imported. Without `--newest-first`, selection remains oldest-first.
+Those CLI periods remain available for compatibility, but routine acquisition
+now uses **Admin → Data** at `/admin/data`: select 1950–1954 or 2022–2026,
+choose 1–12 months (default 1), and click **Start / resume batch**. The last
+window runs newest-first. Both windows stop at complete months and skip saved
+months. Status refreshes while a job runs; opening the page never downloads.
+
+Run `python setup_database.py` once after upgrading to install the additive
+`admin_import.sql` job-status table. Keep the app server running while a batch
+works. The background thread is not a durable queue: a server restart interrupts
+unfinished work, but committed months survive and the page offers manual resume.
+PostgreSQL serializes administrator batches across web workers. Do not run the
+standalone CLI importer concurrently with the admin tool. Admin rights are
+checked on every request, starts require a session-bound CSRF token, and public
+errors contain no raw connection details. No credentials are entered in the UI.
+
+For finer comparison colors, manually choose **Cold detail** (−10 to 10 °C),
+**Mild detail** (0 to 20 °C), or **Warm detail** (20 to 40 °C). Their color stops
+are 2 °C apart, with continuous interpolation. All panels share that scale;
+saved presets/custom scales are preserved. Values outside the selected range
+use the endpoint colors. More contrast is not greater data accuracy.
 
 Compare only rows already stored in PostgreSQL after importing review months:
 
@@ -221,6 +240,9 @@ Current data and evaluated providers:
 - [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/) and [CRU gridded datasets](https://crudata.uea.ac.uk/cru/data/hrg/) were evaluated as documented alternatives but are not active providers.
 
 Current application software and delivery services:
+
+- [Python threading](https://docs.python.org/3/library/threading.html) (Python Software Foundation licence) runs bounded background admin batches; no task-queue dependency was added.
+- [Node.js](https://nodejs.org/) runs the dependency-free map-scale tests (`node tests/test_map_scales.mjs`); Node is MIT-licensed with bundled third-party notices in its [licence](https://github.com/nodejs/node/blob/main/LICENSE).
 
 - [ECMWF ecCodes Python](https://github.com/ecmwf/eccodes-python) decodes the selected NOAA GRIB2 records and is distributed under Apache License 2.0. Its PyPI installation includes the binary ecCodes library on macOS and Linux.
 - [Flask](https://flask.palletsprojects.com/en/stable/) and [Flask-Session](https://flask-session.readthedocs.io/en/latest/) provide the web application and server-side sessions.

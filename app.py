@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import sqlite3
+import secrets
 
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -14,6 +15,7 @@ from db import ACTIVE_CLIMATE_PROVIDER
 from helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
 from helpers_data import get_data_locations, get_location_history
 from map_data import viewport_geojson
+from admin_import import ImportBusy, import_status, start_import
 
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 DEFAULT_MAP_DATA_TYPE = "temp_mean"
@@ -399,6 +401,44 @@ def register():
         return render_template("/login.html", username=username)
     else:
         return render_template("/register.html")
+
+
+@app.route("/admin/data")
+@login_required
+@admin_required
+def admin_data():
+    if "import_csrf" not in session:
+        session["import_csrf"] = secrets.token_urlsafe(32)
+    return render_template("admin_data.html", csrf_token=session["import_csrf"])
+
+
+@app.route("/api/admin/import", methods=["GET", "POST"])
+@login_required
+@admin_required
+def admin_import_api():
+    if request.method == "POST":
+        token = request.headers.get("X-CSRF-Token", "")
+        expected = session.get("import_csrf")
+        if not expected or not secrets.compare_digest(token.encode(), expected.encode()):
+            return jsonify(error="Refresh the administrator page before starting a batch."), 403
+        payload = request.get_json(silent=True)
+        if not isinstance(payload, dict):
+            return jsonify(error="Expected a window and month limit."), 400
+        try:
+            result = start_import(payload.get("window"), payload.get("limit", 1))
+            return jsonify(result), 202 if result["started"] else 200
+        except (ValueError, TypeError):
+            return jsonify(error="Choose a listed window and 1–12 whole months."), 400
+        except ImportBusy as error:
+            return jsonify(error=str(error)), 409
+        except Exception:
+            app.logger.exception("Administrator import could not start")
+            return jsonify(error="Import unavailable. Check PostgreSQL and run database setup."), 503
+    try:
+        return jsonify(import_status())
+    except Exception:
+        app.logger.exception("Administrator import status unavailable")
+        return jsonify(error="Status unavailable. Check PostgreSQL and run database setup."), 503
 
 
 @app.route("/update", methods=["GET", "POST"])

@@ -14,6 +14,7 @@ def main():
     with weather_db() as con:
         with con.cursor() as cur:
             cur.execute(schema)
+            cur.execute(Path(__file__).with_name("admin_import.sql").read_text())
     print("PostgreSQL weather schema is ready.")
 
 

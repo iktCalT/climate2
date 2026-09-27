@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+{% block title %}Data administration{% endblock %}
+{% block main %}
+<section class="data-note text-start">
+    <div>
+        <p class="eyebrow">Administrator tools</p>
+        <h1>Fetch a little. Resume anytime.</h1>
+        <p>Only the first and last five years are in scope: <strong>1950–1954</strong>
+            and <strong>2022–2026</strong>. Current and future months are excluded.</p>
+        <p>NOAA CORe data stays separate from the active Open-Meteo maps. Fetching
+            does not switch providers or repair the inherited Open-Meteo cache.</p>
+    </div>
+    <div>
+        <h2 class="h5">Saved coverage</h2>
+        <ul id="import-coverage"><li>Checking PostgreSQL…</li></ul>
+        <p id="import-job" role="status" aria-live="polite"></p>
+    </div>
+</section>
+<form id="import-form" class="text-start mx-auto" style="max-width:640px">
+    <label for="import-window" class="form-label">Choose a five-year window</label>
+    <select id="import-window" class="form-select mb-3">
+        <option value="first">1950–1954 · oldest missing month first</option>
+        <option value="last">2022–2026 · newest missing month first</option>
+    </select>
+    <label for="import-limit" class="form-label">Maximum months in this batch</label>
+    <input id="import-limit" class="form-control mb-3" type="number" min="1" max="12" step="1" value="1" required>
+    <p class="text-muted">Start with one month. Each month covers the global grid
+        and may take a while. Completed months are skipped. Only one admin batch
+        can run at a time, and no batch starts automatically.</p>
+    <button id="import-start" class="btn btn-climate-primary" type="submit" disabled>Start / resume batch</button>
+    <button id="import-refresh" class="btn btn-climate-secondary" type="button">Refresh status</button>
+    <p id="import-message" class="mt-3" role="status" aria-live="polite"></p>
+    <p class="small text-muted">The app server must stay running. You may close this
+        page while it works. If the server restarts, return here and resume;
+        already committed months remain saved. This tool never deletes data.</p>
+    <a href="/references">NOAA source, licence, and data limitations</a>
+</form>
+<script type="module">
+    const token = {{ csrf_token | tojson }};
+    const form = document.getElementById("import-form");
+    const start = document.getElementById("import-start");
+    const message = document.getElementById("import-message");
+    const job = document.getElementById("import-job");
+    const coverage = document.getElementById("import-coverage");
+    let submitting = false;
+    let polling = false;
+    let timer;
+    async function readResponse(response) {
+        if (!response.headers.get("content-type")?.includes("application/json")) {
+            throw new Error("Sign in again with an administrator account, then reload this page.");
+        }
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Request failed.");
+        return data;
+    }
+    async function refresh() {
+        if (polling) return;
+        polling = true;
+        clearTimeout(timer);
+        try {
+            const data = await readResponse(await fetch("/api/admin/import"));
+            coverage.replaceChildren(...data.windows.map(window => {
+                const item = document.createElement("li");
+                item.textContent = `${window.label}: ${window.complete}/${window.total} complete. ` +
+                    (window.next ? `Next missing: ${window.next}.` : "Nothing to fetch.");
+                return item;
+            }));
+            const state = data.job;
+            const labels = {
+                running: "Running", complete: "Batch complete", failed: "Batch failed; saved months are safe. Resume to retry",
+                interrupted: "Server stopped during a batch; resume to continue",
+            };
+            job.textContent = state ? `${labels[state.state]} · ${state.processed}/${state.total} months in last batch` +
+                (state.month ? ` · ${state.month}` : "") : "No batch has been started.";
+            start.disabled = data.running || submitting || data.windows.every(window => window.complete === window.total);
+            if (data.running) timer = setTimeout(refresh, 5000);
+        } catch (error) {
+            start.disabled = true;
+            job.textContent = error.message;
+        } finally {
+            polling = false;
+        }
+    }
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
+        if (submitting || !form.reportValidity()) return;
+        submitting = true;
+        start.disabled = true;
+        try {
+            const data = await readResponse(await fetch("/api/admin/import", {
+                method: "POST", headers: {"Content-Type": "application/json", "X-CSRF-Token": token},
+                body: JSON.stringify({window: document.getElementById("import-window").value,
+                    limit: Number(document.getElementById("import-limit").value)}),
+            }));
+            message.textContent = data.message;
+        } catch (error) {
+            message.textContent = error.message;
+        } finally {
+            submitting = false;
+            await refresh();
+        }
+    });
+    document.getElementById("import-refresh").addEventListener("click", refresh);
+    window.addEventListener("pagehide", () => clearTimeout(timer));
+    refresh();
+</script>
+{% endblock %}

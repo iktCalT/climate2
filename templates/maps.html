@@ -27,7 +27,8 @@
                 <div>
                     <p class="eyebrow mb-1">Manual color scale</p>
                     <h3 id="map-scale-heading" class="h5 mb-1">Keep colors consistent</h3>
-                    <p class="text-muted mb-0">The shared scale stays fixed while you pan, zoom, load data, or change dates.</p>
+                    <p class="text-muted mb-0">The shared scale stays fixed while you pan, zoom, load data, or change dates.
+                        For smaller temperature differences, manually choose a detail preset with 2 °C color stops or a custom range.</p>
                 </div>
                 <label class="map-scale-picker" for="scale-preset">
                     <span>Preset</span>
@@ -65,7 +66,12 @@
                 <span>Shared by every panel · fixed until you change it</span>
             </div>
             <div id="scale-legend" class="map-scale-legend" aria-label="Active color scale"></div>
+            <p class="small text-muted mt-2">Values below or above the chosen range use the end colors.
+                Narrower colors show more contrast, not more accurate data. Click a cell for its numeric value.</p>
         </section>
+        <p class="small text-start text-muted">Data-quality note: these maps still use CMIP6 model output, not NOAA.
+            Some inherited ocean temperatures disagree with fresh source checks and remain uncorrected.
+            <a href="/references">Read the limitations</a> before interpreting comparisons.</p>
         <div class="climate-map-grid{% if comparison %} climate-map-comparison{% endif %}">
             {% for panel_month in months %}
                 <article class="climate-map-panel" aria-labelledby="map-heading-{{ loop.index0 }}">
