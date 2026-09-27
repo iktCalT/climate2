@@ -107,6 +107,11 @@
             Location chart URLs follow the current data content, so a new page request
             reflects imports or cleanup. Seasonal averages use available months and
             may be incomplete. Old generated files are not automatically deleted.
+            A plain Maps visit opens the newest saved mean-temperature month within
+            the stable-date limit; explicit dates are preserved. The saved-month
+            picker counts finite active-provider values globally, not complete
+            regional coverage or verified accuracy. Availability is checked with
+            bounded read-only PostgreSQL queries; no external dataset is requested.
         </aside>
         <aside class="reference-callout">
             Provider research selected NOAA CORe as the bulk import source. It
@@ -173,7 +178,7 @@
                 ("ECMWF ecCodes Python", "Apache-2.0 GRIB2 decoder for selected NOAA CORe records", "https://github.com/ecmwf/eccodes-python"),
                 ("Flask", "Python web framework", "https://flask.palletsprojects.com/en/stable/"),
                 ("Flask-Session", "Server-side user sessions", "https://flask-session.readthedocs.io/en/latest/"),
-                ("PostgreSQL 18", "Climate cache and queries", "https://www.postgresql.org/docs/18/"),
+                ("PostgreSQL 18", "Climate cache, provider-scoped saved-month counts, and bounded read-only queries", "https://www.postgresql.org/docs/18/"),
                 ("PostgreSQL batch DELETE", "Documented bounded-row deletion pattern for explicit administrator cleanup", "https://www.postgresql.org/docs/18/sql-delete.html"),
                 ("PostgreSQL routine vacuuming", "Maintenance and space-reuse guidance; cleanup does not guarantee faster queries or immediately smaller files", "https://www.postgresql.org/docs/18/routine-vacuuming.html"),
                 ("PostgreSQL License", "Reuse terms for PostgreSQL and its documentation", "https://www.postgresql.org/about/licence/"),

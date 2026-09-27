@@ -27,6 +27,11 @@ class LocationsRouteTests(unittest.TestCase):
     def setUp(self):
         app.config.update(TESTING=True)
         self.client = app.test_client()
+        availability_patch = patch("app.saved_map_months", return_value=[
+            {"month": "2026-08", "counts": {"temp_mean": 10, "temp_max": 10, "temp_min": 10, "precip": 10}}
+        ])
+        self.availability = availability_patch.start()
+        self.addCleanup(availability_patch.stop)
 
     def test_saved_history_is_drawn_without_requesting_downloads(self):
         history = pd.DataFrame(
@@ -177,6 +182,58 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b'id="climate-map-1"', response.data)
         self.assertIn(b"syncViewports", response.data)
         self.assertIn(b"Shared by every panel", response.data)
+        self.availability.assert_not_called()
+
+    def test_default_map_uses_newest_saved_mean_temperature_not_newer_other_metric(self):
+        self.availability.return_value = [
+            {"month": "2026-09", "counts": {"temp_mean": 0, "precip": 20}},
+            {"month": "2026-08", "counts": {"temp_mean": 4, "precip": 0}},
+            {"month": "1951-01", "counts": {"temp_mean": 100, "precip": 0}},
+        ]
+        with patch("app.default_map_month", return_value="2026-09"):
+            response = self.client.get("/maps")
+        self.assertIn(b"temp_mean for 2026-08", response.data)
+        self.assertIn(b"newest saved mean-temperature", response.data)
+
+    def test_default_map_respects_stable_date_bound(self):
+        self.availability.return_value = [
+            {"month": "2026-09", "counts": {"temp_mean": 10}},
+            {"month": "2026-08", "counts": {"temp_mean": 10}},
+        ]
+        with patch("app.default_map_month", return_value="2026-08"):
+            response = self.client.get("/maps")
+        self.assertIn(b"temp_mean for 2026-08", response.data)
+
+    def test_empty_saved_cache_opens_selector_instead_of_empty_default(self):
+        self.availability.return_value = []
+        response = self.client.get("/maps")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"No saved mean-temperature month", response.data)
+        self.assertIn(b'id="map-selection"', response.data)
+        self.assertNotIn(b'id="climate-map-0"', response.data)
+
+    def test_availability_failure_keeps_manual_selection_without_leaking_details(self):
+        self.availability.side_effect = RuntimeError("private database diagnostics")
+        with self.assertLogs("app", "ERROR"):
+            response = self.client.get("/maps")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"Saved dates could not be checked", response.data)
+        self.assertNotIn(b"private database diagnostics", response.data)
+        self.assertIn(b'id="month-picker-0"', response.data)
+
+    def test_explicit_unavailable_month_is_not_replaced(self):
+        self.availability.side_effect = AssertionError("Discovery should not run")
+        response = self.client.get("/maps?month-picker=1960-01&data-type=precip")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b"precip for 1960-01", response.data)
+        self.availability.assert_not_called()
+
+    def test_selector_shows_saved_month_controls_and_keeps_manual_dates(self):
+        response = self.client.get("/maps?select=1")
+        self.assertEqual(response.status_code, 200)
+        for value in (b'Find a saved month', b'global saved points', b'id="saved-month"',
+                      b'id="use-saved-month"', b'id="compare-saved-month"', b'type="month"'):
+            self.assertIn(value, response.data)
 
     def test_maps_rejects_duplicate_or_excessive_comparison_months(self):
         duplicate = self.client.get(

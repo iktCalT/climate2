@@ -22,6 +22,10 @@
             </p>
         {% endif %}
         <p class="text-muted">The initial view opens over the contiguous United States; pan or zoom anywhere within the supported world bounds.</p>
+        {% if initial_saved_month %}
+        <p class="small text-muted">Opened the newest saved mean-temperature month within the stable-date limit.
+            Saved points may not cover every region. Use Change selection to choose another date.</p>
+        {% endif %}
         <p class="small text-muted">Saved climate data only: browsing never downloads missing cells.
             Unavailable cells are not queued; any display-only spatial estimates are labelled.
             Administrators manage imports separately.</p>
@@ -91,7 +95,27 @@
             {% endfor %}
         </div>
     {% else %}
+        {% if availability_error %}
+            <p class="alert alert-warning" role="status">{{ availability_error }}</p>
+        {% elif no_default %}
+            <p class="alert alert-info" role="status">No saved mean-temperature month is available within the stable-date limit.
+                Choose another variable or date below, or ask an administrator to import data.</p>
+        {% endif %}
         <form action="/maps" id="map-selection" method="get">
+            <section class="data-note text-start" aria-labelledby="saved-month-heading">
+                <div>
+                    <h2 id="saved-month-heading" class="h5">Find a saved month</h2>
+                    <p>Counts are global saved points for the selected variable, not complete coverage
+                        of your viewport or a data-quality guarantee. No downloads are made.</p>
+                    <label for="saved-month">Saved month</label>
+                    <select id="saved-month" class="form-select" disabled></select>
+                </div>
+                <div>
+                    <button id="use-saved-month" class="btn btn-climate-secondary mb-2" type="button" disabled>Use as first month</button>
+                    <button id="compare-saved-month" class="btn btn-climate-secondary mb-2" type="button" disabled>Add to comparison</button>
+                    <p id="saved-month-status" role="status" aria-live="polite">Choose a saved month or enter dates manually below.</p>
+                </div>
+            </section>
             <div class="mb-3">
                 <label for="month-picker-0"><h5>Select Year and Month:</h5></label>
                 <input
@@ -425,6 +449,54 @@
             const comparisonMonths = document.getElementById("comparison-months");
             const addComparisonMonth = document.getElementById("add-comparison-month");
             const maximumMonths = 4;
+            const savedMonths = {{ saved_months | default([]) | tojson }};
+            const savedPicker = document.getElementById("saved-month");
+            const variablePicker = document.getElementById("data-type");
+            const useSaved = document.getElementById("use-saved-month");
+            const compareSaved = document.getElementById("compare-saved-month");
+            const savedStatus = document.getElementById("saved-month-status");
+            const firstMonth = document.getElementById("month-picker-0");
+
+            function updateSavedMonths() {
+                const previous = savedPicker.value;
+                const available = savedMonths.filter(row => row.counts[variablePicker.value] > 0);
+                savedPicker.replaceChildren(...available.map(row => {
+                    const option = document.createElement("option");
+                    option.value = row.month;
+                    option.textContent = `${row.month} · ${row.counts[variablePicker.value].toLocaleString()} saved points`;
+                    return option;
+                }));
+                if (available.some(row => row.month === previous)) savedPicker.value = previous;
+                savedPicker.disabled = useSaved.disabled = compareSaved.disabled = !available.length;
+                savedStatus.textContent = available.length ? `${available.length} saved months for this variable. Your entered dates have not changed.`
+                    : "No saved months listed for this variable. You can still enter dates manually.";
+            }
+            variablePicker.addEventListener("change", updateSavedMonths);
+            useSaved.addEventListener("click", () => {
+                const duplicate = [...comparisonMonths.querySelectorAll("input")].some(input => input.value === savedPicker.value);
+                if (duplicate) {
+                    savedStatus.textContent = "That month is already in the comparison. Choose a distinct month.";
+                    return;
+                }
+                firstMonth.value = savedPicker.value;
+                savedStatus.textContent = `First month set to ${savedPicker.value}.`;
+            });
+            compareSaved.addEventListener("click", () => {
+                const inputs = [...document.querySelectorAll('input[name="month-picker"]')];
+                if (inputs.some(input => input.value === savedPicker.value)) {
+                    savedStatus.textContent = "That month is already selected. Choose a distinct month.";
+                    return;
+                }
+                const empty = inputs.find(input => !input.value);
+                if (empty) empty.value = savedPicker.value;
+                else if (inputs.length < maximumMonths) addMonth(savedPicker.value);
+                else {
+                    savedStatus.textContent = "Compare at most four months. Remove a month first.";
+                    return;
+                }
+                savedStatus.textContent = `Added ${savedPicker.value} to the selection.`;
+            });
+            updateSavedMonths();
 
             function renumberComparisonMonths() {
                 const rows = [...comparisonMonths.querySelectorAll(".comparison-month-row")];
@@ -438,7 +510,8 @@
                 addComparisonMonth.disabled = rows.length + 1 >= maximumMonths;
             }
 
-            addComparisonMonth.addEventListener("click", () => {
+            function addMonth(value = "") {
+                if (comparisonMonths.children.length + 1 >= maximumMonths) return;
                 const row = document.createElement("div");
                 row.className = "comparison-month-row";
 
@@ -451,6 +524,7 @@
                 input.min = {{ start | tojson }};
                 input.max = {{ end | tojson }};
                 input.required = true;
+                input.value = value;
                 field.append(label, input);
 
                 const remove = document.createElement("button");
@@ -466,7 +540,8 @@
                 comparisonMonths.append(row);
                 renumberComparisonMonths();
                 input.focus();
-            });
+            }
+            addComparisonMonth.addEventListener("click", () => addMonth());
         </script>
     {% endif %}
 {% endblock %}

@@ -623,6 +623,36 @@ local map/populated-location/empty-location requests took roughly 13–89 ms in
 one smoke check with acquisition blocked; this is not a general benchmark.
 No application climate rows were deleted or downloaded during this change.
 
+## 25. Discover saved months before opening a map
+
+Status: Implemented.
+
+Problem: cache-only browsing still opens the current calendar month even when
+it has no stored active-provider values, and users cannot see which dates are
+available. On an unqualified Maps visit, choose the newest saved mean-temperature
+month no later than the existing stable-month bound. Never replace an explicitly
+requested date or comparison. If nothing is saved or availability cannot be
+checked, show the selector with a clear explanation, not a misleading map.
+
+Add a saved-month picker with per-variable finite-value point counts and actions
+to use a month or add it to comparison. Counts are global availability, not a
+claim of full coverage in the US or any viewport. Preserve manual date input,
+up-to-four distinct comparisons, saved manual color scales, and provider isolation.
+Read PostgreSQL only, bound the query time, and make no downloads or deletions.
+Use existing dependencies; document the new default and attribution in README
+and the website. Keep docs/REFACTOR.md unchanged.
+
+Implemented a provider-scoped, read-only availability query with three-second
+statement and 500 ms lock timeouts. Default Maps visits choose the newest saved
+mean-temperature month within the stable-date limit; explicit requests bypass
+discovery. Selector controls use metric-specific counts, prevent duplicate
+saved-date additions, and preserve entered dates when the variable changes.
+Tests cover empty/error states, explicit-date preservation, stable-date bounds,
+inactive providers, null/nonfinite values, date bounds, and monthly-date rules.
+Browser checks verified saved-date assignment, adding a comparison, duplicate
+protection, changing to precipitation without changing dates, and opening the
+requested two-date comparison. No data was downloaded or deleted.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -649,3 +679,4 @@ No application climate rows were deleted or downloaded during this change.
 22. Replace manual backfill work with administrator-owned five-year edge-window batches and improve manual temperature-scale detail and website clarity.
 23. Add previewable, explicitly confirmed administrator cleanup outside the retained five-year windows.
 24. Remove hidden climate-provider downloads from public browsing and make missing/stale-data states explicit.
+25. Add saved-month discovery and open a useful cached month by default without overriding explicit choices.
