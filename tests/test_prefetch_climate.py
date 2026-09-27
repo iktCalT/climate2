@@ -4,7 +4,7 @@ from io import StringIO
 import unittest
 from unittest.mock import Mock, call, patch
 
-import prefetch_climate
+import climate.cli.prefetch_climate as prefetch_climate
 
 
 class ResumablePrefetchTests(unittest.TestCase):
@@ -43,8 +43,8 @@ class ResumablePrefetchTests(unittest.TestCase):
 
     def test_request_pacer_spaces_request_starts(self):
         pacer = prefetch_climate.RequestPacer(30)
-        with patch("prefetch_climate.time.monotonic", side_effect=[10, 12]), patch(
-            "prefetch_climate.time.sleep"
+        with patch("climate.cli.prefetch_climate.time.monotonic", side_effect=[10, 12]), patch(
+            "climate.cli.prefetch_climate.time.sleep"
         ) as sleep:
             pacer.wait()
             pacer.wait()
@@ -55,8 +55,8 @@ class ResumablePrefetchTests(unittest.TestCase):
         ranges = [("1953-01-01", "1953-12-31"), ("1952-02-01", "1952-02-28")]
         pacer = Mock()
         with patch(
-            "prefetch_climate.missing_location_ranges", return_value=ranges
-        ), patch("prefetch_climate.get_data", side_effect=[True, True]) as fetch:
+            "climate.cli.prefetch_climate.missing_location_ranges", return_value=ranges
+        ), patch("climate.cli.prefetch_climate.get_data", side_effect=[True, True]) as fetch:
             result = prefetch_climate.prefetch_period(
                 (2.0, 4.0),
                 prefetch_climate.PREFETCH_PERIODS[0],
@@ -74,8 +74,8 @@ class ResumablePrefetchTests(unittest.TestCase):
     def test_prefetch_period_stops_after_first_failure(self):
         ranges = [("1953-01-01", "1953-12-31"), ("2023-01-01", "2026-12-31")]
         with patch(
-            "prefetch_climate.missing_location_ranges", return_value=ranges
-        ), patch("prefetch_climate.get_data", return_value=False) as fetch:
+            "climate.cli.prefetch_climate.missing_location_ranges", return_value=ranges
+        ), patch("climate.cli.prefetch_climate.get_data", return_value=False) as fetch:
             result = prefetch_climate.prefetch_period(
                 (2.0, 4.0), prefetch_climate.PREFETCH_PERIODS[0]
             )

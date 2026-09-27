@@ -4,6 +4,7 @@
 .matplotlib/
 flask_session/
 __pycache__/
+.mypy_cache/
 *.pyc
 .DS_Store
 

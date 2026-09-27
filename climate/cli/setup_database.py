@@ -1,20 +1,20 @@
 """Create the local PostgreSQL weather schema.
 
 Run after PostgreSQL is running and DATABASE_URL is configured:
-    python setup_database.py
+    python -m climate.cli.setup_database
 """
 
-from pathlib import Path
+from climate.paths import SQL_DIRECTORY
 
-from db import weather_db
+from climate.data.db import weather_db
 
 
 def main():
-    schema = Path(__file__).with_name("schema.sql").read_text()
+    schema = (SQL_DIRECTORY / "schema.sql").read_text()
     with weather_db() as con:
         with con.cursor() as cur:
             cur.execute(schema)
-            cur.execute(Path(__file__).with_name("admin_import.sql").read_text())
+            cur.execute((SQL_DIRECTORY / "admin_import.sql").read_text())
     print("PostgreSQL weather schema is ready.")
 
 

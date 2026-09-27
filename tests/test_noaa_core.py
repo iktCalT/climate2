@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-import noaa_core
+import climate.providers.noaa_core as noaa_core
 
 
 class FakeArchive:

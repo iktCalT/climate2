@@ -4,8 +4,8 @@ import os
 import unittest
 from unittest.mock import MagicMock, patch
 
-from cache_availability import saved_map_months
-from db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, database_url
+from climate.data.cache_availability import saved_map_months
+from climate.data.db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, database_url
 
 
 class AvailabilityTests(unittest.TestCase):
@@ -13,7 +13,7 @@ class AvailabilityTests(unittest.TestCase):
         db = MagicMock()
         cursor = db.__enter__.return_value.cursor.return_value.__enter__.return_value
         cursor.fetchall.return_value = [(date(2026, 8, 1), 8, 7, 6, 5)]
-        with patch("cache_availability.weather_db", return_value=db):
+        with patch("climate.data.cache_availability.weather_db", return_value=db):
             result = saved_map_months("1950-01", "2026-09")
         self.assertEqual(result, [{"month": "2026-08", "counts": dict(zip(CLIMATE_TYPES, [8, 7, 6, 5]))}])
         cursor.execute.assert_any_call("SET TRANSACTION READ ONLY")
@@ -47,7 +47,7 @@ class AvailabilityPostgresTests(unittest.TestCase):
                 with con.transaction():
                     yield con
 
-            with patch("cache_availability.weather_db", temporary_db):
+            with patch("climate.data.cache_availability.weather_db", temporary_db):
                 result = saved_map_months("1950-01", "2026-09")
                 self.assertEqual([row['month'] for row in result], ['2026-09', '2026-08', '1950-01'])
                 self.assertEqual(result[1]['counts'], dict(temp_mean=1, temp_max=2, temp_min=1, precip=2))

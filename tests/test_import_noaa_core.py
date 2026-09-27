@@ -4,7 +4,7 @@ from io import StringIO
 import unittest
 from unittest.mock import patch
 
-import import_noaa_core
+import climate.cli.import_noaa_core as import_noaa_core
 
 
 class NOAAcoreCommandTests(unittest.TestCase):

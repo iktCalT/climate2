@@ -9,8 +9,8 @@ from unittest.mock import patch
 
 from werkzeug.security import generate_password_hash
 
-from app import MAX_ADMIN_PREFETCH_POINTS, app
-from manage_users import set_admin_status
+from climate.web.app import MAX_ADMIN_PREFETCH_POINTS, app
+from climate.cli.manage_users import set_admin_status
 
 
 class AdminRoleTests(unittest.TestCase):
@@ -73,7 +73,7 @@ class AdminRoleTests(unittest.TestCase):
         self.assertFalse(is_admin)
 
     def test_cleanup_requires_current_admin_and_csrf(self):
-        with patch("app.cleanup_preview") as preview, patch("app.cleanup_batch") as delete:
+        with patch("climate.web.app.cleanup_preview") as preview, patch("climate.web.app.cleanup_batch") as delete:
             self.assertEqual(self.client.get("/api/admin/cleanup").status_code, 302)
             self.sign_in_as(self.create_user("member", False))
             self.assertEqual(self.client.get("/api/admin/cleanup").status_code, 403)
@@ -89,8 +89,8 @@ class AdminRoleTests(unittest.TestCase):
         with self.client.session_transaction() as flask_session:
             csrf = flask_session["import_csrf"]
         headers = {"X-CSRF-Token": csrf}
-        with (patch("app.cleanup_preview", return_value={"removable": 10}) as preview,
-              patch("app.cleanup_batch", return_value={"deleted": 10}) as delete):
+        with (patch("climate.web.app.cleanup_preview", return_value={"removable": 10}) as preview,
+              patch("climate.web.app.cleanup_batch", return_value={"deleted": 10}) as delete):
             self.assertEqual(self.client.post("/api/admin/cleanup", json={"confirm": True}, headers=headers).status_code, 400)
             data = self.client.get("/api/admin/cleanup").get_json()
             delete.assert_not_called()
@@ -107,22 +107,22 @@ class AdminRoleTests(unittest.TestCase):
         with self.client.session_transaction() as flask_session:
             flask_session["import_csrf"] = "test-csrf"
             flask_session["cleanup_preview"] = ["test-preview", 0]
-        with patch("app.cleanup_batch") as delete:
+        with patch("climate.web.app.cleanup_batch") as delete:
             self.assertEqual(self.client.post("/api/admin/cleanup", json={"confirm": True, "preview_token": "test-preview"}, headers={"X-CSRF-Token": "test-csrf"}).status_code, 400)
             set_admin_status("admin", False, self.user_database_path)
             self.assertEqual(self.client.get("/api/admin/cleanup").status_code, 403)
             delete.assert_not_called()
 
     def test_cleanup_errors_are_sanitized(self):
-        from admin_import import ImportBusy
+        from climate.services.admin_import import ImportBusy
         self.sign_in_as(self.create_user("admin", True))
         self.client.get("/admin/data")
         with self.client.session_transaction() as flask_session:
             csrf = flask_session["import_csrf"]
-        with patch("app.cleanup_preview", return_value={"removable": 10}):
+        with patch("climate.web.app.cleanup_preview", return_value={"removable": 10}):
             for error, status in [(ImportBusy("Busy"), 409), (RuntimeError("private connection details"), 503)]:
                 token = self.client.get("/api/admin/cleanup").get_json()["preview_token"]
-                with patch("app.cleanup_batch", side_effect=error):
+                with patch("climate.web.app.cleanup_batch", side_effect=error):
                     response = self.client.post("/api/admin/cleanup", json={"confirm": True, "preview_token": token}, headers={"X-CSRF-Token": csrf})
                 self.assertEqual(response.status_code, status)
                 self.assertNotIn(b"private connection details", response.data)
@@ -209,7 +209,7 @@ class AdminRoleTests(unittest.TestCase):
             "date_start": "2020-01-01",
             "date_end": today,
         }
-        with patch("app.get_data_locations", return_value=True) as prefetch:
+        with patch("climate.web.app.get_data_locations", return_value=True) as prefetch:
             form = self.client.get("/update")
             response = self.client.post("/update", data=request_data)
 
@@ -223,7 +223,7 @@ class AdminRoleTests(unittest.TestCase):
     def test_admin_prefetch_rejects_excessive_point_counts(self):
         self.sign_in_as(self.create_user("climateadmin", True))
         today = datetime.today().strftime("%Y-%m-%d")
-        with patch("app.get_data_locations") as prefetch:
+        with patch("climate.web.app.get_data_locations") as prefetch:
             response = self.client.post(
                 "/update",
                 data={
@@ -237,7 +237,7 @@ class AdminRoleTests(unittest.TestCase):
         prefetch.assert_not_called()
 
     def test_noaa_api_requires_current_admin_and_csrf(self):
-        with patch("app.start_import") as start, patch("app.import_status") as status:
+        with patch("climate.web.app.start_import") as start, patch("climate.web.app.import_status") as status:
             self.assertEqual(self.client.get("/api/admin/import").status_code, 302)
             user_id = self.create_user("member", False)
             self.sign_in_as(user_id)
@@ -259,15 +259,15 @@ class AdminRoleTests(unittest.TestCase):
             self.assertEqual(self.client.get("/api/admin/import").status_code, 403)
 
     def test_noaa_api_reports_conflict_and_sanitizes_failures(self):
-        from admin_import import ImportBusy
+        from climate.services.admin_import import ImportBusy
         self.sign_in_as(self.create_user("climateadmin", True))
         self.client.get("/admin/data")
         with self.client.session_transaction() as session:
             token = session["import_csrf"]
-        with patch("app.start_import", side_effect=ImportBusy("Already running")):
+        with patch("climate.web.app.start_import", side_effect=ImportBusy("Already running")):
             self.assertEqual(self.client.post("/api/admin/import", json={"window": "first"},
                 headers={"X-CSRF-Token": token}).status_code, 409)
-        with patch("app.import_status", side_effect=RuntimeError("sensitive diagnostic")), self.assertLogs("app", "ERROR"):
+        with patch("climate.web.app.import_status", side_effect=RuntimeError("sensitive diagnostic")), self.assertLogs("climate.web.app", "ERROR"):
             response = self.client.get("/api/admin/import")
         self.assertEqual(response.status_code, 503)
         self.assertNotIn(b"sensitive diagnostic", response.data)
@@ -277,7 +277,7 @@ class AdminRoleTests(unittest.TestCase):
         self.client.get("/admin/data")
         with self.client.session_transaction() as session:
             token = session["import_csrf"]
-        with patch("admin_import._connect") as connect:
+        with patch("climate.services.admin_import._connect") as connect:
             for payload in ({"window": "all"}, {"window": "first", "limit": 13},
                             {"window": "last", "limit": True}, {"window": []}, []):
                 self.assertEqual(self.client.post("/api/admin/import", json=payload,

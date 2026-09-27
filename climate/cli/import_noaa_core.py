@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date, timedelta
+from datetime import date
 
-from db import weather_db
-from noaa_core import (
+from climate.data.db import weather_db
+from climate.data.months import last_complete_month, months_between, parse_month
+from climate.providers.noaa_core import (
     CoreArchiveClient,
     CoreError,
     EccodesDecoder,
@@ -26,36 +27,6 @@ CORE_PERIODS = {
 DEFAULT_CORE_PERIODS = ("1950-1953", "2023-2026")
 DEFAULT_MONTH_LIMIT = 1
 MAX_MONTH_LIMIT = 12
-
-
-def parse_month(value):
-    try:
-        parsed = date.fromisoformat(f"{value}-01")
-    except ValueError as error:
-        raise argparse.ArgumentTypeError("month must use YYYY-MM") from error
-    return parsed
-
-
-def next_month(month):
-    if month.month == 12:
-        return date(month.year + 1, 1, 1)
-    return date(month.year, month.month + 1, 1)
-
-
-def last_complete_month(today=None):
-    today = date.today() if today is None else today
-    first_of_current_month = date(today.year, today.month, 1)
-    previous_day = first_of_current_month - timedelta(days=1)
-    return date(previous_day.year, previous_day.month, 1)
-
-
-def months_between(start, end):
-    months = []
-    current = start
-    while current <= end:
-        months.append(current)
-        current = next_month(current)
-    return months
 
 
 def selected_months(

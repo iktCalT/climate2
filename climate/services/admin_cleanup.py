@@ -1,6 +1,6 @@
 """Explicit, bounded climate-cache pruning. Never called automatically."""
 
-from admin_import import ImportBusy, LOCK_ID, _connect
+from climate.services.admin_import import ImportBusy, LOCK_ID, _connect
 
 MAX_CLEANUP_ROWS = 50_000
 # Fixed half-open ranges preserve every date in both requested five-year windows.

@@ -1,5 +1,29 @@
 # Project workflow
 
+## Agent roles and task boundaries
+
+- Start with [architecture](docs/ARCHITECTURE.md) for current code paths and
+  commands; [documentation lookup](docs/README.md) routes to topic guides.
+- Read [agent roles](docs/AGENT_ROLES.md) and the
+  [task board](docs/AGENT_TASKS.md) before starting work or editing files.
+- Read the [shared memory skill](docs/agents/SKILL.md) at task startup; search
+  log headings and read only entries relevant to the task. Record important
+  findings before they are forgotten and a short handoff when finished.
+- Use the [context lookup](docs/agents/CONTEXT_INDEX.md) for inactive knowledge;
+  read only relevant topic notes and verify their dated branch/source context.
+- Write only your own agent log. All agents may improve the common `SKILL.md`,
+  coordinating edits. Follow its rules for keeping notes and disposable local
+  artifacts concise and clean.
+- Follow the role assigned by the user or Lead / Architect. Do not assume all
+  four roles or start unrelated backlog work. Without an assigned task, limit
+  work to read-only orientation and report that an assignment is needed.
+- Before edits, agree on the task owner, allowed files, acceptance criteria,
+  and validation. The Lead coordinates assignments and overlapping files.
+- Skills describe capabilities, not additional authority. Report out-of-scope
+  issues for assignment instead of fixing them opportunistically.
+- Work only in climate2. Use the repository-local Meow-5 Git identity; never
+  change global Git identity or touch another repository.
+
 ## Record new ideas before implementation
 
 - Before changing code for a newly proposed feature, optimization, architectural

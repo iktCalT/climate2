@@ -11,8 +11,8 @@ site owner does not lose access during this refactor.
 To appoint or remove an administrator on your local machine, run one of:
 
 ```sh
-.venv/bin/python manage_users.py grant-admin USERNAME
-.venv/bin/python manage_users.py revoke-admin USERNAME
+.venv/bin/python -m climate.cli.manage_users grant-admin USERNAME
+.venv/bin/python -m climate.cli.manage_users revoke-admin USERNAME
 ```
 
 The command changes only the ignored local user database (`static/users.db`, or

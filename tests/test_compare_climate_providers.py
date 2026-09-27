@@ -3,7 +3,7 @@ from datetime import date
 from io import StringIO
 import unittest
 
-from compare_climate_providers import (
+from climate.cli.compare_climate_providers import (
     ClimateRow,
     MAX_COMPARISON_MONTHS,
     choose_months,
@@ -13,7 +13,7 @@ from compare_climate_providers import (
     parse_args,
     render_report,
 )
-from noaa_core import CANONICAL_LOCATION_COUNT
+from climate.providers.noaa_core import CANONICAL_LOCATION_COUNT
 
 
 def row(month, latitude, longitude, values=(10.0, 15.0, 5.0, 2.0)):

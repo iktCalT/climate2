@@ -20,7 +20,7 @@ The database has the following tables:
   `open_meteo_cmip6`; application reads explicitly select that active series.
 
 Both ingestion and updates use provider-scoped PostgreSQL `ON CONFLICT`
-upserts. Running `setup_database.py` also upgrades an existing two-column
+upserts. Running `python -m climate.cli.setup_database` also upgrades an existing two-column
 weather key idempotently: legacy rows are labelled `open_meteo_cmip6` before
 the provider-aware primary key is installed. To make a fresh local database
 after intentionally deleting it, run:
@@ -28,8 +28,8 @@ after intentionally deleting it, run:
 ```sh
 /opt/homebrew/opt/postgresql@18/bin/createdb climate
 export DATABASE_URL='postgresql://localhost/climate'
-.venv/bin/python setup_database.py
-.venv/bin/python migrate_weather_sqlite.py static/weather.db
+.venv/bin/python -m climate.cli.setup_database
+.venv/bin/python -m climate.cli.migrate_weather_sqlite static/weather.db
 ```
 
 The migration is safe to re-run: it upserts locations and weather rows. Do not
@@ -42,8 +42,8 @@ The canonical 91-by-91 global grid can be filled for 1950–1953 and 2023–2026
 in bounded, resumable batches:
 
 ```sh
-.venv/bin/python prefetch_climate.py --dry-run
-.venv/bin/python prefetch_climate.py --limit 100
+.venv/bin/python -m climate.cli.prefetch_climate --dry-run
+.venv/bin/python -m climate.cli.prefetch_climate --limit 100
 ```
 
 The database is the only checkpoint. The command counts a period as complete
@@ -63,9 +63,9 @@ token, or `.env` entry, and it does not change the website's active
 
 ```sh
 .venv/bin/python -m eccodes selfcheck
-.venv/bin/python import_noaa_core.py --dry-run
-.venv/bin/python import_noaa_core.py --period 1950-1953
-.venv/bin/python import_noaa_core.py --period 2023-2026
+.venv/bin/python -m climate.cli.import_noaa_core --dry-run
+.venv/bin/python -m climate.cli.import_noaa_core --period 1950-1953
+.venv/bin/python -m climate.cli.import_noaa_core --period 2023-2026
 ```
 
 The default batch is one month and the maximum is 12 months. Only completed
@@ -81,7 +81,7 @@ canonical location has every metric. Interrupted or incomplete months are
 retried; complete months are skipped. For a no-write live check, use:
 
 ```sh
-.venv/bin/python import_noaa_core.py --month 1950-01 --validate-only
+.venv/bin/python -m climate.cli.import_noaa_core --month 1950-01 --validate-only
 ```
 
 ## Read-only provider comparison
@@ -90,8 +90,8 @@ After the same month exists under both provider identities, generate a
 deterministic Markdown review from PostgreSQL only:
 
 ```sh
-.venv/bin/python compare_climate_providers.py --month 1950-01
-.venv/bin/python compare_climate_providers.py --month 1952-02 --month 2023-07
+.venv/bin/python -m climate.cli.compare_climate_providers --month 1950-01
+.venv/bin/python -m climate.cli.compare_climate_providers --month 1952-02 --month 2023-07
 ```
 
 The command begins a read-only transaction and never calls NOAA or Open-Meteo.

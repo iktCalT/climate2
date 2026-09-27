@@ -6,14 +6,14 @@ from unittest.mock import Mock, patch
 import pandas as pd
 from openmeteo_requests import OpenMeteoRequestsError
 
-from db import (
+from climate.data.db import (
     ACTIVE_CLIMATE_PROVIDER,
     DEFAULT_DATABASE_URL,
     database_url,
     fetch_loc_id,
     weather_db,
 )
-from helpers_data import (
+from climate.providers.open_meteo import (
     OPEN_METEO_HTTP_CACHE_TTL_SECONDS,
     get_data,
     get_data_in_database,
@@ -48,7 +48,7 @@ class PostgreSQLWeatherTests(unittest.TestCase):
                     """,
                     (loc_id, self.TEST_DATE, 10.0, 15.0, 5.0, 2.0),
                 )
-            with patch("helpers_data.get_data") as fetch:
+            with patch("climate.providers.open_meteo.get_data") as fetch:
                 history, fetched = get_location_history(
                     location,
                     self.TEST_DATE,
@@ -74,7 +74,7 @@ class PostgreSQLWeatherTests(unittest.TestCase):
             return modify_database(data, type="update", con=kwargs["con"])
 
         with weather_db() as con:
-            with patch("helpers_data.get_data", side_effect=fake_get_data) as fetch:
+            with patch("climate.providers.open_meteo.get_data", side_effect=fake_get_data) as fetch:
                 history, fetched = get_location_history(
                     location, missing_month, missing_month, con=con
                 )
@@ -160,9 +160,9 @@ class ConfigurationTests(unittest.TestCase):
     def test_cache_only_history_preserves_gaps_without_acquisition(self):
         saved = pd.DataFrame({"temp_mean": [10.], "precip": [None]},
                              index=pd.to_datetime(["2022-02-01"]))
-        with (patch("helpers_data.weather_db"),
-              patch("helpers_data.load_location_history", return_value=saved) as load,
-              patch("helpers_data.get_data", side_effect=AssertionError("download forbidden")) as fetch):
+        with (patch("climate.providers.open_meteo.weather_db"),
+              patch("climate.providers.open_meteo.load_location_history", return_value=saved) as load,
+              patch("climate.providers.open_meteo.get_data", side_effect=AssertionError("download forbidden")) as fetch):
             history, fetched = get_location_history((1, 2), "2022-01-01", "2022-03-31", fetch_missing=False)
         self.assertFalse(fetched)
         self.assertEqual(len(history), 3)
@@ -189,8 +189,8 @@ class OpenMeteoFailureTests(unittest.TestCase):
         client = Mock()
         client.weather_api.side_effect = OpenMeteoRequestsError("service unavailable")
 
-        with self.assertLogs("helpers_data", level="WARNING"):
-            with patch("helpers_data.get_openmeteo_client", return_value=client):
+        with self.assertLogs("climate.providers.open_meteo", level="WARNING"):
+            with patch("climate.providers.open_meteo.get_openmeteo_client", return_value=client):
                 result = get_data(location=(1, 2))
 
         self.assertFalse(result)
@@ -199,8 +199,8 @@ class OpenMeteoFailureTests(unittest.TestCase):
         client = Mock()
         client.weather_api.return_value = []
 
-        with self.assertLogs("helpers_data", level="WARNING"):
-            with patch("helpers_data.get_openmeteo_client", return_value=client):
+        with self.assertLogs("climate.providers.open_meteo", level="WARNING"):
+            with patch("climate.providers.open_meteo.get_openmeteo_client", return_value=client):
                 result = get_data(location=(1, 2))
 
         self.assertFalse(result)
@@ -212,7 +212,7 @@ class OpenMeteoFailureTests(unittest.TestCase):
 
     def test_database_read_failures_propagate(self):
         unavailable = patch(
-            "helpers_data.weather_db", side_effect=RuntimeError("database down")
+            "climate.providers.open_meteo.weather_db", side_effect=RuntimeError("database down")
         )
         with unavailable:
             with self.assertRaisesRegex(RuntimeError, "database down"):

@@ -7,7 +7,7 @@ import requests_cache
 from openmeteo_requests import OpenMeteoRequestsError
 from retry_requests import retry
 
-from db import ACTIVE_CLIMATE_PROVIDER, fetch_loc_id, weather_db
+from climate.data.db import ACTIVE_CLIMATE_PROVIDER, fetch_loc_id, weather_db
 
 logger = logging.getLogger(__name__)
 

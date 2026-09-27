@@ -1,13 +1,13 @@
 """One-time migration of weather rows from the legacy SQLite database.
 
-Usage: python migrate_weather_sqlite.py [path/to/weather.db]
+Usage: python -m climate.cli.migrate_weather_sqlite [path/to/weather.db]
 The PostgreSQL schema must already exist and DATABASE_URL must be set.
 """
 
 import sqlite3
 import sys
 
-from db import ACTIVE_CLIMATE_PROVIDER, weather_db
+from climate.data.db import ACTIVE_CLIMATE_PROVIDER, weather_db
 
 
 BATCH_SIZE = 10_000

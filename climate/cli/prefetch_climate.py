@@ -10,8 +10,8 @@ import time
 
 import numpy as np
 
-from db import ACTIVE_CLIMATE_PROVIDER, weather_db
-from helpers_data import get_data, missing_location_ranges
+from climate.data.db import ACTIVE_CLIMATE_PROVIDER, weather_db
+from climate.providers.open_meteo import get_data, missing_location_ranges
 
 
 PREFETCH_PERIODS = (

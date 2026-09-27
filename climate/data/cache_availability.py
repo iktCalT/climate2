@@ -1,6 +1,6 @@
 """Read-only discovery of saved active-provider map months."""
 
-from db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, weather_db
+from climate.data.db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, weather_db
 
 
 def saved_map_months(start, end):

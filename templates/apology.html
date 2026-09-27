@@ -1,11 +1,23 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Apology
+    Something went wrong
 {% endblock %}
 
 {% block main %}
-    <!-- https://memegen.link/ -->
-    <!-- https://knowyourmeme.com/memes/grumpy-cat -->
-    <img alt="{{ top }}" class="border img-fluid" src="https://api.memegen.link/images/custom/{{ top | urlencode }}/{{ bottom | urlencode }}.jpg?background=https://i.imgur.com/CsCgN7Ll.png&width=400" title="{{ top }}">
+    <section class="apology-panel text-start" aria-labelledby="apology-heading">
+        <div class="apology-artwork">
+            <img
+                alt="Illustrated planet Earth holding an umbrella beneath a rain cloud"
+                src="{{ url_for('static', filename='img/climate-error.png') }}"
+            >
+        </div>
+        <div class="apology-copy">
+            <p class="eyebrow">Something went off course</p>
+            <p class="apology-code">Error {{ code }}</p>
+            <h1 id="apology-heading">{{ message }}</h1>
+            <p>The climate explorer could not complete that request. Check the details and try again, or return to the home page.</p>
+            <a class="btn btn-climate-primary" href="/">Return home</a>
+        </div>
+    </section>
 {% endblock %}

@@ -5,7 +5,7 @@ import unittest
 from contextlib import contextmanager
 from unittest.mock import MagicMock, patch
 
-import admin_cleanup as service
+import climate.services.admin_cleanup as service
 
 
 class CleanupServiceTests(unittest.TestCase):
@@ -88,7 +88,7 @@ class CleanupPostgresTests(unittest.TestCase):
         self.assertEqual(service.cleanup_preview()["removable"], 8)
 
     def test_import_session_lock_blocks_cleanup(self):
-        from db import database_url
+        from climate.data.db import database_url
         import psycopg
         with psycopg.connect(database_url(), autocommit=True) as other:
             other.execute("SELECT pg_advisory_lock(%s)", (service.LOCK_ID,))

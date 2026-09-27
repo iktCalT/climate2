@@ -1,5 +1,25 @@
 # Next requirements
 
+## Project layout and agent-ready architecture
+
+**Status:** Implemented on 2026-09-27; recorded before implementation.
+
+The flat repository mixes web code, providers, administrator services, CLI
+tools, and SQL. Group Python code by responsibility in a `climate/` package,
+put schemas in `sql/`, retain a small root Flask entry point, and document
+canonical command-line entry points. Preserve routes, provider selection,
+data contracts, local data paths, and existing working changes. Do not add a
+framework, dependency, data migration, or feature during this reorganization.
+Verify existing behavior before and after moving modules. Provide a concise
+architecture guide and bounded Backend, QA, and Reviewer startup assignments.
+
+Implemented on `codex/project-structure` from local main `cbeda44`, preserving
+existing artwork and coordination changes. Python modules now live in `web`,
+`services`, `providers`, `data`, and `cli` packages; SQL lives in `sql/`.
+See [architecture](ARCHITECTURE.md) for migrated commands and compatibility.
+Offline verification ran 123 Python tests (8 database tests skipped), the Node
+scale check, resource/CLI checks, and HTTP smoke checks. No live data changes.
+
 This document records the next agreed work after the current PostgreSQL and
 MapLibre refactor. It supplements `docs/REFACTOR.md`; it does not replace it.
 
@@ -653,6 +673,23 @@ Browser checks verified saved-date assignment, adding a comparison, duplicate
 protection, changing to precipitation without changing dates, and opening the
 requested two-date comparison. No data was downloaded or deleted.
 
+## 26. Original, publication-safe error artwork
+
+**Status:** Planned on 2026-09-24; recorded before implementation.
+
+Replace the remote Memegen/Grumpy Cat error image because the inherited
+background's original-image licence is not established. Error pages must use a
+project-local, original climate-themed illustration and render the server's
+existing error message and status code as accessible HTML rather than baking
+changing text into the image.
+
+The replacement must remove the runtime dependency on Memegen, Imgur, and the
+Grumpy Cat cultural reference. It must remain readable on narrow screens, have
+meaningful alternative text, and require no visitor data or error text to be
+sent to a third-party image service. Credit the image-generation tool in both
+the README and website References page, following the repository's attribution
+policy, while clearly describing the resulting artwork as project-specific.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -680,3 +717,4 @@ requested two-date comparison. No data was downloaded or deleted.
 23. Add previewable, explicitly confirmed administrator cleanup outside the retained five-year windows.
 24. Remove hidden climate-provider downloads from public browsing and make missing/stale-data states explicit.
 25. Add saved-month discovery and open a useful cached month by default without overriding explicit choices.
+26. Replace the inherited error image with original, locally served artwork.
