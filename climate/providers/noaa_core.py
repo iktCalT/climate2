@@ -18,7 +18,7 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 
-from db import weather_db
+from climate.data.db import weather_db
 
 
 logger = logging.getLogger(__name__)

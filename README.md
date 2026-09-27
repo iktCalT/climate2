@@ -50,22 +50,26 @@ NOAA CORe -> indexed GRIB2 importer -> PostgreSQL (`noaa_core`, inactive)
 Accounts -> ignored local SQLite database
 ```
 
-The main modules are:
+Code is grouped by responsibility:
 
-- `app.py` — Flask routes, validation, account access, and administrator ingest.
-- `db.py` — PostgreSQL connection and location lookup helpers.
-- `helpers_data.py` — Open-Meteo requests, monthly aggregation, cache lookup, and PostgreSQL upserts.
-- `noaa_core.py` — anonymous indexed NOAA retrieval, GRIB2 validation, canonical-grid sampling, and provider-scoped monthly upserts.
-- `import_noaa_core.py` — bounded command-line batch, validation-only mode, and PostgreSQL resume checkpoint.
-- `compare_climate_providers.py` — read-only canonical coverage, metric-delta, and representative-point Markdown report.
-- `map_data.py` — bounded, zoom-aware MapLibre GeoJSON viewport tiles.
-- `helpers.py` — charts, validators, and authentication helpers.
-- `schema.sql` — PostgreSQL weather schema.
-- `user_schema.sql` — schema for a new local account database; it contains no user data.
+- `app.py` / `run.sh` — small Flask entry points.
+- `climate/web/` — routes, authentication, validation, and chart presentation.
+- `climate/services/` — map tiles and administrator import/cleanup workflows.
+- `climate/providers/` — Open-Meteo and NOAA acquisition and validation.
+- `climate/data/` — PostgreSQL access, saved-month queries, and calendar helpers.
+- `climate/cli/` — explicit administrative commands, run with `python -m`.
+- `sql/` — weather, account, and import-job schemas.
+- `templates/`, `static/`, `tests/` — page templates, browser assets, and tests.
+- `docs/` — project decisions and operating guides; `docs/agents/` holds shared
+  instructions, owned logs, and context lookup.
+
+Start with the [architecture guide](docs/ARCHITECTURE.md) or
+[documentation index](docs/README.md). Agents should enter through
+[AGENTS.md](AGENTS.md) and their [assigned task](docs/AGENT_TASKS.md).
 
 ## Local setup on macOS
 
-This project targets PostgreSQL **18** and works on Apple Silicon without machine-specific application code.
+This project targets PostgreSQL **18** and works on Apple Silicon without machine-specific application code. Run commands from the repository root; `./run.sh` also works when invoked from another directory.
 
 1. Install and start PostgreSQL 18:
 
@@ -85,8 +89,8 @@ This project targets PostgreSQL **18** and works on Apple Silicon without machin
 3. Create the weather and account schemas:
 
    ```sh
-   .venv/bin/python setup_database.py
-   .venv/bin/python setup_user_database.py
+   .venv/bin/python -m climate.cli.setup_database
+   .venv/bin/python -m climate.cli.setup_user_database
    ```
 
 4. Start the website:
@@ -100,7 +104,7 @@ The default weather connection is `postgresql://localhost/climate`. To use anoth
 If you still have the legacy weather database, its non-personal climate rows can be imported once:
 
 ```sh
-.venv/bin/python migrate_weather_sqlite.py static/weather.db
+.venv/bin/python -m climate.cli.migrate_weather_sqlite static/weather.db
 ```
 
 The migration is optional and safe to rerun. Public browsing never fills PostgreSQL automatically: administrators use the existing Open-Meteo point-grid tool or NOAA importer for deliberate acquisition. NOAA rows remain separate and inactive. PostgreSQL climate rows do not expire automatically; administrators can deliberately update or clean them. Identical Open-Meteo responses used by acquisition tools are cached locally for seven days. Cache-only browsing removes climate-provider network waits, but database, chart rendering, and basemap/asset loading still take time. Sparse or empty views are expected where active-provider data has not been imported.
@@ -109,8 +113,8 @@ To resumably fill the canonical global grid for 1950–1953 and 2023–2026,
 run a bounded batch repeatedly:
 
 ```sh
-.venv/bin/python prefetch_climate.py --dry-run
-.venv/bin/python prefetch_climate.py
+.venv/bin/python -m climate.cli.prefetch_climate --dry-run
+.venv/bin/python -m climate.cli.prefetch_climate
 ```
 
 PostgreSQL is the checkpoint. Complete locations are skipped, missing
@@ -127,13 +131,13 @@ grid. It needs no account or secret:
 
 ```sh
 .venv/bin/python -m eccodes selfcheck
-.venv/bin/python import_noaa_core.py --dry-run
-.venv/bin/python import_noaa_core.py --period 1950-1953
-.venv/bin/python import_noaa_core.py --period 2023-2026
-.venv/bin/python import_noaa_core.py --period 1950-present --dry-run
-.venv/bin/python import_noaa_core.py --period 1950-present --limit 12
-.venv/bin/python import_noaa_core.py --period 2016-2026 --newest-first --dry-run
-.venv/bin/python import_noaa_core.py --period 2016-2026 --newest-first --limit 12
+.venv/bin/python -m climate.cli.import_noaa_core --dry-run
+.venv/bin/python -m climate.cli.import_noaa_core --period 1950-1953
+.venv/bin/python -m climate.cli.import_noaa_core --period 2023-2026
+.venv/bin/python -m climate.cli.import_noaa_core --period 1950-present --dry-run
+.venv/bin/python -m climate.cli.import_noaa_core --period 1950-present --limit 12
+.venv/bin/python -m climate.cli.import_noaa_core --period 2016-2026 --newest-first --dry-run
+.venv/bin/python -m climate.cli.import_noaa_core --period 2016-2026 --newest-first --limit 12
 ```
 
 Only complete calendar months are eligible. One month is imported per run by
@@ -158,8 +162,8 @@ choose 1–12 months (default 1), and click **Start / resume batch**. The last
 window runs newest-first. Both windows stop at complete months and skip saved
 months. Status refreshes while a job runs; opening the page never downloads.
 
-Run `python setup_database.py` once after upgrading to install the additive
-`admin_import.sql` job-status table. Keep the app server running while a batch
+Run `python -m climate.cli.setup_database` once after upgrading to install the additive
+`sql/admin_import.sql` job-status table. Keep the app server running while a batch
 works. The background thread is not a durable queue: a server restart interrupts
 unfinished work, but committed months survive and the page offers manual resume.
 PostgreSQL serializes administrator batches across web workers. Do not run the
@@ -178,7 +182,7 @@ After reviewing the counts, check the explicit confirmation and click
 **Delete up to 50,000 rows**. Each click commits one bounded batch. Preview and
 confirm again to continue; nothing deletes automatically. Preview tokens expire
 after 10 minutes. The reusable functions are `cleanup_preview()` and
-`cleanup_batch()` in `admin_cleanup.py`; the latter is destructive and must only
+`cleanup_batch()` in `climate/services/admin_cleanup.py`; the latter is destructive and must only
 be called deliberately. The website enforces current admin rights and CSRF.
 
 Cleanup shares the admin import lock, uses 2-second lock and 30-second statement
@@ -207,8 +211,8 @@ use the endpoint colors. More contrast is not greater data accuracy.
 Compare only rows already stored in PostgreSQL after importing review months:
 
 ```sh
-.venv/bin/python compare_climate_providers.py --month 1950-01
-.venv/bin/python compare_climate_providers.py --month 1952-02 --month 2023-07
+.venv/bin/python -m climate.cli.compare_climate_providers --month 1950-01
+.venv/bin/python -m climate.cli.compare_climate_providers --month 1952-02 --month 2023-07
 ```
 
 At most 12 distinct complete months may be requested. With no `--month`, the
@@ -225,21 +229,24 @@ polar, ocean, and dateline cases is still required.
 Registration always creates a normal user. Promote or demote an existing local account with:
 
 ```sh
-.venv/bin/python manage_users.py grant-admin USERNAME
-.venv/bin/python manage_users.py revoke-admin USERNAME
+.venv/bin/python -m climate.cli.manage_users grant-admin USERNAME
+.venv/bin/python -m climate.cli.manage_users revoke-admin USERNAME
 ```
 
 See [docs/USER_ROLES.md](docs/USER_ROLES.md) for administrator ingest limits and [docs/POSTGRESQL.md](docs/POSTGRESQL.md) for database details.
 
 ## Testing
 
-With the virtual environment and local PostgreSQL available:
+Run the offline regression suite from the repository root:
 
 ```sh
-.venv/bin/python -m unittest discover -s tests
+DATABASE_URL= PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests
+node --test tests/test_map_scales.mjs
 ```
 
 The route tests use temporary account databases and do not modify personal account data.
+The empty `DATABASE_URL` skips live PostgreSQL tests. Only enable database
+integration checks against an explicitly isolated test database.
 Optional real-SQL cleanup tests create only connection-local temporary tables:
 `CLIMATE_CLEANUP_PG_TEST=1 .venv/bin/python -m unittest discover -s tests -p 'test_admin_cleanup.py'`.
 They verify date boundaries, all-provider retention, batch limits, rollback, and
@@ -304,7 +311,7 @@ Project, learning, and visual sources:
 
 - The original [iktCalT/climate](https://github.com/iktCalT/climate) project was implemented by its human author as a [CS50x](https://cs50.harvard.edu/x/) final project with substantial [ChatGPT](https://chatgpt.com/) guidance. Authentication and error-page helper patterns were adapted from CS50 course material.
 - The climate favicon is sourced from [Iconfinder](https://www.iconfinder.com/icons/9079087/global_warming_climate_change_hot_heat_temperature_icon).
-- Error images use [Memegen](https://github.com/jacebrowning/memegen) with an inherited Grumpy Cat background; the cultural reference is documented by [Know Your Meme](https://knowyourmeme.com/memes/grumpy-cat). The inherited background's original image licence is not established and should be replaced before broader publication.
+- The local climate error-page illustration was generated specifically for this project with [OpenAI image generation](https://developers.openai.com/api/docs/guides/image-generation). It is not adapted from a third-party character or source image; error messages and status codes remain accessible HTML rather than image text.
 - Inactive legacy generated map HTML files under `static/weather_data/` embed [Folium](https://python-visualization.github.io/folium/), [Leaflet](https://leafletjs.com/), [jQuery](https://jquery.com/), [Leaflet.awesome-markers](https://github.com/lennardv2/Leaflet.awesome-markers), [Font Awesome](https://fontawesome.com/), [OpenStreetMap](https://www.openstreetmap.org/copyright), and [CARTO basemaps](https://carto.com/attributions). They are retained only as historical artifacts and are not used by the current MapLibre pages.
 - This refactor is produced with [OpenAI Codex](https://openai.com/codex/) under the human owner's direction and review.
 

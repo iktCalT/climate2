@@ -11,9 +11,9 @@ from threading import Thread
 
 import psycopg
 
-from db import database_url
-from import_noaa_core import last_complete_month, months_between
-from noaa_core import (
+from climate.data.db import database_url
+from climate.data.months import last_complete_month, months_between
+from climate.providers.noaa_core import (
     CoreArchiveClient, EccodesDecoder, completed_core_months,
     load_core_month, upsert_core_month,
 )

@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from setup_user_database import initialize_user_database
+from climate.cli.setup_user_database import initialize_user_database
 
 
 class UserDatabaseSetupTests(unittest.TestCase):

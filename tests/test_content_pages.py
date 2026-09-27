@@ -3,7 +3,7 @@ import unittest
 
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
-from app import app
+from climate.web.app import app
 
 
 class ContentPageTests(unittest.TestCase):
@@ -61,8 +61,10 @@ class ContentPageTests(unittest.TestCase):
             b"July 2023",
             b"August 2026",
             b"does not silently",
+            b"OpenAI image generation",
+            b"sends no visitor error message to an external image service",
         ):
-            self.assertIn(expected, response.data)
+            self.assertIn(expected, b" ".join(response.data.split()))
 
     def test_footer_attribution_follows_the_active_climate_provider(self):
         original_provider = app.config["CLIMATE_PROVIDER"]

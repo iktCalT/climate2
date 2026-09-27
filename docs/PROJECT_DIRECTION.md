@@ -3,6 +3,73 @@
 This document records requirements added after the original refactor plan. It
 supplements, but does not replace or edit, `docs/REFACTOR.md`.
 
+## Four-agent responsibilities and coordination
+
+Status: implemented (shared instructions and task board; no agents launched).
+
+Problem: multiple agents can duplicate work, edit overlapping files, or expand
+their tasks beyond the user's request without explicit ownership.
+
+Desired behavior: keep a shared four-role roster and handoff rules in
+`docs/AGENT_ROLES.md`, referenced by root `AGENTS.md` and a repo-wide editor
+rule. Keep explicit assignments and completion evidence in
+`docs/AGENT_TASKS.md`, maintained by the Lead / Architect.
+
+Constraints: work only in climate2; preserve unrelated edits; assign one writer
+per file at a time; require a bounded task before implementation; keep review
+read-only unless a fix is explicitly assigned. Skill names describe capabilities,
+not permission to change frameworks, install tools, or expand scope. These
+instructions do not create agents or authorize unrelated implementation work.
+
+## Shared agent memory
+
+Status: implemented in `docs/agents/`; linked from agent startup instructions.
+
+Problem: agents need useful handoffs and durable decisions without reading
+irrelevant history or overwriting each other's notes.
+
+Desired behavior: `docs/agents/` contains one concise, owner-written log per
+agent and a common `SKILL.md` that every agent reads and may improve. Search
+task/topic/file headings first; read only relevant entries. Record important
+findings before context is lost and summarize results at task completion.
+
+Constraints: initialize empty logs once, then only their owners edit them;
+coordinate shared-skill edits; retain unresolved issues and durable decisions
+while pruning obsolete notes. Remove only verified disposable, inactive,
+repo-local agent artifacts within scope, never another agent's active work,
+private data, or global caches. No automatic cleanup job is introduced.
+
+## Indexed context and local cache cleanup
+
+Status: implemented; cleanup and recovery recorded in
+`docs/agents/context/maintenance.md`.
+
+Problem: completed coordination details crowd startup context, while important
+but inactive knowledge needs a discoverable home. Generated development caches
+also occupy local space.
+
+Desired behavior: keep `docs/agents/CONTEXT_INDEX.md` as a short lookup for
+topic notes under `docs/agents/context/`. Load only relevant notes, identify
+their source/revision, and condense completed task records without losing
+unresolved work. This does not erase the conversation's internal context.
+
+Cleanup scope: inspect and remove only the regenerable `.mypy_cache/`, root
+and test `__pycache__/`, `.DS_Store`, and empty `.matplotlib/` in this checkout.
+Preserve working changes, environments, application caches, sessions, databases,
+other worktrees, and global agent state. Record what was removed and how it can
+be regenerated; protect the context index and useful notes from cache cleanup.
+
+## Agent-ready repository structure
+
+Status: implemented on 2026-09-27; see `docs/ARCHITECTURE.md` and the task board.
+
+The user assigned the Lead to restructure the project before forking the other
+three agents. For this task, the Lead may move production modules, update their
+imports and paths, and adapt tests/documentation as a scoped exception to the
+normal planning-only role. Preserve uncommitted work when bringing this older
+checkout onto the existing local main baseline. Record architecture and
+non-overlapping follow-up tasks before handoff; do not launch the other agents.
+
 ## Publication and provenance
 
 - The refactor is an **AI-assisted derivative** made with **OpenAI Codex

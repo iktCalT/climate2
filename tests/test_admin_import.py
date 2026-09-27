@@ -2,7 +2,7 @@ from datetime import date
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 
-import admin_import as service
+import climate.services.admin_import as service
 
 
 class AdminImportServiceTests(TestCase):

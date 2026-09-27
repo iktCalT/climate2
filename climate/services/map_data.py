@@ -5,8 +5,8 @@ import math
 import numpy as np
 import pandas as pd
 
-from db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, weather_db
-from helpers_data import DEFAULT_METEO_TYPES, get_data
+from climate.data.db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, weather_db
+from climate.providers.open_meteo import DEFAULT_METEO_TYPES, get_data
 
 MAX_VIEWPORT_POINTS = 91 * 91
 MAX_FETCH_PER_VIEWPORT = 4

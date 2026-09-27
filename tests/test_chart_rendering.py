@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pandas as pd
 import plotly.graph_objects as go
 
-from helpers import draw_chart
+from climate.web.helpers import draw_chart
 
 
 class ChartRenderingTests(unittest.TestCase):
@@ -24,7 +24,7 @@ class ChartRenderingTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temporary_directory:
             chart_directory = Path(temporary_directory) / "location_data"
-            with patch("helpers.LOCATION_CHART_DIRECTORY", chart_directory):
+            with patch("climate.web.helpers.LOCATION_CHART_DIRECTORY", chart_directory):
                 with patch.object(go.Figure, "write_html") as write_html:
                     figure = draw_chart(1, 2, history, filename="test-chart.html")
 
@@ -78,7 +78,7 @@ class ChartRenderingTests(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as temporary_directory:
             chart_directory = Path(temporary_directory) / "location_data"
-            with patch("helpers.LOCATION_CHART_DIRECTORY", chart_directory):
+            with patch("climate.web.helpers.LOCATION_CHART_DIRECTORY", chart_directory):
                 with patch.object(go.Figure, "write_html") as write_html:
                     draw_chart(1, 2, history, filename="../personal-chart.html")
 

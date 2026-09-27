@@ -1,0 +1,16 @@
+---
+description: Shared climate2 agent roles, ownership, and handoff boundaries
+alwaysApply: true
+---
+
+# Agent coordination
+
+- Read root `AGENTS.md`, `docs/AGENT_ROLES.md`, and `docs/AGENT_TASKS.md`
+  before starting a task or editing files. They are the shared source of truth.
+- Read `docs/agents/SKILL.md`; search for relevant handoffs, write only your
+  own log, and coordinate improvements to the common skill.
+- Work only in the assigned role, task, and files; skills do not expand scope.
+- Ask the Lead to resolve overlapping ownership or necessary scope changes.
+- Example: a reviewer finding a route bug reports it to Backend through the
+  Lead; the reviewer does not silently patch the route.
+- Hand off results when finished; do not independently start more work.
