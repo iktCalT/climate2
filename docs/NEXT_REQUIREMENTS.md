@@ -511,9 +511,12 @@ order. Follow-up dry runs confirmed 56 of 128 complete months in the requested
 the next prioritized batch was December–January 2021. On 2026-09-26, a second
 reverse batch validated and atomically committed all 12 months of 2021 in
 descending order. Follow-up dry runs confirmed 68 of 128 recent-window months
-and 272 of 920 full-history months complete. December–January 2020 is next;
-2016–2020 remains pending. The original oldest-first selection still begins
-at January 1967 when explicitly used.
+and 272 of 920 full-history months complete. On 2026-09-26, a third reverse
+batch validated and atomically committed December–January 2020, including
+leap-month February. Follow-up dry runs confirmed 80 of 128 recent-window
+months and 284 of 920 full-history months complete. December–January 2019 is
+next; 2016–2019 remains pending. The original oldest-first selection still
+begins at January 1967 when explicitly used.
 
 ## Delivery order
 
