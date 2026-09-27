@@ -20,7 +20,7 @@ The shared footer follows the active climate provider. It currently credits Open
 
 ## Provider status
 
-- **Current data scope:** administrator-started NOAA fetching is limited to 1950–1954 and 2022–2026, through the latest complete month. Manual full-history and 2016–2026 backfill work is no longer a priority; saved rows remain intact. Open-Meteo CMIP6 is still active pending a separate validated provider switch. Some inherited ocean temperatures disagree with fresh source checks and have not been repaired. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **Current data scope:** administrator-started NOAA fetching is limited to 1950–1954 and 2022–2026, through the latest complete month. Manual full-history and 2016–2026 backfill work is no longer a priority; saved rows remain intact unless an administrator explicitly uses the optional cleanup tool. Open-Meteo CMIP6 is still active pending a separate validated provider switch. Some inherited ocean temperatures disagree with fresh source checks and have not been repaired. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 On 2026-09-26, the administrator coverage check found both windows complete:
 60/60 months for 1950–1954 and 56/56 for 2022–August 2026. No additional
@@ -156,6 +156,36 @@ standalone CLI importer concurrently with the admin tool. Admin rights are
 checked on every request, starts require a session-bound CSRF token, and public
 errors contain no raw connection details. No credentials are entered in the UI.
 
+### Optional administrator cleanup
+
+On **Admin → Data**, choose **Preview cleanup (no deletion)** to see retained
+and removable row counts for each provider. Cleanup keeps every climate row in
+**1950–1954 and 2022–2026**, and removes only rows outside those windows, from
+all providers including active Open-Meteo. Back up PostgreSQL first if you need
+exact recovery: there is no in-app undo and re-fetching can return revised data.
+After reviewing the counts, check the explicit confirmation and click
+**Delete up to 50,000 rows**. Each click commits one bounded batch. Preview and
+confirm again to continue; nothing deletes automatically. Preview tokens expire
+after 10 minutes. The reusable functions are `cleanup_preview()` and
+`cleanup_batch()` in `admin_cleanup.py`; the latter is destructive and must only
+be called deliberately. The website enforces current admin rights and CSRF.
+
+Cleanup shares the admin import lock, uses 2-second lock and 30-second statement
+timeouts, and rolls back SQL failures. Pause CLI imports before cleanup.
+Accounts, profiles, location definitions, downloaded files, and rendered caches
+are untouched. This is manual pruning, **not an enforced retention policy**:
+browsing removed dates or running import tools can refill the cache, potentially
+making the first request slower. Existing rendered charts may still show old
+data. Pruning alone is not a guarantee of faster indexed queries.
+
+The bounded SQL follows PostgreSQL's documented
+[batch DELETE pattern](https://www.postgresql.org/docs/18/sql-delete.html).
+[Routine vacuuming](https://www.postgresql.org/docs/18/routine-vacuuming.html)
+reclaims deleted space for reuse and refreshes planner statistics; deleting rows
+does not immediately shrink the database file. This page never runs disruptive
+`VACUUM FULL`. PostgreSQL and its documentation use the
+[PostgreSQL License](https://www.postgresql.org/about/licence/).
+
 For finer comparison colors, manually choose **Cold detail** (−10 to 10 °C),
 **Mild detail** (0 to 20 °C), or **Warm detail** (20 to 40 °C). Their color stops
 are 2 °C apart, with continuous interpolation. All panels share that scale;
@@ -198,6 +228,10 @@ With the virtual environment and local PostgreSQL available:
 ```
 
 The route tests use temporary account databases and do not modify personal account data.
+Optional real-SQL cleanup tests create only connection-local temporary tables:
+`CLIMATE_CLEANUP_PG_TEST=1 .venv/bin/python -m unittest discover -s tests -p 'test_admin_cleanup.py'`.
+They verify date boundaries, all-provider retention, batch limits, rollback, and
+import-lock conflicts without deleting application climate rows.
 
 ## Repository privacy
 

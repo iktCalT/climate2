@@ -559,6 +559,36 @@ Three narrow temperature presets now offer 2°C stops; comparisons still share
 one manually selected scale. Homepage and map copy explain the changed scope
 and the unresolved inherited ocean-cache limitation.
 
+## 23. Explicit administrator cleanup outside the two five-year windows
+
+Status: Implemented.
+
+Problem: accumulated climate cache history increases storage and maintenance
+work. The owner wants a small working dataset and responsive queries.
+Keep all providers' rows dated 1950–1954 or 2022–2026; offer an administrator
+preview of retained/removable counts by provider, followed by an explicitly
+confirmed cleanup of at most 50,000 climate rows per request. Repeating a batch
+resumes safely. Do not delete accounts, profiles, location definitions, files,
+or rows in the retained windows. No automatic cleanup or live-data deletion
+during implementation. A backup is required for exact recovery; re-fetching
+may yield revised source values. Share the admin-import lock, enforce admin
+authorization and CSRF, use transaction/lock timeouts, and roll back failures.
+Document that this is manual cache pruning, not a retention firewall: visiting
+other dates or running import tools can refill removed rows. Smaller storage
+alone does not guarantee faster indexed queries or immediately shrink database
+files; PostgreSQL vacuum maintenance and query measurements remain relevant.
+Use existing dependencies and cite PostgreSQL cleanup/maintenance documentation
+in README and References. Do not run disruptive VACUUM FULL from the website.
+
+Implemented `admin_cleanup.py`, a role-checked/CSRF-protected preview and delete
+API, and a clearly separated cleanup section on Admin → Data. Preview grants
+a session-bound, ten-minute confirmation token that is consumed on submission;
+each request deletes at most 50,000 rows. Both providers and date boundaries
+were tested using PostgreSQL temporary tables, including repeated batches,
+rollback and conflicts with the import lock. Browser verification used a
+disposable account with deletion disabled and verified live read-only counts
+and disabled deletion before confirmation. No application data was removed.
+
 ## Delivery order
 
 1. Tile-grid geometry and flat map.
@@ -583,3 +613,4 @@ and the unresolved inherited ocean-cache limitation.
 20. Open maps over the contiguous United States and make footer attribution follow the active provider.
 21. Prioritize NOAA backfill newest-first from 2026 through 2016, skipping complete months.
 22. Replace manual backfill work with administrator-owned five-year edge-window batches and improve manual temperature-scale detail and website clarity.
+23. Add previewable, explicitly confirmed administrator cleanup outside the retained five-year windows.
