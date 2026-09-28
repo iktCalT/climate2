@@ -1,5 +1,20 @@
 # Next requirements
 
+## Home and References clarity refresh
+
+**Status:** Implemented and reviewed 2026-09-28; user-approved.
+
+Refresh existing pages with scannable coverage/provider/limitations guidance,
+clear Maps and Locations actions, and concise instructions for linked comparison
+readouts and manual scales. Explain Celsius and precipitation in mm/day (not
+monthly totals), cache-only public browsing, incomplete coverage and estimates.
+Keep current CMIP6 and inactive NOAA roles honest; no provider switch or new
+fetching. Move historical import counts out of prominent current-state copy:
+they are dated checkpoints, not live coverage. Preserve all existing credits,
+links and provenance caveats; no new external assets/dependencies. Use existing
+styles with minimal responsive additions, semantic headings and keyboard links.
+Verify rendered pages/tests without live databases or provider requests.
+
 ## Linked comparison-map location readouts
 
 **Status:** Implemented on 2026-09-28; user-requested. Verified with fake-data
