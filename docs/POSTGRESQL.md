@@ -2,7 +2,10 @@
 
 The weather database now uses PostgreSQL 18. `static/weather.db` remains only
 as the legacy migration source; the Flask weather features no longer read it.
-User accounts continue to use `static/users.db`.
+User accounts use separate ignored SQLite storage: private `instance/users.db`
+for new installations, or explicit `USER_DATABASE_PATH`. An existing legacy
+`static/users.db` remains a warned fallback until deliberately relocated;
+see [private account storage](USER_ROLES.md#private-account-storage).
 
 PostgreSQL 18.6 is installed locally through Homebrew and runs as a background
 service. Flask uses `postgresql://localhost/climate` automatically. Set

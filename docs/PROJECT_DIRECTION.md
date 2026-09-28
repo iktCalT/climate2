@@ -70,6 +70,24 @@ normal planning-only role. Preserve uncommitted work when bringing this older
 checkout onto the existing local main baseline. Record architecture and
 non-overlapping follow-up tasks before handoff; do not launch the other agents.
 
+## Sequential managed team
+
+Status: implemented in the SECURITY-001 handoff cycle (user-approved on 2026-09-27).
+
+The user communicates primarily with the Lead. The Lead starts or resumes one
+specialist at a time: Backend → QA → Reviewer. Failed verification returns to
+Backend, then QA and Reviewer repeat only affected checks. No parallel specialist
+work and no additional agents spawned by specialists. Existing completed logs
+are evidence to reuse, not tasks to redo.
+
+Default models: Sol/medium for Backend, Luna/medium for straightforward QA,
+Sol/high for Reviewer; Lead handles architecture. Adjust available models to
+task complexity and conserve usage. Subscription changes or paid API use are
+not authorized by these model preferences. Each specialist writes only their
+own log; the Lead maintains assignments and integrates reviewed changes.
+Continue through the full round without requesting confirmation at each handoff;
+stop when the round finishes or a material decision needs the user's input.
+
 ## Publication and provenance
 
 - The refactor is an **AI-assisted derivative** made with **OpenAI Codex

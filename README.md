@@ -99,7 +99,13 @@ This project targets PostgreSQL **18** and works on Apple Silicon without machin
    .venv/bin/flask --app app run
    ```
 
-The default weather connection is `postgresql://localhost/climate`. To use another local database, set `DATABASE_URL` in the shell that launches Flask. To place the account database elsewhere, set `USER_DATABASE_PATH`. Never commit credentials or a populated user database; `.env`, database files, profile uploads, generated charts, keys, and local caches are ignored. Legacy database and upload files that were tracked by the original project are removed from this refactor's current tree, while local copies remain available to their owner.
+The default weather connection is `postgresql://localhost/climate`. To use another local database, set `DATABASE_URL` in the shell that launches Flask. New account databases default to ignored `instance/users.db`, outside public assets. Flask and account tools honor `USER_DATABASE_PATH`; without it, an existing `static/users.db` is retained with a warning so upgrades do not silently replace accounts. See [private account storage](docs/USER_ROLES.md#private-account-storage) before relocating existing data. Never commit credentials or a populated user database; `.env`, database files, profile uploads, generated charts, keys, and local caches are ignored.
+
+Flask blocks recognizable database/backup filenames and sidecars, hidden files, the configured
+account database, and static paths escaping the public root. A separate web server
+serving static files must apply its own restrictions; keep private data outside
+its public directory, including arbitrarily renamed backups that filename checks
+cannot identify. No account database is automatically moved or deleted.
 
 If you still have the legacy weather database, its non-personal climate rows can be imported once:
 
@@ -296,6 +302,7 @@ Current application software and delivery services:
 
 - [Python threading](https://docs.python.org/3/library/threading.html) (Python Software Foundation licence) runs bounded background admin batches; no task-queue dependency was added.
 - [Python hashlib](https://docs.python.org/3/library/hashlib.html) (Python Software Foundation licence) creates SHA-256 data-content keys for location chart reuse without stale results after imports or cleanup.
+- [Python sqlite3](https://docs.python.org/3/library/sqlite3.html) and [contextlib.closing](https://docs.python.org/3/library/contextlib.html#contextlib.closing) (Python Software Foundation licence) provide local account storage and explicit connection closure; the SQLite transaction context alone does not close a connection.
 - [Node.js](https://nodejs.org/) runs the dependency-free map-scale tests (`node tests/test_map_scales.mjs`); Node is MIT-licensed with bundled third-party notices in its [licence](https://github.com/nodejs/node/blob/main/LICENSE).
 
 - [ECMWF ecCodes Python](https://github.com/ecmwf/eccodes-python) decodes the selected NOAA GRIB2 records and is distributed under Apache License 2.0. Its PyPI installation includes the binary ecCodes library on macOS and Linux.

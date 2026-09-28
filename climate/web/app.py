@@ -3,16 +3,20 @@ import numpy as np
 import sqlite3
 import secrets
 import hashlib
+import re
 
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, jsonify, redirect, render_template, request, session
+from flask import Flask, abort, jsonify, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from climate.paths import STATIC_DIRECTORY, TEMPLATE_DIRECTORY
+from climate.paths import (
+    STATIC_DIRECTORY, TEMPLATE_DIRECTORY,
+    resolve_user_database_path,
+)
 from climate.data.db import ACTIVE_CLIMATE_PROVIDER
 from climate.web.helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
 from climate.providers.open_meteo import get_data_locations, get_location_history
@@ -51,7 +55,7 @@ app = Flask(
     static_folder=str(STATIC_DIRECTORY), static_url_path="/static",
 )
 app.config["CLIMATE_PROVIDER"] = ACTIVE_CLIMATE_PROVIDER
-app.config["USER_DATABASE_PATH"] = os.environ.get("USER_DATABASE_PATH", "static/users.db")
+app.config["USER_DATABASE_PATH"] = str(resolve_user_database_path())
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -118,6 +122,67 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
+
+
+@app.before_request
+def protect_static_files():
+    """Keep private, hidden, and out-of-root files off Flask's static route."""
+    if request.endpoint != "static":
+        return None
+
+    filename = request.view_args.get("filename", "")
+    requested = Path(filename)
+    if any(part.startswith(".") for part in requested.parts):
+        abort(404)
+
+    try:
+        static_root = Path(app.static_folder).resolve()
+    except (OSError, RuntimeError, ValueError):
+        abort(404)
+    candidate = static_root / requested
+    try:
+        resolved = candidate.resolve()
+        resolved_relative = resolved.relative_to(static_root)
+    except (OSError, RuntimeError, ValueError):
+        abort(404)
+    if any(part.startswith(".") for part in resolved_relative.parts):
+        abort(404)
+
+    names = (requested.name.lower(), candidate.name.lower(), resolved.name.lower())
+    if any(_is_database_or_sidecar(name) for name in names):
+        abort(404)
+
+    configured = Path(app.config["USER_DATABASE_PATH"])
+    try:
+        configured_paths = {configured.absolute(), configured.resolve()}
+    except (OSError, RuntimeError, ValueError):
+        abort(404)
+    protected = set()
+    for database in configured_paths:
+        protected.add(database)
+        protected.update(Path(str(database) + suffix) for suffix in ("-journal", "-wal", "-shm"))
+    candidates = {candidate.absolute(), resolved}
+    if candidates & protected:
+        abort(404)
+    # Path comparison alone misses hard links and alternate-case aliases on
+    # case-insensitive filesystems. Identity checks read metadata only.
+    for candidate_path in candidates:
+        for protected_path in protected:
+            try:
+                if os.path.samefile(candidate_path, protected_path):
+                    abort(404)
+            except OSError:
+                pass
+    return None
+
+
+def _is_database_or_sidecar(name):
+    """Match database extensions at end or before any non-alphanumeric delimiter."""
+    return re.search(
+        r"\.(?:db|sqlite|sqlite3)(?=$|[^a-z0-9])",
+        name,
+        re.IGNORECASE | re.ASCII,
+    ) is not None
 
 
 @app.route("/")

@@ -7,6 +7,9 @@ description: Coordinate climate2 agent memory at task startup, checkpoints, and 
 
 All agents read this file at task startup. Follow [roles](../AGENT_ROLES.md)
 and [assignments](../AGENT_TASKS.md); this folder supplements them.
+The Lead starts/resumes specialists sequentially. Finish and hand back before
+the next specialist starts; do not spawn additional agents. Reuse completed
+handoffs and rerun checks only for new changes or unresolved concerns.
 
 ## Read only what helps
 
