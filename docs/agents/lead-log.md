@@ -2,6 +2,19 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-27 | SECURITY-001 | private accounts / sequential handoffs | done
+
+- Result: coordinated Backend → QA → Reviewer, including two backup-name
+  corrections. Shared account resolver defaults outside public assets; warned
+  legacy fallback preserves accounts; Flask blocks private static downloads.
+  Setup closes connections. Updated storage guidance and stdlib citations.
+- Check: QA reports 133 Python tests (8 database skips), Node passed; Reviewer
+  independently verified denial and normal assets with temporary fake files.
+  No real account database opened, moved, or deleted; no live provider calls.
+- Next: integrate on `codex/project-structure` using repository-local Meow-5.
+  Separate static servers and arbitrarily renamed backups require private
+  storage; see [account guidance](../USER_ROLES.md#private-account-storage).
+
 ## 2026-09-27 | LAYOUT-001 | project structure / climate package | done
 
 - Result: based `codex/project-structure` on local main `cbeda44`; preserved

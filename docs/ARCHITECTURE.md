@@ -57,6 +57,12 @@ templates/static assets. Runtime data paths, sessions, chart caches, and explici
 relative environment paths retain their previous root-working-directory behavior;
 `run.sh` changes to the repository root before starting Flask.
 
+Account paths are shared through `climate/paths.py`: new installations use
+private `instance/users.db`; explicit configuration and warned legacy fallback
+preserve existing accounts. See [storage and relocation](USER_ROLES.md#private-account-storage).
+Flask denies private static downloads; separate static servers need their own
+restrictions. Account initialization closes its connection deterministically.
+
 Old `helpers_data.py` is `climate/providers/open_meteo.py`; other moved modules
 retain their filenames in the directories above. Historical requirement entries
 and the fixed `REFACTOR.md` may mention old paths; use this guide for navigation.

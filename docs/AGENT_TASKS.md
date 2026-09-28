@@ -2,18 +2,31 @@
 
 The Lead owns this board. Read [roles](AGENT_ROLES.md),
 [architecture](ARCHITECTURE.md), and [shared memory](agents/SKILL.md).
-Agents 2–4 start their assignment when the user forks them; none were launched
-by the Lead. Report results in your own log and stop at the task boundary.
+The Lead dispatches managed specialists sequentially. Only one specialist works
+at a time; do not spawn more agents. Report in your own log and stop. Failed
+checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
-- **Agent 1 — LAYOUT-001:** Lead restructure, validation, and fork handoff.
-- **Agent 2 — BACKEND-001:** review package entry points and correct confirmed
-  restructuring defects. Ready for the Backend fork.
-- **Agent 3 — QA-001:** independent regressions and missing layout coverage.
-  Ready for the QA fork.
-- **Agent 4 — REVIEW-001:** independent correctness/security review.
-  Ready for the Reviewer fork.
+- **Lead — SECURITY-001:** implementation round complete; integrating reviewed changes.
+- **Backend — BACKEND-002:** complete including delimiter correction;
+  setup connection closure. Own `climate/` and `backend-log.md` only.
+- **QA — QA-002:** complete including delimiter regression; 133 Python tests (8 skips), Node passed.
+- **Reviewer — REVIEW-002/003:** complete; backup findings resolved, no remaining
+  findings within the bounded requirement. See reviewer log for limitations.
+
+Acceptance for SECURITY-001: meet the recorded private-account requirement in
+`NEXT_REQUIREMENTS.md`; no live data operations; verify temporary-data denial
+and normal assets, legacy/configured path compatibility, connection lifetime,
+and existing offline regressions. Lead owns `README.md`, `.env.example`, agent
+coordination docs, operating guides, and required References citations. Default models: Backend Sol/medium,
+QA Luna/medium, Reviewer Sol/high. The three `*-001` reviews below are complete;
+use their existing findings rather than repeat the restructure review.
+
+Backend Sol hit a usage limit before editing; Backend Luna/medium completed
+the scoped implementation. QA should cover configured-file aliases by inode
+as well as pathname, sidecars, symlink escapes/loops, normal assets, resolver
+precedence, and connection closure on success/error using temporary fake data.
 
 ## LAYOUT-001 — Lead / Architect
 

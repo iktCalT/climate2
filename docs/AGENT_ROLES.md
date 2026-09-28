@@ -108,7 +108,10 @@ revision when needed to distinguish concurrent work; avoid machine-local paths.
 
 Normal flow: Lead design/assignment → Backend implementation → QA verification
 → Reviewer findings → owner fixes and re-verification → Lead integration.
-QA may author tests earlier when contracts and file ownership are settled.
+The Lead manages one active specialist at a time. Specialists do not launch
+other agents; they hand results back to the Lead for the next dispatch. A failed
+test or review returns to Backend, then QA and Reviewer verify the correction.
+Prefer the assigned economical model; the Lead can adjust it for task complexity.
 
 At handoff, provide the task ID, changed files, behavior delivered, commands and
 results, unresolved risks/blockers, and the next owner. A report of tests not run

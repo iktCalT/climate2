@@ -4,17 +4,15 @@ This script manages only the ignored local SQLite user database. It never
 contacts PostgreSQL or a remote service.
 """
 import argparse
-import os
 import sqlite3
 from contextlib import closing
 
-
-DEFAULT_USER_DATABASE_PATH = "static/users.db"
+from climate.paths import resolve_user_database_path
 
 
 def set_admin_status(username, is_admin, database_path=None):
     """Set one existing user's administrator flag and return whether it exists."""
-    path = database_path or os.environ.get("USER_DATABASE_PATH", DEFAULT_USER_DATABASE_PATH)
+    path = resolve_user_database_path(database_path)
     with closing(sqlite3.connect(path)) as con:
         result = con.execute(
             "UPDATE users SET is_admin = ? WHERE username = ?", (bool(is_admin), username)

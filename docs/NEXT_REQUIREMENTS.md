@@ -1,5 +1,36 @@
 # Next requirements
 
+## Private account storage and safe static serving
+
+**Status:** Implemented and independently reviewed on 2026-09-27, following
+BACKEND-001/QA-001/REVIEW-001 findings. Offline suite: 133 Python tests
+(8 database skips) and Node scale check passed; no live data was accessed.
+
+The inherited default `static/users.db` is downloadable through Flask's static
+route. A separate inherited setup helper leaves its SQLite connection open.
+Use one shared account-path resolver for Flask, initialization, and role tools.
+New installations default to ignored `instance/users.db`, outside public assets.
+Preserve explicit configuration. Existing legacy accounts must not be silently
+replaced: permit a clearly warned transitional legacy fallback while protecting
+its download, and document deliberate relocation outside the static directory.
+
+Static serving must deny SQLite/database files and sidecars, hidden files,
+configured account storage regardless of filename, and paths/symlinks escaping
+the static root. Keep normal CSS/JS/images and generated charts available.
+Close setup connections on success and failure. Tests use temporary fake data,
+cover unauthenticated denial and legitimate assets, and verify consistent path
+selection and connection closure. Do not open, copy, move, or delete real user
+databases, fetch climate data, or change dependencies in this task. A separate
+web server serving static files needs equivalent restrictions; documentation
+must not claim the Flask guard protects that server.
+
+Review follow-up: also deny recognizable database backup names such as
+`users.db.bak`, including compound suffixes and sidecar backups. Match database
+extensions at filename boundaries (end or any non-ASCII-alphanumeric delimiter,
+including underscore, spaces, parentheses, or trailing tilde), without reading
+file contents on HTTP requests. Arbitrarily renamed copies cannot be reliably
+classified by filename; all backups must remain outside public directories.
+
 ## Project layout and agent-ready architecture
 
 **Status:** Implemented on 2026-09-27; recorded before implementation.
