@@ -2,6 +2,12 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | MAP-001 | linked comparison readouts | done
+
+- Result: prior P3 Maps-page wording finding resolved. `templates/maps.html:24` now describes each panel's own value and source, explicitly including labelled display estimates; it no longer calls estimates saved values. No remaining finding in the bounded review of per-panel containment/value/source, loading and stale guards, safe text, popup close and cleanup, and citations.
+- Check: all three Node map suites passed before the wording correction; `git diff --check` clean. QA reports 133 Python tests (8 skips), then a passing template Node check and Jinja parse after the correction; not rerun here. No live data or independent browser check; Lead reported synthetic browser verification.
+- Next: Lead integrate; no further Reviewer action unless code changes.
+
 ## 2026-09-27 | REVIEW-003 / SECURITY-001 | private static storage | done
 
 - Result: no remaining finding in the bounded requirement. The prior P2

@@ -2,6 +2,18 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | MAP-001 review follow-up | Maps guidance | done
+
+- Result: changed the readout guidance to say each month has its own value and data source, including labelled display estimates; no behavior changed.
+- Check: Jinja template parse and `git diff --check` passed.
+- Next: QA/Reviewer continue MAP-001 verification.
+
+## 2026-09-28 | MAP-001 | linked map location readouts | done
+
+- Result: added a dependency-free selection controller for each panel's accepted GeoJSON, safe popup text, per-month value/source and missing/loading/error states. Map clicks include gaps; viewport moves invalidate stale readouts immediately; stale responses cannot restore them. Template gives user guidance. No data API or scale change.
+- Check: Node syntax and focused two-panel fake-popup smoke passed (zero, negative, loading, missing, close). Existing Node scale test, Jinja parse, and `git diff --check` passed. Browser and live data checks were not run.
+- Next: QA add regression tests for controller and template lifecycle, then Reviewer inspect.
+
 ## 2026-09-27 | REVIEW-003 | database backup delimiters | done
 
 - Result: recognized database extensions now match at filename end or before

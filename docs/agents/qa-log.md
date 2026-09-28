@@ -2,6 +2,21 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | MAP-001 | linked comparison map readouts | done
+
+- Result: added fake-Popup coverage for single/four panels, independent values
+  and units, zero/negative values, shared click coordinates, containing-cell
+  matching, missing/loading/error, safe text, repeat selection, close, and
+  removal. Template test executes the actual async load functions with deferred
+  fake responses for stale success/failure and immediate loading. Updated the
+  route assertion for popup labels moved to the external script.
+- Check: requested offline unittest suite passed (133 tests, 8 skips); Node
+  map tests passed (3), including template async checks; `git diff --check`
+  clean. Fake data only; browser unavailable (no browser connector/permission).
+- Recheck: after the instructional sentence clarified labelled display
+  estimates, `node --test tests/test_map_template.mjs` passed (1 test).
+- Next: Lead integration; no defects found in QA scope.
+
 ## 2026-09-27 | REVIEW-003 | database backup delimiters | done
 
 - Result: expanded temporary-file GET/HEAD regressions for underscores,

@@ -214,6 +214,13 @@ are 2 °C apart, with continuous interpolation. All panels share that scale;
 saved presets/custom scales are preserved. Values outside the selected range
 use the endpoint colors. More contrast is not greater data accuracy.
 
+Click a location on any comparison map to show that same location on every
+panel. Each readout uses its own month's loaded grid cell, with value, unit and
+cache/estimate provenance; selected coordinates and cell centers are distinct.
+Loading, unavailable and missing coverage are explicit. Click another location
+to replace the selection, or close any popup to clear all. This also works on a
+single map, adds no data requests, and never changes the color scale.
+
 Compare only rows already stored in PostgreSQL after importing review months:
 
 ```sh
@@ -310,7 +317,7 @@ Current application software and delivery services:
 - [PostgreSQL](https://www.postgresql.org/docs/18/) and [Psycopg](https://www.psycopg.org/psycopg3/docs/) provide climate storage, read-only saved-month aggregation, bounded query execution, and Python database access.
 - [NumPy](https://numpy.org/doc/stable/), [pandas](https://pandas.pydata.org/docs/), and [Plotly Python](https://plotly.com/python/) provide numerical work, monthly aggregation, and charts.
 - [Open-Meteo's Python client](https://github.com/open-meteo/python-requests), [requests-cache](https://requests-cache.readthedocs.io/en/stable/), and [retry-requests](https://github.com/MazeMap/retry-requests) provide API transport, local response caching, and bounded retries.
-- [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) renders maps using the [MapLibre demo style and tiles](https://github.com/maplibre/demotiles).
+- [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) (BSD-3-Clause) renders maps using the [MapLibre demo style and tiles](https://github.com/maplibre/demotiles). Its [Popup API](https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/) supplies linked, text-safe location readouts across comparison panels.
 - [ColorBrewer 2.0](https://colorbrewer2.org/) provides the cartographic diverging and sequential palette guidance adapted for the temperature and precipitation scale presets.
 - [Bootstrap 5](https://getbootstrap.com/docs/5.3/) is delivered through [jsDelivr](https://www.jsdelivr.com/), and the interface loads Audiowide, Space Mono, and Muli through [Google Fonts](https://fonts.google.com/).
 

@@ -21,6 +21,7 @@
                 Move any map to synchronize every viewport. All panels share the scale and legend below.
             </p>
         {% endif %}
+        <p class="text-muted">Click anywhere on a map to compare that location across the selected months. Each readout shows its own value and data source, including labelled display estimates; gaps and loading are labelled. Close any readout to clear the selection.</p>
         <p class="text-muted">The initial view opens over the contiguous United States; pan or zoom anywhere within the supported world bounds.</p>
         {% if initial_saved_month %}
         <p class="small text-muted">Opened the newest saved mean-temperature month within the stable-date limit.
@@ -173,6 +174,7 @@
                 saveScale,
                 scaleFamily,
             } from "/static/map_scales.js";
+            import {createMapSelection} from "/static/map_selection.js";
 
             const months = {{ months | tojson }};
             const climateType = {{ data_type | tojson }};
@@ -205,7 +207,9 @@
                 moveTimer: undefined,
                 requestController: undefined,
                 viewportGeneration: 0,
+                viewportDirty: false,
             }));
+            const selection = createMapSelection({panels, Popup, document, unit: activeScale.unit});
 
             function formatScaleValue(value) {
                 return Number.isInteger(value) ? value.toString() : value.toFixed(1);
@@ -327,6 +331,7 @@
                 const east = Math.min(180, bounds.getEast());
                 if (south >= north || west >= east) {
                     panel.status.textContent = "Move the map back toward the visible world.";
+                    selection.fail(panel);
                     return;
                 }
                 const query = new URLSearchParams({
@@ -358,6 +363,7 @@
                     }
 
                     panel.map.getSource("climate").setData(data);
+                    selection.acceptData(panel, data);
                     const metadata = data.metadata;
                     const providerLabels = {
                         open_meteo_cmip6: "Open-Meteo CMIP6",
@@ -374,8 +380,10 @@
                         data.features.length === 0 ? "No saved climate data for this view and month" : "",
                     ].filter(Boolean).join(" · ");
                 } catch (error) {
-                    if (error.name !== "AbortError") {
+                    if (error.name !== "AbortError" && !controller.signal.aborted
+                        && generation === panel.viewportGeneration) {
                         panel.status.textContent = `Map data unavailable: ${error.message}`;
+                        selection.fail(panel);
                     }
                 } finally {
                     if (panel.requestController === controller) {
@@ -387,7 +395,18 @@
             function startViewportLoad(panel) {
                 panel.requestController?.abort();
                 panel.viewportGeneration += 1;
+                panel.viewportDirty = false;
+                selection.beginLoading(panel);
                 loadData(panel, panel.viewportGeneration);
+            }
+
+            function invalidateViewport(panel) {
+                if (panel.viewportDirty) return;
+                panel.viewportDirty = true;
+                panel.requestController?.abort();
+                panel.viewportGeneration += 1;
+                panel.status.textContent = "Loading viewport data…";
+                selection.beginLoading(panel);
             }
 
             panels.forEach((panel) => {
@@ -414,26 +433,14 @@
                             "fill-antialias": false,
                         },
                     });
-                    panel.map.on("click", "climate-cells", (event) => {
-                        const properties = event.features[0].properties;
-                        const labels = {
-                            direct_cache: "Direct PostgreSQL observation",
-                            nearby_cache: "Reused nearby PostgreSQL observation",
-                            display_estimate: "Display-only nearest estimate (no cached coverage; not queued)",
-                        };
-                        const label = labels[properties.source] || "Climate observation";
-                        new Popup()
-                            .setLngLat(event.lngLat)
-                            .setHTML(
-                                `<strong>${properties.value} ${activeScale.unit}</strong><br>${label}<br>`
-                                + `${properties.latitude}, ${properties.longitude}`
-                            )
-                            .addTo(panel.map);
-                    });
                     startViewportLoad(panel);
                 });
 
-                panel.map.on("move", () => syncViewports(panel));
+                panel.map.on("click", event => selection.select(event.lngLat));
+                panel.map.on("move", () => {
+                    invalidateViewport(panel);
+                    syncViewports(panel);
+                });
                 panel.map.on("moveend", () => {
                     clearTimeout(panel.moveTimer);
                     panel.moveTimer = setTimeout(() => startViewportLoad(panel), 350);
@@ -441,6 +448,8 @@
                 panel.map.on("remove", () => {
                     clearTimeout(panel.moveTimer);
                     panel.requestController?.abort();
+                    panel.viewportGeneration += 1;
+                    selection.removePanel(panel);
                 });
             });
         </script>
