@@ -1,5 +1,25 @@
 # Next requirements
 
+## Linked comparison-map location readouts
+
+**Status:** Implemented on 2026-09-28; user-requested. Verified with fake-data
+Node controller/async tests and a two-panel built-in-browser check.
+
+Clicking a geographic location on any map selects that same longitude/latitude
+in all one-to-four date panels. Each panel shows its own month, value and unit,
+and direct/nearby/display-estimate provenance; never copy one month's value to
+another. Match the containing rectangular cell in each panel's loaded GeoJSON,
+not a nearest unrelated cell or a rendered pixel. Label selected coordinates
+separately from the grid-cell center. Missing/loading/failed coverage stays
+explicit. Selecting another point replaces all readouts; closing one clears all.
+
+Retain selection during viewport reloads but clear old values immediately when
+the viewport changes, and refresh only from accepted current responses. Ignore
+stale success/error responses. Single maps continue to work; no extra HTTP
+requests, downloads, API/schema changes, dependencies, or automatic scale changes.
+Use text-safe popup content and no more than one popup per panel. Document the
+interaction in README and the Maps page; retain MapLibre attribution.
+
 ## Private account storage and safe static serving
 
 **Status:** Implemented and independently reviewed on 2026-09-27, following

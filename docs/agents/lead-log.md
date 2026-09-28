@@ -2,6 +2,18 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | MAP-001 | linked map location readouts | done
+
+- Result: coordinated frontend implementation, QA and review. Click selection
+  uses each panel's own containing cell; explicit loading/missing/error states,
+  safe text, shared close, and stale-response guards preserve honest comparison.
+- Check: QA passed 133 Python tests (8 skips) and three Node suites. Built-in
+  browser showed identical selected coordinates with distinct synthetic −2/7 °C
+  values, and closing one cleared both. Native browser access was unavailable;
+  built-in browser later connected. No real DB/provider used.
+- Next: integrate reviewed changes; README/Maps guidance and MapLibre citations
+  updated. Browser fixture was temporary and used synthetic values only.
+
 ## 2026-09-27 | SECURITY-001 | private accounts / sequential handoffs | done
 
 - Result: coordinated Backend → QA → Reviewer, including two backup-name

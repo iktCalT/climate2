@@ -8,6 +8,30 @@ checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
+### MAP-001 — linked comparison readouts (active)
+
+Base: main `04d0ac1`, branch `codex/linked-map-readouts`.
+Contract: [linked readouts](NEXT_REQUIREMENTS.md#linked-comparison-map-location-readouts).
+Lead owns design, README/references, coordination docs and integration.
+Developer (Agent 2) has an assigned frontend exception: own `templates/maps.html`,
+new `static/map_selection.js` and backend log only; no backend/data changes.
+QA owns tests and QA log: fake-data Node controller/template checks and offline
+Python regressions. Reviewer owns read-only review and reviewer log after QA.
+Developer, QA and Reviewer complete; no remaining findings. Lead integrates.
+No parallel specialists or extra agents.
+QA: 133 Python tests (8 skips), three Node map suites passed. Lead verified
+linked values/coordinates and shared close in the built-in browser with synthetic
+data; no real database access.
+
+Acceptance: shared coordinates but distinct monthly values/provenance,
+loading/missing/error states, stale-response immunity, repeated clicks/close,
+one/four panels, zero/negative values and precipitation units, unchanged scale,
+no click-driven requests, safe text content, no popup accumulation.
+
+### Previous round (complete, not active assignments)
+
+LAYOUT-001/SECURITY-001 merged in PR #55, main `04d0ac1`.
+
 - **Lead — SECURITY-001:** implementation round complete; integrating reviewed changes.
 - **Backend — BACKEND-002:** complete including delimiter correction;
   setup connection closure. Own `climate/` and `backend-log.md` only.
