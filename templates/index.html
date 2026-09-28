@@ -12,16 +12,17 @@
 
     <section class="climate-hero text-start">
         <div class="climate-hero-copy">
-            <p class="eyebrow">Open climate model explorer</p>
-            <h1>Explore climate history, one place or one map at a time.</h1>
+            <p class="eyebrow">Saved climate model data</p>
+            <h1>Explore climate patterns by map or location.</h1>
             <p class="lead-copy">
-                Browse monthly temperature and precipitation from 1950 through the
-                current month using saved PostgreSQL data only. Browsing never
-                downloads missing climate values; administrators manage imports separately.
+                Explore saved monthly Open-Meteo CMIP6 model data. Choose a date
+                on Maps or enter coordinates on Locations. Public browsing reads
+                the existing cache; dates you can select may have little or no
+                data where you look.
             </p>
             <div class="d-flex flex-wrap gap-3">
-                <a class="btn btn-climate-primary" href="/maps">Open climate maps</a>
-                <a class="btn btn-climate-secondary" href="/locations">Check a location</a>
+                <a class="btn btn-climate-primary" href="/maps">Explore Maps</a>
+                <a class="btn btn-climate-secondary" href="/locations">Explore Locations</a>
             </div>
         </div>
         <div class="climate-grid-preview" aria-hidden="true">
@@ -32,10 +33,10 @@
         </div>
     </section>
 
-    <section class="home-facts" aria-label="Project highlights">
-        <div><strong>1950 → now</strong><span>selectable months</span></div>
-        <div><strong>4 variables</strong><span>temperature and precipitation</span></div>
-        <div><strong>Saved data only</strong><span>No climate downloads while browsing</span></div>
+    <section class="home-facts" aria-label="Data at a glance">
+        <div><strong>1950 → current month</strong><span>Selectable map dates; coverage varies by place and variable</span></div>
+        <div><strong>°C and mm/day</strong><span>Temperature and mean daily precipitation, not monthly rainfall totals</span></div>
+        <div><strong>Saved data only</strong><span>Public browsing never fetches missing climate values</span></div>
     </section>
 
     <section class="feature-grid text-start">
@@ -43,10 +44,10 @@
             <div class="feature-number">01</div>
             <p class="eyebrow">Maps</p>
             <h2>See patterns across a region</h2>
-            <p>Start with the newest saved mean-temperature month or find saved dates by variable.
-                Pan and zoom, or compare two through four months in synchronized panels.
-                Every view shares a fixed preset or custom color scale.</p>
-            <a class="feature-link" href="/maps">Choose a month and variable <span aria-hidden="true">→</span></a>
+            <p>Open the newest saved mean-temperature month or choose a date and variable.
+                Pan and zoom, then compare two through four months in synchronized panels.
+                Saved-month counts are global and do not promise coverage in your view.</p>
+            <a class="feature-link" href="/maps">Open Maps <span aria-hidden="true">→</span></a>
         </article>
         <article class="feature-card feature-card-dark">
             <div class="history-preview" aria-hidden="true">
@@ -57,25 +58,27 @@
             <div class="feature-number">02</div>
             <p class="eyebrow">Locations</p>
             <h2>Follow one coordinate through time</h2>
-            <p>Enter latitude and longitude to build a seasonal history chart from saved monthly values. Missing months stay visibly unavailable rather than triggering downloads.</p>
-            <a class="feature-link" href="/locations">Explore a coordinate <span aria-hidden="true">→</span></a>
+            <p>Enter latitude and longitude to see saved monthly values from 1951 through the current month. Gaps stay visible, and seasonal averages can be incomplete.</p>
+            <a class="feature-link" href="/locations">Open Locations <span aria-hidden="true">→</span></a>
         </article>
     </section>
 
-    <section class="data-note text-start">
-        <div>
-            <p class="eyebrow">Compare directly</p>
-            <h2>One scale, multiple months, synchronized views.</h2>
-        </div>
-        <p>Compare two through four months with synchronized views and one shared manual scale. Choose a temperature detail preset with 2 °C color stops, or set your own range. NOAA CORe fetching is now administrator-managed and limited to 1950–1954 and 2022–2026 through the latest complete month. Existing history stays available; the site never silently mixes reanalysis with CMIP6 model output.</p>
+    <section class="home-guide text-start" aria-labelledby="comparison-guide-heading">
+        <p class="eyebrow">On Maps</p>
+        <h2 id="comparison-guide-heading">Compare the same place across months</h2>
+        <ol>
+            <li>Choose a variable and two to four different months on <a href="/maps?select=1">Maps</a>.</li>
+            <li>Click a location in any panel. Each panel shows its own monthly value and whether it comes from a saved point, a nearby point, or a labelled display estimate. Missing values stay marked.</li>
+            <li>Use the shared scale presets or enter a custom range to compare colors. The scale stays fixed until you change it; a narrower range shows detail, not greater accuracy.</li>
+        </ol>
     </section>
 
     <section class="data-note text-start">
         <div>
-            <p class="eyebrow">Know the data</p>
-            <h2>Climate-model output, not direct station observations.</h2>
+            <p class="eyebrow">Before interpreting a map</p>
+            <h2>Model output with incomplete coverage.</h2>
         </div>
-        <p>Open-Meteo provides downscaled CMIP6 climate-model data, not observed weather for an exact date. Some inherited ocean temperatures disagree with fresh source checks and remain uncorrected. Finer colors cannot fix those values; review the limitations before drawing conclusions.</p>
+        <p>Open-Meteo CMIP6 is the active public series. Its values are modelled climate, not direct observations for an exact date. NOAA CORe is a separate reanalysis import source and is inactive on the public site. Some inherited ocean temperatures remain suspect. Read the coverage and provenance notes before drawing conclusions.</p>
         <a class="btn btn-climate-secondary" href="/references">Read references</a>
     </section>
 {% endblock %}

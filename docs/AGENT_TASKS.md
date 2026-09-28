@@ -8,7 +8,21 @@ checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
-### MAP-001 — linked comparison readouts (active)
+### PAGES-001 — Home and References clarity (active)
+
+Base main `a86172a`; branch `codex/page-clarity`. Requirement is recorded atop
+NEXT_REQUIREMENTS.md. Lead owns README/requirements/coordination and integration.
+Developer assigned frontend exception: `templates/index.html`,
+`templates/references.html`, scoped `static/styles.css`, own backend log.
+QA owns tests/own log; Reviewer read-only + own log. Sequential workflow.
+Acceptance: accurate current provider/coverage/units, linked comparison guidance,
+no new resources or fetching, preserved citations, responsive accessible layout,
+offline route regressions and browser check. All three specialists complete;
+Reviewer found no defects. Lead integrating.
+QA: 135 Python tests (8 database skips); browser verified desktop Home, narrow
+References and historical disclosure using a standalone no-database preview.
+
+### MAP-001 — linked comparison readouts (completed, PR #56)
 
 Base: main `04d0ac1`, branch `codex/linked-map-readouts`.
 Contract: [linked readouts](NEXT_REQUIREMENTS.md#linked-comparison-map-location-readouts).

@@ -2,6 +2,12 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | PAGES-001 | Home and References clarity | done
+
+- Result: no concrete finding in the `a86172a` page refresh. Checked active CMIP6/inactive NOAA claims against provider and route code; coverage, °C and mean daily mm/day, cache-only browsing, linked comparisons, manual scales, dated history, semantic links/headings, responsive CSS, retained credits and external-link protection. Production changes stay within assigned page/CSS scope.
+- Check: reviewed diff and surrounding code; `git diff --check a86172a` passed. QA reports 5 focused tests and 135 offline Python tests (8 database skips). Lead reports desktop Home and 390px References/disclosure browser checks; not independently rerun. No live data accessed.
+- Next: Lead integrate; no Reviewer fix requested.
+
 ## 2026-09-28 | MAP-001 | linked comparison readouts | done
 
 - Result: prior P3 Maps-page wording finding resolved. `templates/maps.html:24` now describes each panel's own value and source, explicitly including labelled display estimates; it no longer calls estimates saved values. No remaining finding in the bounded review of per-panel containment/value/source, loading and stale guards, safe text, popup close and cleanup, and citations.

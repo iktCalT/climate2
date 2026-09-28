@@ -2,6 +2,12 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | PAGES-001 | Home and References clarity | done
+
+- Result: replaced stale page-copy assertions with offline route checks for active CMIP6/inactive NOAA, date selection versus uneven coverage, °C and mean daily mm/day, linked comparison/manual scales, dated historical checkpoints, navigation/heading anchors, and all pre-refresh References citation URLs. Static page requests fail if they touch mocked climate data paths.
+- Check: focused page suite passed (5 tests); full offline unittest suite passed (135, 8 PostgreSQL skips); `git diff --check` passed. No live database or provider requests.
+- Next: Lead integrates and owns browser verification; no QA defect found.
+
 ## 2026-09-28 | MAP-001 | linked comparison map readouts | done
 
 - Result: added fake-Popup coverage for single/four panels, independent values

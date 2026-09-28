@@ -2,6 +2,16 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | PAGES-001 | Home / References clarity | done
+
+- Result: current source, uneven coverage, units and linked comparison guidance
+  made scannable; import checkpoints moved into dated historical disclosure.
+  All 52 external citation URLs preserved, no new resources or data operations.
+- Check: QA 5 focused tests; 135 full Python tests (8 skips). Reviewer no findings.
+  Built-in browser verified desktop Home, 390px References and disclosure.
+- Next: integrate `codex/page-clarity`. Preview uses standalone templates,
+  not production accounts or climate databases. QA used Sol after Luna limit.
+
 ## 2026-09-28 | MAP-001 | linked map location readouts | done
 
 - Result: coordinated frontend implementation, QA and review. Click selection

@@ -2,6 +2,12 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-28 | PAGES-001 | Home and References clarity | done
+
+- Result: refreshed the public entry points, coverage/units/provider guidance, and linked comparison instructions. References now separates active CMIP6 from inactive NOAA and folds old import checkpoints into a dated disclosure. All existing external citation URLs remain.
+- Check: offline Jinja render for both pages, citation URL set diff, and `git diff --check` passed. No live database, provider request, or browser check.
+- Next: QA runs route regressions and browser review; Lead integrates.
+
 ## 2026-09-28 | MAP-001 review follow-up | Maps guidance | done
 
 - Result: changed the readout guidance to say each month has its own value and data source, including labelled display estimates; no behavior changed.
