@@ -8,7 +8,24 @@ checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
-### PROVIDER-002 — NOAA location/presentation readiness (active)
+### PROVIDER-003 — activate saved NOAA public reads (active)
+
+Base main `7211024`; branch `codex/activate-noaa-cache`. Contract: top of
+NEXT_REQUIREMENTS. Lead owns planning/status docs and integration. Developer
+owns `climate/data/db.py`, `templates/admin_data.html`, README and current-status
+sections of provider evaluation/PostgreSQL docs, plus backend log (documentation
+and template exception assigned). Report any other required production edits.
+QA owns tests/QA log; Reviewer read-only/reviewer log. One specialist at a time,
+Luna/medium by user preference; escalate only for demonstrated need. Tests use
+fake data, no live imports/cleanup/account access. Acceptance: NOAA startup
+selection propagated consistently, immutable CMIP6 acquisition, cache-only
+reads, truthful current copy, offline regressions and browser check if available.
+Developer, QA and Reviewer complete; no remaining findings. Offline suite:
+155 Python tests (8 PostgreSQL skips), three Node suites passed. Browser
+unavailable (no connected browser). Lead integrating; no deployment or live data
+operations performed.
+
+### PROVIDER-002 — NOAA location/presentation readiness (completed, PR #59)
 
 Base main `5a2df92`; branch `codex/noaa-location-readiness`. Lead owns docs.
 Developer owns new `climate/data/location_sampling.py`, `climate/web/app.py`,
@@ -17,11 +34,11 @@ own backend log. Frontend exception assigned. Keep source writers unchanged;
 sample NOAA at web boundary, use existing cache-only helper. QA owns tests/log;
 Reviewer read-only/log, sequential. Acceptance is top NEXT_REQUIREMENTS contract.
 No activation, live data or new packages. Developer/QA/Reviewer complete;
-rounding-description finding resolved (algorithm unchanged). Lead integrating.
+rounding-description finding resolved (algorithm unchanged). Merged as `7211024`.
 QA: 152 Python tests (8 database skips), all three Node suites passed.
 Browser check unavailable: built-in browser disconnected this turn.
 
-### PROVIDER-001 — immutable source identity (active)
+### PROVIDER-001 — immutable source identity (completed, PR #58)
 
 Base main `380197d`; branch `codex/provider-write-isolation`. Lead owns docs.
 Developer owns `climate/data/db.py`, `climate/providers/open_meteo.py`,
@@ -33,9 +50,9 @@ Acceptance: source writers/checkpoints isolated from public selector, comparison
 uses distinct providers, public cache reads unchanged; fake DB regression tests.
 No live data, activation, dependencies or unrelated refactor. Developer and QA
 complete (142 Python tests, 8 database skips); Reviewer found no defects.
-Lead integrating. NOAA activation remains separate.
+Merged as `5a2df92`. NOAA activation remains separate.
 
-### PAGES-001 — Home and References clarity (active)
+### PAGES-001 — Home and References clarity (completed, PR #57)
 
 Base main `a86172a`; branch `codex/page-clarity`. Requirement is recorded atop
 NEXT_REQUIREMENTS.md. Lead owns README/requirements/coordination and integration.
@@ -45,7 +62,7 @@ QA owns tests/own log; Reviewer read-only + own log. Sequential workflow.
 Acceptance: accurate current provider/coverage/units, linked comparison guidance,
 no new resources or fetching, preserved citations, responsive accessible layout,
 offline route regressions and browser check. All three specialists complete;
-Reviewer found no defects. Lead integrating.
+Reviewer found no defects. Merged as `380197d`.
 QA: 135 Python tests (8 database skips); browser verified desktop Home, narrow
 References and historical disclosure using a standalone no-database preview.
 

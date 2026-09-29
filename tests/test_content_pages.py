@@ -4,8 +4,15 @@ import os
 import unittest
 from unittest.mock import patch
 
+from flask import render_template
+
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
+import climate.data.cache_availability as cache_availability
+import climate.data.db as climate_db
+import climate.providers.open_meteo as open_meteo
+import climate.services.map_data as map_data
+import climate.web.app as web_app
 from climate.web.app import app
 
 
@@ -102,8 +109,8 @@ class ContentPageTests(unittest.TestCase):
     def test_home_explains_current_sources_coverage_and_units(self):
         page = self.get_page("/")
         for expected in (
-            "Open-Meteo CMIP6 is the active public series",
-            "NOAA CORe is a separate reanalysis import source and is inactive",
+            "NOAA CORe is the active public reanalysis series",
+            "Open-Meteo CMIP6 model output remains a separate cached source",
             "Public browsing reads the existing cache",
             "1950 → current month",
             "Selectable map dates; coverage varies by place and variable",
@@ -111,8 +118,7 @@ class ContentPageTests(unittest.TestCase):
             "Gaps stay visible",
             "°C and mm/day",
             "not monthly rainfall totals",
-            "modelled climate, not direct observations",
-            "inherited ocean temperatures remain suspect",
+            "not direct observations at an exact location",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
@@ -142,7 +148,7 @@ class ContentPageTests(unittest.TestCase):
         page = self.get_page("/references")
         for expected in (
             "Active public source",
-            "open_meteo_cmip6",
+            "noaa_core",
             "not direct station observations",
             "mean daily mm/day, not a monthly total",
             "Visitors do not trigger provider downloads",
@@ -150,7 +156,7 @@ class ContentPageTests(unittest.TestCase):
             "Location history starts in January 1951",
             "A selectable date does not guarantee saved values",
             "finite active-provider values globally, not regional completeness",
-            "noaa_core",
+            "open_meteo_cmip6",
             "inactive for public Maps and Locations",
             "not silently mixed",
             "Historical import and validation details (recorded through September 2026)",
@@ -158,7 +164,7 @@ class ContentPageTests(unittest.TestCase):
             "8,281 canonical rows",
             "248 of 920",
             "284 of 920",
-            "Some inherited ocean temperatures disagree",
+            "Historical CMIP6 cache warning",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
@@ -202,6 +208,27 @@ class ContentPageTests(unittest.TestCase):
         self.assertIn(b"Climate reanalysis data", response.data)
         self.assertIn(b">NOAA CORe</a>", response.data)
         self.assertNotIn(b'aria-label="Open-Meteo Climate API"', response.data)
+
+    def test_noaa_is_the_startup_default_for_public_read_modules(self):
+        self.assertEqual(climate_db.ACTIVE_CLIMATE_PROVIDER, "noaa_core")
+        for module in (cache_availability, open_meteo, map_data, web_app):
+            with self.subTest(module=module.__name__):
+                self.assertEqual(module.ACTIVE_CLIMATE_PROVIDER, "noaa_core")
+        self.assertEqual(app.config["CLIMATE_PROVIDER"], "noaa_core")
+
+    def test_admin_provider_copy_matches_both_public_modes(self):
+        for provider, active_copy, other_copy in (
+            ("noaa_core", "Public Maps and Locations currently read saved NOAA CORe data only",
+             "Open-Meteo CMIP6 rows remain stored separately"),
+            ("open_meteo_cmip6", "Public Maps and Locations currently read saved Open-Meteo CMIP6 data",
+             "This page adds NOAA CORe rows to their separate provider cache for comparison"),
+        ):
+            with self.subTest(provider=provider), app.test_request_context("/admin/data"):
+                page = render_template("admin_data.html", csrf_token="test", climate_provider=provider)
+            page = " ".join(html.unescape(page).split())
+            self.assertIn(active_copy, page)
+            self.assertIn(other_copy, page)
+            self.assertIn("imports do not", page)
 
 
 if __name__ == "__main__":

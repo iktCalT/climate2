@@ -7,8 +7,16 @@
         <h1>Fetch a little. Resume anytime.</h1>
         <p>Only the first and last five years are in scope: <strong>1950–1954</strong>
             and <strong>2022–2026</strong>. Current and future months are excluded.</p>
-        <p>NOAA CORe data stays separate from the active Open-Meteo maps. Fetching
-            does not switch providers or repair the inherited Open-Meteo cache.</p>
+        {% if climate_provider == "noaa_core" %}
+        <p>Public Maps and Locations currently read saved NOAA CORe data only.
+            This page adds NOAA rows to that same provider cache. Open-Meteo CMIP6
+            rows remain stored separately and available for comparison; imports
+            do not rewrite or relabel either source.</p>
+        {% else %}
+        <p>Public Maps and Locations currently read saved Open-Meteo CMIP6 data.
+            This page adds NOAA CORe rows to their separate provider cache for
+            comparison; imports do not switch public reads or rewrite either source.</p>
+        {% endif %}
     </div>
     <div>
         <h2 class="h5">Saved coverage</h2>
@@ -39,7 +47,7 @@
     <h2 id="cleanup-title">Keep a smaller climate cache</h2>
     <p>Keep <strong>1950–1954 and 2022–2026</strong>. Cleanup permanently removes
         climate rows outside those years from <strong>every provider</strong>,
-        including the active Open-Meteo cache. Accounts, profiles, and location
+        including stored Open-Meteo CMIP6 rows. Accounts, profiles, and location
         definitions are not changed.</p>
     <p>Back up the database first for exact recovery. Re-fetching may produce
         revised values. Pause command-line imports before cleanup. Public browsing

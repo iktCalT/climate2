@@ -2,6 +2,12 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-003 | activate saved NOAA public reads | done
+
+- Result: updated current Home/References expectations for NOAA, asserted default propagation through public modules/app config, fake SQL provider parameters for history/map/saved dates, and admin copy in both modes. Existing CMIP6 map-fetch behavior tests now select CMIP6 explicitly. No production defect found.
+- Check: offline Python suite passed 155 tests (8 PostgreSQL skips); three Node map suites passed; `git diff --check` clean. No live database/provider calls; browser unavailable.
+- Next: Reviewer inspection; Lead integrates.
+
 ## 2026-09-29 | PROVIDER-002 | NOAA sampling and public copy | done
 
 - Result: added ten offline regressions for finite/range validation, coordinate ties, dateline/poles/distance, NOAA fixed-sample versus exact CMIP6 history, cache-only missing sample, provider/request/sample/value chart identities and metric titles, and Home/Maps/Locations/References/footer copy in both modes with identical external citation URLs. No production defect found.

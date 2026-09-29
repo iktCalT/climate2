@@ -19,8 +19,9 @@ The database has the following tables:
 
 - `locations`: a unique latitude/longitude and its `loc_id`.
 - `data`: one row per location/month/provider with a primary key on
-  `(loc_id, dates, provider)`. Existing and current Open-Meteo rows use
-  `open_meteo_cmip6`; application reads explicitly select that active series.
+  `(loc_id, dates, provider)`. Open-Meteo rows use `open_meteo_cmip6`; current
+  public reads explicitly select the `noaa_core` series. Each provider remains
+  separately addressable.
 
 Both ingestion and updates use provider-scoped PostgreSQL `ON CONFLICT`
 upserts. Running `python -m climate.cli.setup_database` also upgrades an existing two-column
@@ -61,8 +62,8 @@ rate limit is active.
 
 The optional NOAA importer fills one complete global month at a time under the
 separate `noaa_core` provider family. It does not require an account, API key,
-token, or `.env` entry, and it does not change the website's active
-`open_meteo_cmip6` reads.
+token, or `.env` entry. The website currently reads saved `noaa_core` rows;
+imports add to that provider without changing or relabelling other rows.
 
 ```sh
 .venv/bin/python -m eccodes selfcheck
@@ -102,4 +103,5 @@ It filters to the 8,281 canonical map coordinates, reports missing and complete
 coverage explicitly, calculates `noaa_core - open_meteo_cmip6` differences for
 all four metrics, and prints land, ocean, polar, and both dateline-edge samples.
 It accepts at most 12 complete months. A complete report means the selected
-database evidence is present, not that CORe has been approved or activated.
+database evidence is present; it does not establish scientific accuracy or
+coverage outside the requested months.

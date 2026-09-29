@@ -80,9 +80,9 @@ Backend, then QA and Reviewer repeat only affected checks. No parallel specialis
 work and no additional agents spawned by specialists. Existing completed logs
 are evidence to reuse, not tasks to redo.
 
-Default models: Sol/medium for Backend, Luna/medium for straightforward QA,
-Sol/high for Reviewer; Lead handles architecture. Adjust available models to
-task complexity and conserve usage. Subscription changes or paid API use are
+Default models (user updated 2026-09-29): Luna/medium for scoped Backend, QA and
+Reviewer tasks; Lead handles architecture. Use stronger models only when a
+task demonstrates a need, keeping handoffs and context concise. Subscription changes or paid API use are
 not authorized by these model preferences. Each specialist writes only their
 own log; the Lead maintains assignments and integrates reviewed changes.
 Continue through the full round without requesting confirmation at each handoff;
