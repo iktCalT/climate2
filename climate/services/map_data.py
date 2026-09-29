@@ -5,7 +5,12 @@ import math
 import numpy as np
 import pandas as pd
 
-from climate.data.db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, weather_db
+from climate.data.db import (
+    ACTIVE_CLIMATE_PROVIDER,
+    CLIMATE_TYPES,
+    OPEN_METEO_PROVIDER,
+    weather_db,
+)
 from climate.providers.open_meteo import DEFAULT_METEO_TYPES, get_data
 
 MAX_VIEWPORT_POINTS = 91 * 91
@@ -251,6 +256,8 @@ def _query_weather_rows(
 
 def _fetch_missing_cells(con, cells, month):
     """Fetch one bounded batch and cache every metric for each coordinate."""
+    if ACTIVE_CLIMATE_PROVIDER != OPEN_METEO_PROVIDER:
+        return 0
     period = pd.Period(month, freq="M")
     fetched = 0
     fetch_count = min(len(cells), MAX_FETCH_PER_VIEWPORT)
@@ -295,6 +302,7 @@ def viewport_geojson(
         south, west, north, east, zoom
     )
     date = f"{month}-01"
+    fetch_missing = fetch_missing and ACTIVE_CLIMATE_PROVIDER == OPEN_METEO_PROVIDER
     latitude_padding = lat_step * NEIGHBOR_REUSE_RADIUS_CELLS
     longitude_padding = lon_step * NEIGHBOR_REUSE_RADIUS_CELLS
 

@@ -2,6 +2,18 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-001 | immutable acquisition source | done
+
+- Result: no actionable finding in the six production-file diff. Open-Meteo writes, source probes, prefetch checkpoints, and legacy migration use fixed CMIP6; comparison loads explicit NOAA and CMIP6; public map/history/cache reads still use the selected provider, and both optional fallback paths stop under NOAA. Caller search found no remaining writer keyed by the public selector. This does not establish NOAA activation readiness; coordinate policy and public labels remain separate.
+- Check: reviewed diff, surrounding callers, seven fake-connection regressions, and `git diff --check`; focused tests passed (7). QA reports 142 Python tests (8 database skips); not rerun in full. No live data or network access.
+- Next: Lead integrate PROVIDER-001; assign activation work separately.
+
+## 2026-09-28 | NOAA-READINESS | public provider activation | done
+
+- Result: activation by changing `ACTIVE_CLIMATE_PROVIDER` alone is unsafe. Open-Meteo acquisition and legacy migration write with that constant, so future writes could masquerade as or replace NOAA. Locations query exact coordinates while NOAA imports canonical grid points only; most user-entered locations would be empty. Public copy and map labels remain Open-Meteo-specific; the comparison CLI would compare NOAA with itself. Maps and saved-month discovery are cache-only/provider-scoped; footer has a NOAA branch. The first/last-five-year scope supersedes the older full-history prerequisite.
+- Check: read-only code and requirements inspection; no database, network, provider request, or tests run.
+- Next: Lead define activation contract; Backend separate source identities and location policy, then QA validate with isolated data and revised copy.
+
 ## 2026-09-28 | PAGES-001 | Home and References clarity | done
 
 - Result: no concrete finding in the `a86172a` page refresh. Checked active CMIP6/inactive NOAA claims against provider and route code; coverage, °C and mean daily mm/day, cache-only browsing, linked comparisons, manual scales, dated history, semantic links/headings, responsive CSS, retained credits and external-link protection. Production changes stay within assigned page/CSS scope.

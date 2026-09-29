@@ -7,7 +7,7 @@ The PostgreSQL schema must already exist and DATABASE_URL must be set.
 import sqlite3
 import sys
 
-from climate.data.db import ACTIVE_CLIMATE_PROVIDER, weather_db
+from climate.data.db import OPEN_METEO_PROVIDER, weather_db
 
 
 BATCH_SIZE = 10_000
@@ -46,7 +46,7 @@ def migrate(sqlite_path="static/weather.db"):
                             temp_min = EXCLUDED.temp_min,
                             precip = EXCLUDED.precip
                         """,
-                        [tuple(row) + (ACTIVE_CLIMATE_PROVIDER,) for row in batch],
+                        [tuple(row) + (OPEN_METEO_PROVIDER,) for row in batch],
                     )
                 cur.execute(
                     "SELECT setval(pg_get_serial_sequence('locations', 'loc_id'), "

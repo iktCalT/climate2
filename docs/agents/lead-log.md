@@ -2,6 +2,29 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-001 | source-write isolation | done
+
+- Result: sequential Developer/QA/Reviewer completed immutable CMIP6 write,
+  migration, checkpoint and comparison identities; optional fallbacks disabled
+  under non-CMIP6 selection. Public reads remain provider-selected.
+- Check: 142 offline Python tests (8 database skips), seven identity regressions;
+  Reviewer no findings. No UI, dependencies, provider activation or live writes.
+- Next: integrate; NOAA coordinate lookup policy and provider-aware labels remain
+  separate activation work. Prior read-only 2026 validation is recorded below.
+
+## 2026-09-28 | NOAA-READINESS | saved 2026 data audit | done
+
+- Result: read-only checks found all 8,281 canonical rows for each of January–
+  August 2026 complete and finite (66,248 rows); no range/order violations.
+  Dateline endpoints match all four metrics exactly. Paired CMIP6 coverage is
+  only 9 canonical points/month, 15 in August; not independent truth validation.
+- Check: bounded read-only PostgreSQL transaction, no fetching or data changes.
+- Next: Reviewer confirmed activation blockers. Do not flip the active provider:
+  Open-Meteo acquisition writes currently inherit that setting, risking NOAA
+  mislabelling/overwrite (also legacy migration). Arbitrary-coordinate history
+  needs a grid policy; labels and comparison CLI require provider separation.
+  See reviewer handoff. Validation is not activation approval.
+
 ## 2026-09-28 | PAGES-001 | Home / References clarity | done
 
 - Result: current source, uneven coverage, units and linked comparison guidance

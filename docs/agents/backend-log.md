@@ -2,6 +2,12 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-001 | immutable acquisition source | done
+
+- Result: Open-Meteo writes and source checkpoints use fixed `open_meteo_cmip6`; SQLite migration and prefetch do likewise. Comparison loads explicit NOAA and CMIP6. Public history/map reads retain the active selector; opt-in Open-Meteo fallback returns cached gaps under another selector. No provider activation or live data operation.
+- Check: focused offline weather, map/route, prefetch and comparison suites passed (62 tests, 4 database skips); mocked NOAA fallback smoke passed; `git diff --check` passed. No live database or provider request.
+- Next: QA adds fake-database regressions for NOAA-selector writes, checkpoints, migration, comparison and public reads, then Reviewer inspects.
+
 ## 2026-09-28 | PAGES-001 | Home and References clarity | done
 
 - Result: refreshed the public entry points, coverage/units/provider guidance, and linked comparison instructions. References now separates active CMIP6 from inactive NOAA and folds old import checkpoints into a dated disclosure. All existing external citation URLs remain.
