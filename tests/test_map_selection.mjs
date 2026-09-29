@@ -25,7 +25,10 @@ function harness(months, unit = "°C") {
         on(name, handler) { this.handlers[name] = handler; return this; }
         remove() { this.removed += 1; }
         close() { this.handlers.close?.(); }
-        text() { return this.content.children.map(child => child.textContent).join("\n"); }
+        text() {
+            const collect = element => [element.textContent, ...element.children.map(collect)].filter(Boolean).join("\n");
+            return collect(this.content);
+        }
     }
     return {panels, popups, selection: createMapSelection({panels, Popup, document, unit})};
 }
@@ -47,23 +50,95 @@ function feature({west, east, south, north, value, latitude, longitude, source =
     assert.match(popups[0].text(), /Grid center: 0\.5000° lat, 0\.5000° lon/);
     assert.match(popups[0].text(), /Selected: 1\.0000° lat, 1\.0000° lon/);
     assert.equal(popups[0].options.closeOnClick, false);
+    assert.doesNotMatch(popups[0].text(), /Baseline|Difference from baseline/);
 }
 
 {
-    const {panels, popups, selection} = harness(["1990-01", "1990-02", "1990-03", "1990-04"], "mm/month");
-    const cellA = feature({west: 0, east: 2, south: 0, north: 2, value: -4, latitude: 1, longitude: 1});
-    const cellB = feature({west: 0, east: 2, south: 0, north: 2, value: 0.25, latitude: 1, longitude: 1,
+    const {panels, popups, selection} = harness(["1990-01", "1990-02", "1990-03", "1990-04"], "mm/day");
+    const cellA = feature({west: 0, east: 2, south: 0, north: 2, value: -4.1234, latitude: 1, longitude: 1});
+    const cellB = feature({west: 0, east: 2, south: 0, north: 2, value: 0.2534, latitude: 1, longitude: 1,
         source: "nearby_cache"});
     panels.forEach((panel, i) => selection.acceptData(panel, {features: [i === 1 ? cellB : cellA]}));
     selection.select({lng: 0.1, lat: 0.1});
     assert.equal(popups.length, 4);
     assert.ok(popups.every(popup => popup.lngLat.lng === 0.1 && popup.lngLat.lat === 0.1));
-    assert.match(popups[0].text(), /-4 mm\/month/);
-    assert.match(popups[0].text(), /Direct PostgreSQL observation/);
-    assert.match(popups[1].text(), /0\.25 mm\/month/);
-    assert.match(popups[1].text(), /Reused nearby PostgreSQL observation/);
+    assert.match(popups[0].text(), /Baseline/);
+    assert.match(popups[0].text(), /-4\.12 mm\/day/);
+    assert.match(popups[0].text(), /Direct PostgreSQL value/);
+    assert.match(popups[1].text(), /0\.25 mm\/day/);
+    assert.match(popups[1].text(), /Reused nearby PostgreSQL value/);
+    assert.match(popups[1].text(), /\+4\.38 mm\/day/,
+        "difference uses raw inputs (-4.1234 and 0.2534) before two-place display rounding");
+    assert.match(popups[2].text(), /Difference from baseline/);
     assert.match(popups[2].text(), /1990-03/);
     assert.equal(popups[4 - 1].map, panels[3].map);
+}
+
+{
+    const {panels, popups, selection} = harness(["baseline", "small negative", "rounded zero", "exact zero"]);
+    const values = [1, 0.995, 0.999, 1];
+    panels.forEach((panel, i) => selection.acceptData(panel, {features: [feature({
+        west: -1, east: 1, south: -1, north: 1, value: values[i], latitude: 0, longitude: 0,
+    })]}));
+    selection.select({lng: 0, lat: 0});
+    assert.match(popups[1].text(), /−0\.01 °C/);
+    assert.match(popups[2].text(), /0 °C/);
+    assert.doesNotMatch(popups[2].text(), /−0(?:\.00)? °C/,
+        "a negative raw difference that rounds to zero is displayed without negative zero");
+    assert.match(popups[3].text(), /0 °C/);
+    assert.doesNotMatch(popups[2].text(), /−0\.00/);
+}
+
+{
+    for (const estimateIndex of [0, 1]) {
+        const {panels, popups, selection} = harness(["baseline", "current"]);
+        panels.forEach((panel, i) => selection.acceptData(panel, {features: [feature({
+            west: -1, east: 1, south: -1, north: 1, value: i + 1, latitude: 0, longitude: 0,
+            source: i === estimateIndex ? "display_estimate" : "direct_cache",
+        })]}));
+        selection.select({lng: 0, lat: 0});
+        assert.match(popups[1].text(), /\+1 °C/);
+        assert.match(popups[1].text(), /Estimate-based difference/);
+    }
+}
+
+{
+    const {panels, popups, selection} = harness(["baseline", "current"]);
+    selection.acceptData(panels[0], {features: []});
+    selection.acceptData(panels[1], {features: [feature({west: -1, east: 1, south: -1, north: 1,
+        value: 2, latitude: 0, longitude: 0})]});
+    selection.select({lng: 0, lat: 0});
+    assert.match(popups[1].text(), /Baseline has no saved climate value/);
+    selection.beginLoading(panels[0]);
+    assert.match(popups.at(-1).text(), /Baseline is still loading/);
+    selection.fail(panels[0]);
+    assert.match(popups.at(-1).text(), /Baseline map data is unavailable/);
+    selection.acceptData(panels[0], {features: [feature({west: -1, east: 1, south: -1, north: 1,
+        value: Infinity, latitude: 0, longitude: 0})]});
+    assert.match(popups.at(-1).text(), /Baseline has no saved climate value/);
+    selection.acceptData(panels[0], {features: [feature({west: -1, east: 1, south: -1, north: 1,
+        value: Number.MAX_VALUE, latitude: 0, longitude: 0})]});
+    selection.acceptData(panels[1], {features: [feature({west: -1, east: 1, south: -1, north: 1,
+        value: -Number.MAX_VALUE, latitude: 0, longitude: 0})]});
+    assert.match(popups.at(-1).text(), /Difference unavailable because the numeric result is outside/);
+
+    selection.acceptData(panels[0], {features: [feature({west: -1, east: 1, south: -1, north: 1,
+        value: 1, latitude: 0, longitude: 0})]});
+    selection.beginLoading(panels[1]);
+    assert.match(popups.at(-1).text(), /This month is still loading/);
+    selection.fail(panels[1]);
+    assert.match(popups.at(-1).text(), /This month map data is unavailable/);
+    selection.acceptData(panels[1], {features: [feature({west: -1, east: 1, south: -1, north: 1,
+        value: NaN, latitude: 0, longitude: 0})]});
+    assert.match(popups.at(-1).text(), /This month has no saved climate value/);
+}
+
+{
+    const {panels, selection} = harness(["1990-01", "1990-02"]);
+    selection.select({lng: 0, lat: 0});
+    selection.removePanel(panels[1]);
+    assert.doesNotThrow(() => selection.select({lng: 1, lat: 1}),
+        "selecting after a panel is removed should not dereference its deleted state");
 }
 
 {

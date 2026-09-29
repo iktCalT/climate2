@@ -8,7 +8,24 @@ checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
-### PROVIDER-003 — activate saved NOAA public reads (active)
+### MAP-002 — numeric comparison differences (active)
+
+Base main `ee0e568`; branch `codex/map-value-differences`. Top NEXT_REQUIREMENTS
+defines acceptance. Lead owns requirements/policy/board and integration.
+Developer has frontend/documentation exception: `static/map_selection.js`,
+Maps/References templates, README, own backend log only. Batch numeric differences
+and provenance-wording edits before QA. QA owns relevant tests and QA log;
+Reviewer read-only/own log. Sequential Luna/medium, no extra agents. No backend,
+provider, live DB, fetching, dependency or scale changes. Run one final offline
+Python/Node pass before merge; targeted reruns only for any corrections.
+Developer and QA complete. Two focused defects (negative zero and removed-panel
+selection) fixed before the batch run. Three Node suites passed; the 155-test
+Python run found three stale copy assertions, corrected with 40 affected tests
+passing. Full suite not repeated after test-only corrections. Review found one
+README wording issue, corrected and rechecked; Lead integrating. Browser
+unavailable; no live data operations.
+
+### PROVIDER-003 — activate saved NOAA public reads (completed, PR #60)
 
 Base main `7211024`; branch `codex/activate-noaa-cache`. Contract: top of
 NEXT_REQUIREMENTS. Lead owns planning/status docs and integration. Developer
@@ -22,7 +39,7 @@ selection propagated consistently, immutable CMIP6 acquisition, cache-only
 reads, truthful current copy, offline regressions and browser check if available.
 Developer, QA and Reviewer complete; no remaining findings. Offline suite:
 155 Python tests (8 PostgreSQL skips), three Node suites passed. Browser
-unavailable (no connected browser). Lead integrating; no deployment or live data
+unavailable (no connected browser). Merged as `ee0e568`; no deployment or live data
 operations performed.
 
 ### PROVIDER-002 — NOAA location/presentation readiness (completed, PR #59)

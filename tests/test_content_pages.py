@@ -183,8 +183,8 @@ class ContentPageTests(unittest.TestCase):
                 self.assertTrue({"noopener", "noreferrer"} <= set(link.get("rel", "").split()))
         for expected in (
             "each month's own value and provenance",
-            "Direct, nearby, and display-estimate values",
-            "missing and loading values remain explicit",
+            "signed differences in °C or mm/day",
+            "Loading, failed and missing data explain why a difference is unavailable",
             "All panels share a manual color scale",
             "Choose a preset or custom range",
             "narrower color bands do not improve data accuracy",

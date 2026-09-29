@@ -1,8 +1,8 @@
 // A selection is evaluated against each panel's accepted viewport response.
 // No rendered-feature query or network request is needed for a click.
 const SOURCE_LABELS = {
-    direct_cache: "Direct PostgreSQL observation",
-    nearby_cache: "Reused nearby PostgreSQL observation",
+    direct_cache: "Direct PostgreSQL value",
+    nearby_cache: "Reused nearby PostgreSQL value",
     display_estimate: "Display-only nearest estimate (no cached coverage; not queued)",
 };
 
@@ -28,6 +28,29 @@ function line(document, parent, content, strong = false) {
     const element = document.createElement(strong ? "strong" : "div");
     element.textContent = content;
     parent.append(element);
+}
+
+function displayValue(value) {
+    const rounded = Number(value.toFixed(2));
+    return String(rounded === 0 ? 0 : rounded);
+}
+
+function panelValue(entry, selected) {
+    if (!entry) return {status: "removed"};
+    if (entry.phase === "loading") return {status: "loading"};
+    if (entry.phase === "error") return {status: "error"};
+    const feature = containingCell(entry.data?.features, selected.lng, selected.lat);
+    const value = feature?.properties?.value;
+    if (typeof value !== "number" || !Number.isFinite(value)) return {status: "missing"};
+    return {status: "ready", value, source: feature.properties.source, feature};
+}
+
+function unavailableReason(value, label) {
+    if (value.status === "removed") return `${label} panel is no longer available.`;
+    if (value.status === "loading") return `${label} is still loading.`;
+    if (value.status === "error") return `${label} map data is unavailable for this viewport.`;
+    if (value.status === "missing") return `${label} has no saved climate value at this location.`;
+    return "";
 }
 
 export function createMapSelection({panels, Popup, document, unit}) {
@@ -58,30 +81,57 @@ export function createMapSelection({panels, Popup, document, unit}) {
     function render() {
         discardPopups();
         if (!selected) return;
+        const values = panels.map(panel => panelValue(state.get(panel), selected));
+        const comparing = panels.filter(panel => state.has(panel)).length > 1;
+        const baseline = values[0];
         for (const panel of panels) {
             const entry = state.get(panel);
             if (!entry) continue;
+            const index = panels.indexOf(panel);
+            const value = values[index];
             const body = document.createElement("div");
             line(document, body, panel.month, true);
+            if (comparing && index === 0) line(document, body, "Baseline", true);
             line(document, body, `Selected: ${selected.lat.toFixed(4)}° lat, ${selected.lng.toFixed(4)}° lon`);
-            if (entry.phase === "loading") {
+            if (value.status === "loading") {
                 line(document, body, "Loading viewport data…");
-            } else if (entry.phase === "error") {
+            } else if (value.status === "error") {
                 line(document, body, "Map data unavailable for this viewport.");
             } else {
-                const feature = containingCell(entry.data?.features, selected.lng, selected.lat);
-                const value = feature?.properties?.value;
-                if (typeof value !== "number" || !Number.isFinite(value)) {
+                if (value.status === "missing") {
                     line(document, body, "No saved climate data at this location.");
                 } else {
-                    line(document, body, `${value} ${unit}`, true);
-                    line(document, body, SOURCE_LABELS[feature.properties.source] || "Source unavailable");
-                    const centerLat = Number(feature.properties.latitude);
-                    const centerLng = Number(feature.properties.longitude);
+                    line(document, body, `${displayValue(value.value)} ${unit}`, true);
+                    line(document, body, SOURCE_LABELS[value.source] || "Source unavailable");
+                    const centerLat = Number(value.feature.properties.latitude);
+                    const centerLng = Number(value.feature.properties.longitude);
                     if (Number.isFinite(centerLat) && Number.isFinite(centerLng)) {
                         line(document, body, `Grid center: ${centerLat.toFixed(4)}° lat, ${centerLng.toFixed(4)}° lon`);
                     }
                 }
+            }
+            if (comparing && index > 0) {
+                const section = document.createElement("div");
+                line(document, section, "Difference from baseline", true);
+                const baselineReason = unavailableReason(baseline, "Baseline");
+                const currentReason = unavailableReason(value, "This month");
+                if (baselineReason || currentReason) {
+                    line(document, section, baselineReason || currentReason);
+                    if (baselineReason && currentReason) line(document, section, currentReason);
+                } else {
+                    const difference = value.value - baseline.value;
+                    if (!Number.isFinite(difference)) {
+                        line(document, section, "Difference unavailable because the numeric result is outside the supported range.");
+                    } else {
+                        const displayedDifference = Number(difference.toFixed(2));
+                        const sign = displayedDifference > 0 ? "+" : displayedDifference < 0 ? "−" : "";
+                        line(document, section, `${sign}${displayValue(Math.abs(displayedDifference))} ${unit}`, true);
+                        if (baseline.source === "display_estimate" || value.source === "display_estimate") {
+                            line(document, section, "Estimate-based difference");
+                        }
+                    }
+                }
+                body.append(section);
             }
             const popup = new Popup({closeOnClick: false})
                 .setLngLat(selected)

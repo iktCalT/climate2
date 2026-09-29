@@ -2,6 +2,24 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-002 review follow-up | README map terminology | done
+
+- Result: changed README tile reuse wording from PostgreSQL “observations” to
+  PostgreSQL-cached “values,” consistent with grid-cell provenance.
+- Check: `git diff --check` passed; wording-only, no tests needed.
+- Next: Lead continues integration; no remaining developer changes.
+
+## 2026-09-29 | MAP-002 | signed map differences and cached-value wording | done
+
+- Result: popups use the first month baseline, finite containing-cell values,
+  estimate provenance, concise formatting and explicit unavailable reasons;
+  single maps have no comparison section. Fixed rounded-negative-zero sign and
+  deleted-panel handling; added coarse-grid/non-trend caveat to README/References.
+- Check: `node --check static/map_selection.js`, focused
+  `node --test tests/test_map_selection.mjs` (1 pass), and scoped diff check pass.
+  Browser unavailable; QA owns the final batch.
+- Next: hand off to Lead/QA; no open developer findings.
+
 ## 2026-09-29 | PROVIDER-003 | activate saved NOAA public reads | done
 
 - Result: selected `noaa_core` for startup public reads; source writers remain pinned to CMIP6. Updated provider-aware admin copy, current README claims, and current PostgreSQL/evaluation status with restart and selector rollback. Historical evaluation decision is explicitly superseded; existing NOAA citations remain.

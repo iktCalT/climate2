@@ -491,7 +491,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"metadata.rows", response.data)
         self.assertIn(b"Open-Meteo CMIP6", response.data)
         selection_script = Path(__file__).parents[1] / "static" / "map_selection.js"
-        self.assertIn("Reused nearby PostgreSQL observation", selection_script.read_text())
+        self.assertIn("Reused nearby PostgreSQL value", selection_script.read_text())
         self.assertIn(b"startViewportLoad", response.data)
         self.assertIn(b'/static/map_scales.js', response.data)
         self.assertIn(b'id="scale-preset"', response.data)

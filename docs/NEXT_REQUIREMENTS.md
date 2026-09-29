@@ -1,5 +1,28 @@
 # Next requirements
 
+## Numeric differences in linked map readouts
+
+**Status:** Implemented 2026-09-29 as a comparison-usability follow-up.
+
+For two-to-four maps, use the first selected month as the labelled baseline.
+Each other selected-location popup shows its displayed value minus the baseline
+value, with an explicit signed difference and the same °C or mm/day unit. This
+compares displayed coarse samples, not exact observations or a climate trend.
+Only calculate when both containing cells have finite numeric values in accepted
+current responses. Baseline loading, errors or missing coverage must instead
+show why a difference is unavailable; clear stale differences immediately on
+viewport movement. If either input is a display-only estimate, label the
+difference as estimate-based. Keep each popup's own source and grid-center detail.
+
+Replace misleading PostgreSQL “observation” labels with cached-value wording.
+Single-map readouts remain ordinary values with no baseline/difference section.
+Use concise numeric display (up to two decimal places, no negative zero); calculate
+differences from unrounded values. Keep safe DOM text, shared-close behavior,
+manual scales and existing no-click-network behavior. No provider/backend/data
+changes, new dependencies, or assets. Document in README and Maps/References.
+Batch these related UI edits before one QA pass; test sign/units, zero, estimates,
+missing/nonfinite inputs, asynchronous invalidation and one/four panels.
+
 ## Activate saved NOAA public reads
 
 **Status:** Implemented and reviewed 2026-09-29, continuing the selected-provider rollout after
