@@ -88,6 +88,12 @@ own log; the Lead maintains assignments and integrates reviewed changes.
 Continue through the full round without requesting confirmation at each handoff;
 stop when the round finishes or a material decision needs the user's input.
 
+Verification cadence (user updated 2026-09-29): batch related low-risk edits
+across implementation cycles, then run the offline regression suites once before
+merging. Use targeted checks for bug fixes and risky changes; after a correction,
+rerun affected checks rather than automatically repeating the entire suite.
+Do not duplicate QA's completed runs during review without a specific concern.
+
 ## Publication and provenance
 
 - The refactor is an **AI-assisted derivative** made with **OpenAI Codex

@@ -2,6 +2,17 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-002 | numeric comparison readouts | done
+- Result: added fake-Popup regressions for one/four panels, baseline, °C/mm/day,
+  raw precision, estimate provenance, loading/missing/error/nonfinite/overflow,
+  no negative zero, and panel removal. Updated stale cached-value wording tests.
+- Check: full offline Python batch ran 155 tests and found three stale copy
+  assertions; updated them and the affected 40 content/location tests passed.
+  All three Node map suites passed, including async stale-response checks. Per
+  batch instruction, the full Python suite was not rerun after these test-only
+  corrections. No live database/provider calls; browser unavailable.
+- Next: Lead integration; no unresolved QA findings.
+
 ## 2026-09-29 | PROVIDER-003 | activate saved NOAA public reads | done
 
 - Result: updated current Home/References expectations for NOAA, asserted default propagation through public modules/app config, fake SQL provider parameters for history/map/saved dates, and admin copy in both modes. Existing CMIP6 map-fetch behavior tests now select CMIP6 explicitly. No production defect found.

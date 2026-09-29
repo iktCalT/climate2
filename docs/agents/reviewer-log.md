@@ -2,6 +2,14 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-002 | numeric map differences | done
+- Result: the P3 copy finding was resolved; README.md:28 now says
+  “PostgreSQL-cached values.” No other confirmed defect in the scoped review.
+- Check: verified the exact line and `git diff --check ee0e568`; wording-only
+  correction, so tests were not rerun. Prior QA results: three Node suites and
+  40 affected Python tests passed. No browser or live data access.
+- Next: none; Lead integrates.
+
 ## 2026-09-29 | PROVIDER-003 | activate saved NOAA public reads | done
 
 - Result: no actionable finding in the scoped activation diff. The startup

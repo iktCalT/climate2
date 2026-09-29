@@ -2,6 +2,19 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-002 | signed map-value differences | done
+
+- Result: first-month baseline differences, concise numbers, estimate/unavailable
+  labels and accurate cached-value terminology; no requests or scale changes.
+  Requirements/policy record batched verification. Sequential Luna specialists.
+- Check: focused tests caught negative-zero and removed-panel errors; fixed.
+  Three Node suites passed. One Python batch ran 155 tests (8 DB skips), found
+  three stale copy assertions; after corrections, 40 affected tests passed.
+  No repeated full suite. Reviewer's sole README wording issue was corrected.
+  Browser unavailable; no live database/provider operations.
+- Next: integrate reviewed change. Differences compare displayed coarse values,
+  not exact observations or a climate trend.
+
 ## 2026-09-29 | PROVIDER-003 | NOAA public selector | done
 
 - Result: startup public reads select `noaa_core`; CMIP6 writes stay isolated.

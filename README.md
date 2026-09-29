@@ -25,7 +25,7 @@ and retains the source/software credits. Selectable months do not guarantee loca
 coverage: temperatures are °C, and precipitation is mean daily mm/day, not a
 monthly total.
 
-- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows the newest saved active-provider mean-temperature month, no later than the stable-date limit (previous month during the first six UTC hours of a new month, current month otherwise), and starts over the contiguous United States. Explicitly selected dates are never replaced. If no suitable saved month exists, the date selector opens instead. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. The global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells. As the viewport shrinks, cell size decreases more slowly so fewer cells are displayed, stopping at 0.5-degree latitude by 1-degree longitude cells and city-scale zoom level 10. Tiles reuse direct or sufficiently nearby PostgreSQL observations without requiring the sample to match the tile or zoom center. Public viewport requests never fetch missing climate cells. Missing coverage and display-only spatial estimates remain visibly distinguished from cached values in every comparison panel; nothing is queued for download.
+- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows the newest saved active-provider mean-temperature month, no later than the stable-date limit (previous month during the first six UTC hours of a new month, current month otherwise), and starts over the contiguous United States. Explicitly selected dates are never replaced. If no suitable saved month exists, the date selector opens instead. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. The global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells. As the viewport shrinks, cell size decreases more slowly so fewer cells are displayed, stopping at 0.5-degree latitude by 1-degree longitude cells and city-scale zoom level 10. Tiles reuse direct or sufficiently nearby PostgreSQL-cached values without requiring the sample to match the tile or zoom center. Public viewport requests never fetch missing climate cells. Missing coverage and display-only spatial estimates remain visibly distinguished from cached values in every comparison panel; nothing is queued for download.
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. Only saved active-provider monthly values are read; gaps stay missing, with coverage counts and a clear empty state. Seasonal means use available months and may represent incomplete seasons. Rendered chart URLs are keyed to current data content so imports and cleanup are reflected on the next page request.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can start/resume bounded NOAA edge-window batches and view live coverage through `/admin/data`. The older Open-Meteo point-grid tool remains at `/update` for advanced use.
 - **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current public reads select `noaa_core`. Open-Meteo acquisition and migration remain pinned to `open_meteo_cmip6`; switching public reads does not relabel or rewrite stored rows. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
@@ -241,9 +241,16 @@ use the endpoint colors. More contrast is not greater data accuracy.
 Click a location on any comparison map to show that same location on every
 panel. Each readout uses its own month's loaded grid cell, with value, unit and
 cache/estimate provenance; selected coordinates and cell centers are distinct.
-Loading, unavailable and missing coverage are explicit. Click another location
-to replace the selection, or close any popup to clear all. This also works on a
-single map, adds no data requests, and never changes the color scale.
+The first month is the labelled baseline; later panels show their signed value
+difference in °C or mm/day when both cells have finite values. Unavailable
+differences explain whether the baseline or current month is loading, failed, or
+missing coverage. Estimate-based differences are labelled, and displayed
+numbers use at most two decimal places while calculations use the raw values.
+These are differences between coarse displayed grid values, not exact-location
+observations or a climate trend.
+Click another location to replace the selection, or close any popup to clear
+all. A single map shows its ordinary value without a baseline or difference.
+The interaction adds no data requests and never changes the color scale.
 
 Compare only rows already stored in PostgreSQL after importing review months:
 
