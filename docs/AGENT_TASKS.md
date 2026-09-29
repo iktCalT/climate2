@@ -8,6 +8,19 @@ checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
+### PROVIDER-002 — NOAA location/presentation readiness (active)
+
+Base main `5a2df92`; branch `codex/noaa-location-readiness`. Lead owns docs.
+Developer owns new `climate/data/location_sampling.py`, `climate/web/app.py`,
+`climate/web/helpers.py` if needed, templates index/maps/locations/references and
+own backend log. Frontend exception assigned. Keep source writers unchanged;
+sample NOAA at web boundary, use existing cache-only helper. QA owns tests/log;
+Reviewer read-only/log, sequential. Acceptance is top NEXT_REQUIREMENTS contract.
+No activation, live data or new packages. Developer/QA/Reviewer complete;
+rounding-description finding resolved (algorithm unchanged). Lead integrating.
+QA: 152 Python tests (8 database skips), all three Node suites passed.
+Browser check unavailable: built-in browser disconnected this turn.
+
 ### PROVIDER-001 — immutable source identity (active)
 
 Base main `380197d`; branch `codex/provider-write-isolation`. Lead owns docs.

@@ -1,5 +1,25 @@
 # Next requirements
 
+## NOAA location-grid and presentation readiness
+
+**Status:** Implemented 2026-09-29; follows source-isolation prerequisite.
+
+Prepare, but do not activate, NOAA public reads. For NOAA Location history,
+snap validated input to the closest canonical latitude and circular longitude
+coordinates on the imported 2° × 4° grid; deterministic ties, equivalent ±180°
+and pole handling. Keep one fixed sample for the whole history, never search
+farther to fill missing dates or combine providers. Show requested and sampled
+coordinates and approximate great-circle distance; identify values as a coarse
+grid sample, not exact-location observations. CMIP6 exact-coordinate behavior
+and the existing January 1951 history start remain unchanged.
+
+Chart cache identity includes provider and requested/sampled coordinates; chart
+title and public Home/Maps/Locations/References copy distinguish NOAA reanalysis
+from CMIP6 model output. Preserve source credits and caveats. Public reads remain
+cache-only, missing values explicit, manual scales unchanged. Tests simulate both
+providers with fake data, including dateline, poles, ties and missing grid samples.
+No live writes, imports, dependencies or provider activation in this task.
+
 ## Immutable acquisition-source identities
 
 **Status:** Implemented and reviewed 2026-09-29 following NOAA readiness review.

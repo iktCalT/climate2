@@ -12,6 +12,14 @@
             <div class="col">
                 <p class="text-center fs-3">Latitude: {{ lat }}°N</p>
                 <p class="text-center fs-3">Longitude: {{ lon }}°E</p>
+                {% if noaa_sample %}
+                    <p class="text-center">NOAA CORe reanalysis: requested {{ lat }}°N, {{ lon }}°E;
+                        sampled 2° × 4° grid point {{ noaa_sample.latitude }}°N, {{ noaa_sample.longitude }}°E
+                        (approximately {{ "%.1f"|format(noaa_sample.distance_km) }} km away).
+                        This is a coarse grid sample, not an observation at the exact requested location.</p>
+                {% else %}
+                    <p class="text-center">Open-Meteo CMIP6 model output at the requested coordinates.</p>
+                {% endif %}
                 <p class="text-center text-muted small">Refreshing rechecks PostgreSQL. Browsing never downloads climate data.</p>
             </div>
             <div class="col my-auto">
@@ -28,7 +36,7 @@
         <iframe title="Cached seasonal climate history" src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px"
         class="my-3" style="border:none;"></iframe>
         {% else %}
-        <div class="alert alert-info" role="status">No saved climate data for these exact coordinates.
+        <div class="alert alert-info" role="status">No saved climate data for {% if noaa_sample %}this NOAA grid sample{% else %}these exact coordinates{% endif %}.
             Try another location or ask an administrator to import data for the active provider.
             No external climate request was made.</div>
         {% endif %}
@@ -37,9 +45,12 @@
         <form action="/locations" method="get" class="mx-auto" style="width:60%">
             <div class="mb-3 row">
                 <h5>Explore a location from 1951 through the current month</h5>
-                <p class="text-muted">Enter coordinates to chart saved modelled mean, maximum, and minimum temperature with precipitation.
+                <p class="text-muted">Enter coordinates to chart saved {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 modelled{% endif %} mean, maximum, and minimum temperature with precipitation.
                     Only the active provider's PostgreSQL cache is read. Missing months stay unavailable;
                     administrators manage data imports separately.</p>
+                {% if climate_provider == "noaa_core" %}
+                    <p class="text-muted">History rounds latitude and longitude separately to one fixed 2° × 4° NOAA grid point for every month. The result shows its coordinates and approximate distance from your request.</p>
+                {% endif %}
                 <div class="form-group col-sm-6">
                     <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
                     <input autocomplete="off" class="form-control ms-auto w-100" name="latitude"

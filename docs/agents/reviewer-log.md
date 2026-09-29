@@ -2,6 +2,13 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-002 | NOAA location/presentation readiness | done
+
+- Result: one P3 wording finding. `location_sampling.py:21` says “closest canonical grid point,” and Home/Locations call the coordinate-wise result “nearest”; independent latitude/longitude rounding need not minimize great-circle distance (for example, the 89°N, 2°E tie chooses 88°N, 0°E while the pole is closer). Describe coordinate-wise rounding in these labels; keep the agreed sampling rule. No other actionable issue found in fixed sampling, cache-only provider reads, chart identity/titles, two-mode copy, or citations. Public selector remains CMIP6.
+- Check: read-only code/requirements/tests inspection. QA reports 152 Python tests (8 PostgreSQL skips) and three Node suites passed; not rerun. No browser, live database, provider, or network check.
+- Recheck: helper docstring and Home/Locations now say latitude and circular longitude are rounded separately; the former explicitly distinguishes this from great-circle nearest. Sole finding resolved. QA reports 10 NOAA and 5 content-page focused tests passed; not rerun here.
+- Next: Lead integrate. Browser remains unverified because IAB is disconnected.
+
 ## 2026-09-29 | PROVIDER-001 | immutable acquisition source | done
 
 - Result: no actionable finding in the six production-file diff. Open-Meteo writes, source probes, prefetch checkpoints, and legacy migration use fixed CMIP6; comparison loads explicit NOAA and CMIP6; public map/history/cache reads still use the selected provider, and both optional fallback paths stop under NOAA. Caller search found no remaining writer keyed by the public selector. This does not establish NOAA activation readiness; coordinate policy and public labels remain separate.

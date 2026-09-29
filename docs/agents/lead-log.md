@@ -2,6 +2,16 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-002 | NOAA location/presentation readiness | done
+
+- Result: fixed coordinate-wise NOAA grid sampling, disclosed distance and
+  requested/sample coordinates, provider-aware chart identity/titles and copy.
+  CMIP6 remains active; its exact lookup and January 1951 history start remain.
+- Check: QA 152 Python tests (8 database skips), three Node suites passed.
+  Reviewer requested precise rounding wording, not a geodesic-nearest claim.
+  Browser unavailable (IAB disconnected); no live DB/provider operations.
+- Next: integrate after wording recheck; actual NOAA activation remains separate.
+
 ## 2026-09-29 | PROVIDER-001 | source-write isolation | done
 
 - Result: sequential Developer/QA/Reviewer completed immutable CMIP6 write,

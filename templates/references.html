@@ -20,28 +20,41 @@
         <div class="reference-overview">
             <article>
                 <h3>Active public source</h3>
-                <p>Maps and Locations read saved <code>open_meteo_cmip6</code> data from Open-Meteo's downscaled CMIP6 climate models. These are model outputs, not direct station observations or observed weather for a particular date. Temperatures are in °C; precipitation is mean daily mm/day, not a monthly total.</p>
+                {% if climate_provider == "noaa_core" %}
+                    <p>Maps and Locations read saved <code>noaa_core</code> data from NOAA CORe reanalysis. These are gridded estimates informed by observations, not direct station observations at a requested point. Location history samples one fixed 2° × 4° grid coordinate throughout the series and shows its distance from the request. Temperatures are in °C; precipitation is mean daily mm/day, not a monthly total.</p>
+                {% else %}
+                    <p>Maps and Locations read saved <code>open_meteo_cmip6</code> data from Open-Meteo's downscaled CMIP6 climate models. These are model outputs, not direct station observations or observed weather for a particular date. Temperatures are in °C; precipitation is mean daily mm/day, not a monthly total.</p>
+                {% endif %}
             </article>
             <article>
                 <h3>Coverage is uneven</h3>
                 <p>Visitors do not trigger provider downloads or queue missing values. Map dates can be selected from January 1950 through the current month; Location history starts in January 1951. A selectable date does not guarantee saved values for a region, coordinate, or variable. Maps opens the newest saved mean-temperature month within its stable-date limit unless you choose a date. Saved-month counts come from bounded, read-only cache queries and count finite active-provider values globally, not regional completeness or accuracy.</p>
             </article>
             <article>
-                <h3>Separate NOAA source</h3>
-                <p>NOAA CORe is a selected, administrator-managed reanalysis import source stored as <code>noaa_core</code>. It is inactive for public Maps and Locations. Reanalysis and CMIP6 model output have different provenance and are not silently mixed.</p>
+                <h3>Separate source</h3>
+                {% if climate_provider == "noaa_core" %}
+                    <p>Open-Meteo CMIP6 model output remains stored separately as <code>open_meteo_cmip6</code> and is inactive for public Maps and Locations. Reanalysis and CMIP6 model output have different provenance and are not silently mixed.</p>
+                {% else %}
+                    <p>NOAA CORe is a selected, administrator-managed reanalysis import source stored as <code>noaa_core</code>. It is inactive for public Maps and Locations. Reanalysis and CMIP6 model output have different provenance and are not silently mixed.</p>
+                {% endif %}
             </article>
         </div>
         <div class="reference-guidance" aria-labelledby="reference-compare-heading">
             <h3 id="reference-compare-heading">Reading a comparison</h3>
             <p>On <a href="/maps?select=1">Maps</a>, select one variable and two to four months. Click a location in any panel to see each month's own value and provenance at the same coordinates. Direct, nearby, and display-estimate values are distinguished; missing and loading values remain explicit. All panels share a manual color scale. Choose a preset or custom range to keep colors comparable; narrower color bands do not improve data accuracy.</p>
         </div>
+        {% if climate_provider != "noaa_core" %}
         <aside class="reference-callout" aria-label="Data quality warning">
             Some inherited ocean temperatures disagree with fresh Open-Meteo source checks and have not been repaired. For example, the cached January 2021 value at 36°S, 104°W was about 52.37 °C, while a fresh importer request returned 18.81 °C. The suspect value also exists in the legacy SQLite source. Treat comparisons involving affected areas with care.
         </aside>
+        {% endif %}
         <details class="reference-history">
             <summary>Historical import and validation details (recorded through September 2026)</summary>
             <div>
-                <p>These figures describe earlier local implementation checkpoints, not current public coverage or a live database count. The public site still reads <code>open_meteo_cmip6</code>; importing NOAA rows alone does not activate <code>noaa_core</code>. Footer credit follows the active provider.</p>
+                <p>These figures describe earlier local implementation checkpoints, not current public coverage or a live database count. Importing NOAA rows alone did not activate <code>noaa_core</code>; public selection is separate from acquisition. Footer credit follows the active provider.</p>
+                {% if climate_provider == "noaa_core" %}
+                    <p>Historical CMIP6 cache warning: some inherited ocean temperatures disagreed with fresh Open-Meteo source checks and had not been repaired. The January 2021 cached value at 36°S, 104°W was about 52.37 °C, while a fresh importer request returned 18.81 °C; the suspect value also existed in the legacy SQLite source. This warning concerns the separate CMIP6 cache.</p>
+                {% endif %}
                 <p>NOAA CORe is a global, near-real-time reanalysis available through anonymous HTTPS and documented by NOAA as public domain. Its convenient monthly high/low fields average daily extrema, so the importer derives monthly extremes from daily records and validates fields with ECMWF ecCodes. Only when both daily extrema are absent does it require all eight exact 0–3 hour extrema pairs from the documented 3-hourly archive; incomplete evidence is rejected. May 2026 validation exercised that path for May 19.</p>
                 <p>Earlier checkpoint reports recorded 92 requested months across 1950–1953 and 2023–2026 with 8,281 canonical rows and four metrics per month. Later bounded backfills reported 248 of 920 complete months after 1954–1966, then 284 of 920 after 2020–2022, including 80 of 128 recent-window months. Those are dated progress records, not a claim about today's database. Routine administrator acquisition was subsequently narrowed to the first and last five years, 1950–1954 and 2022–2026, through the latest complete month. Older saved rows remain unless explicitly removed.</p>
                 <p>Read-only PostgreSQL comparisons covered all 8,281 canonical rows for January 1950, leap-month February 1952, and July 2023. Six bounded Open-Meteo requests sampled August 2026 land, ocean, polar, and dateline cases. Material differences in precipitation and temperature extrema are review evidence, not automatic pass/fail thresholds or approval to switch the public provider. Location chart URLs reflect current data on a new page request; seasonal averages use available months and may be incomplete. Old generated chart files are not automatically deleted.</p>
@@ -61,7 +74,7 @@
                 <span class="external-link">pcmdi.llnl.gov ↗</span>
             </a>
             <a class="reference-card" href="https://www.cpc.ncep.noaa.gov/products/CORe/index.html" target="_blank" rel="noopener noreferrer">
-                <span class="reference-type">Selected bulk source · inactive on site</span>
+                <span class="reference-type">Selected bulk source{% if climate_provider != "noaa_core" %} · inactive on site{% else %} · active on site{% endif %}</span>
                 <strong>NOAA Conventional Observation Reanalysis (CORe)</strong>
                 <p>Official global reanalysis from 1950 to near real time, available anonymously and documented as public domain.</p>
                 <span class="external-link">cpc.ncep.noaa.gov ↗</span>

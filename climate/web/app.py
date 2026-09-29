@@ -18,6 +18,7 @@ from climate.paths import (
     resolve_user_database_path,
 )
 from climate.data.db import ACTIVE_CLIMATE_PROVIDER
+from climate.data.location_sampling import sample_noaa_location
 from climate.web.helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
 from climate.providers.open_meteo import get_data_locations, get_location_history
 from climate.services.map_data import viewport_geojson
@@ -30,7 +31,7 @@ DEFAULT_MAP_DATA_TYPE = "temp_mean"
 FIRST_DAY_MAP_FALLBACK_HOURS = 6
 START = "1950-01"
 LOCATION_HISTORY_START = "1951-01-01"
-LOCATION_CHART_VERSION = "v5"
+LOCATION_CHART_VERSION = "v6"
 MAX_ADMIN_PREFETCH_POINTS = 100
 ALLOWED_PROFILE_IMAGE_EXTENSIONS = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
 
@@ -203,14 +204,18 @@ def locations():
         lon = float(strlon)
     except (TypeError, ValueError):
         return apology("Invalid latitude/longitude", 400)
-    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+    if not np.isfinite(lat) or not np.isfinite(lon) or not (-90 <= lat <= 90 and -180 <= lon <= 180):
         return apology("Latitude/longitude out of range", 400)
 
+    provider = ACTIVE_CLIMATE_PROVIDER
+    noaa_sample = sample_noaa_location(lat, lon) if provider == "noaa_core" else None
+    sampled_lat = noaa_sample.latitude if noaa_sample else lat
+    sampled_lon = noaa_sample.longitude if noaa_sample else lon
     strlat = f"{lat:.2f}"
     strlon = f"{lon:.2f}"
     try:
         data, _ = get_location_history(
-            location=(lat, lon),
+            location=(sampled_lat, sampled_lon),
             date_start=LOCATION_HISTORY_START,
             date_end=datetime.today().strftime("%Y-%m-%d"),
             fields=tuple(DATA_TYPES),
@@ -225,15 +230,20 @@ def locations():
     if available_months:
         # Data and coordinates identify the chart, so cleanup/imports invalidate
         # an old render without deleting files or trusting a stale file's mtime.
-        content = f"{lat!r},{lon!r},{ACTIVE_CLIMATE_PROVIDER}:" + data.to_json(
+        content = f"{provider}:{lat!r},{lon!r}:{sampled_lat!r},{sampled_lon!r}:" + data.to_json(
             orient="split", date_format="iso", double_precision=15
         )
         digest = hashlib.sha256(content.encode()).hexdigest()
         filename = f"location_data/{LOCATION_CHART_VERSION}_{strlat}_{strlon}_{digest}.html"
         if not os.path.isfile("static/" + filename):
-            draw_chart(lat, lon, data, filename=filename.split("/")[1])
+            draw_chart(
+                lat, lon, data, filename=filename.split("/")[1],
+                source_label="NOAA CORe reanalysis" if noaa_sample else "Open-Meteo CMIP6 model output",
+                sampled_location=(sampled_lat, sampled_lon),
+            )
     return render_template(
         "locations.html", imgname=imgname, lat=lat, lon=lon, filename=filename,
+        noaa_sample=noaa_sample,
         available_months=available_months, complete_months=complete_months,
         total_months=len(data),
     )

@@ -2,6 +2,18 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-002 review follow-up | grid-rounding wording | done
+
+- Result: clarified that NOAA latitude and circular longitude round separately; the chosen fixed grid coordinate need not minimize great-circle distance. Sampling behavior is unchanged.
+- Check: template parse, (89°, 2°) independent-rounding smoke, and `git diff --check` passed. Focused NOAA/content suite ran 15 tests with one expected failure: QA's new copy assertion still requires the removed “nearest” phrase. No browser or live data operation.
+- Next: QA owns the assertion update in `tests/test_noaa_location_readiness.py`; Reviewer can verify wording.
+
+## 2026-09-29 | PROVIDER-002 | NOAA location sampling and public copy | done
+
+- Result: added pure finite-coordinate NOAA 2° × 4° sampling with deterministic circular ties, dateline and pole rules, and great-circle distance. Locations uses one fixed cache-only sample; request/sample/provider identify chart renders, whose initial and dropdown titles name the source. Home, Maps, Locations and References respond to the active provider while retaining credits and historical CMIP6 caveat. No activation or data write.
+- Check: 40 focused Python tests passed; simulated NOAA coordinate, route and chart-title smokes passed; `git diff --check` passed. No live database/provider or browser check.
+- Next: QA adds fake-provider boundary regressions, then Reviewer inspects.
+
 ## 2026-09-29 | PROVIDER-001 | immutable acquisition source | done
 
 - Result: Open-Meteo writes and source checkpoints use fixed `open_meteo_cmip6`; SQLite migration and prefetch do likewise. Comparison loads explicit NOAA and CMIP6. Public history/map reads retain the active selector; opt-in Open-Meteo fallback returns cached gaps under another selector. No provider activation or live data operation.
