@@ -77,9 +77,14 @@
             <p class="small text-muted mt-2">Values below or above the chosen range use the end colors.
                 Narrower colors show more contrast, not more accurate data. Click a cell for its numeric value.</p>
         </section>
-        <p class="small text-start text-muted">Data-quality note: these maps still use CMIP6 model output, not NOAA.
-            Some inherited ocean temperatures disagree with fresh source checks and remain uncorrected.
-            <a href="/references">Read the limitations</a> before interpreting comparisons.</p>
+        {% if climate_provider == "noaa_core" %}
+            <p class="small text-start text-muted">Data-quality note: these maps use saved NOAA CORe reanalysis grid values, not direct observations at every map location.
+                Display estimates and missing areas remain labelled. <a href="/references">Read the limitations</a> before interpreting comparisons.</p>
+        {% else %}
+            <p class="small text-start text-muted">Data-quality note: these maps use Open-Meteo CMIP6 model output.
+                Some inherited ocean temperatures disagree with fresh source checks and remain uncorrected.
+                <a href="/references">Read the limitations</a> before interpreting comparisons.</p>
+        {% endif %}
         <div class="climate-map-grid{% if comparison %} climate-map-comparison{% endif %}">
             {% for panel_month in months %}
                 <article class="climate-map-panel" aria-labelledby="map-heading-{{ loop.index0 }}">
@@ -96,6 +101,7 @@
             {% endfor %}
         </div>
     {% else %}
+        <p class="text-muted">Choose months from saved {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis grid data{% else %}Open-Meteo CMIP6 model output{% endif %}. Public browsing reads the cache only; coverage can be incomplete.</p>
         {% if availability_error %}
             <p class="alert alert-warning" role="status">{{ availability_error }}</p>
         {% elif no_default %}
@@ -367,6 +373,7 @@
                     const metadata = data.metadata;
                     const providerLabels = {
                         open_meteo_cmip6: "Open-Meteo CMIP6",
+                        noaa_core: "NOAA CORe reanalysis",
                     };
                     panel.status.textContent = [
                         providerLabels[metadata.provider] || metadata.provider,

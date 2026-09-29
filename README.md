@@ -7,11 +7,17 @@ Climate is a Flask website for exploring modelled historical climate data. Publi
 
 ## Current features
 
+NOAA readiness (not activation): Location history can sample the imported 2° ×
+4° NOAA grid by rounding to the closest latitude and circular longitude, with
+ties toward the smaller coordinate. Dateline aliases use −180°; sampled poles
+use 0° longitude. Requested/sample coordinates and approximate distance are
+shown, and missing months never trigger a farther search or another provider.
+CMIP6 keeps exact-coordinate lookup. Both retain the January 1951 history start.
+
 Provider isolation: Open-Meteo ingestion, prefetch checkpoints and legacy CMIP6
 migration use an explicit source identity independent of the public-read selector.
 The comparison command always compares NOAA against CMIP6. This safeguard does
-not activate NOAA; location-grid handling and public labels still need a separate
-activation change.
+not activate NOAA; enabling public NOAA reads remains a separate explicit change.
 
 Home provides a short guide to maps, location history and linked comparisons.
 References separates current data limitations from historical import checkpoints

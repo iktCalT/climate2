@@ -2,6 +2,13 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-002 | NOAA sampling and public copy | done
+
+- Result: added ten offline regressions for finite/range validation, coordinate ties, dateline/poles/distance, NOAA fixed-sample versus exact CMIP6 history, cache-only missing sample, provider/request/sample/value chart identities and metric titles, and Home/Maps/Locations/References/footer copy in both modes with identical external citation URLs. No production defect found.
+- Check: full offline unittest suite passed 152 tests (8 PostgreSQL skips); all three Node map suites passed; `git diff --check` clean. Fake data only; no live database/provider or browser check.
+- Recheck: after reviewer wording correction, NOAA (10) and content-page (5) focused tests passed; assertions now describe separate latitude/circular-longitude rounding.
+- Next: Reviewer inspects PROVIDER-002; Lead owns browser verification and integration.
+
 ## 2026-09-29 | PROVIDER-001 | immutable acquisition source | done
 
 - Result: added seven fake-connection regressions under simulated NOAA public selection. They cover CMIP6 insert/update and migration rows, prefetch checkpoint and stale NOAA-only cache gaps, source-specific probes, distinct comparison inputs, NOAA public history/map reads, and disabled opt-in Open-Meteo fallbacks. No production defect found.

@@ -12,10 +12,10 @@
 
     <section class="climate-hero text-start">
         <div class="climate-hero-copy">
-            <p class="eyebrow">Saved climate model data</p>
+            <p class="eyebrow">Saved climate {% if climate_provider == "noaa_core" %}reanalysis{% else %}model{% endif %} data</p>
             <h1>Explore climate patterns by map or location.</h1>
             <p class="lead-copy">
-                Explore saved monthly Open-Meteo CMIP6 model data. Choose a date
+                Explore saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis grid data{% else %}Open-Meteo CMIP6 model data{% endif %}. Choose a date
                 on Maps or enter coordinates on Locations. Public browsing reads
                 the existing cache; dates you can select may have little or no
                 data where you look.
@@ -58,7 +58,7 @@
             <div class="feature-number">02</div>
             <p class="eyebrow">Locations</p>
             <h2>Follow one coordinate through time</h2>
-            <p>Enter latitude and longitude to see saved monthly values from 1951 through the current month. Gaps stay visible, and seasonal averages can be incomplete.</p>
+            <p>Enter latitude and longitude to see saved monthly values from 1951 through the current month. {% if climate_provider == "noaa_core" %}NOAA history rounds latitude and longitude separately to one fixed 2° × 4° grid point and shows its distance from your request. {% endif %}Gaps stay visible, and seasonal averages can be incomplete.</p>
             <a class="feature-link" href="/locations">Open Locations <span aria-hidden="true">→</span></a>
         </article>
     </section>
@@ -76,9 +76,13 @@
     <section class="data-note text-start">
         <div>
             <p class="eyebrow">Before interpreting a map</p>
-            <h2>Model output with incomplete coverage.</h2>
+            <h2>{% if climate_provider == "noaa_core" %}Reanalysis with incomplete coverage.{% else %}Model output with incomplete coverage.{% endif %}</h2>
         </div>
-        <p>Open-Meteo CMIP6 is the active public series. Its values are modelled climate, not direct observations for an exact date. NOAA CORe is a separate reanalysis import source and is inactive on the public site. Some inherited ocean temperatures remain suspect. Read the coverage and provenance notes before drawing conclusions.</p>
+        {% if climate_provider == "noaa_core" %}
+            <p>NOAA CORe is the active public reanalysis series. Its gridded values are not direct observations at an exact location. Open-Meteo CMIP6 model output remains a separate cached source. Read the coverage and provenance notes before drawing conclusions.</p>
+        {% else %}
+            <p>Open-Meteo CMIP6 is the active public series. Its values are modelled climate, not direct observations for an exact date. NOAA CORe is a separate reanalysis import source and is inactive on the public site. Some inherited ocean temperatures remain suspect. Read the coverage and provenance notes before drawing conclusions.</p>
+        {% endif %}
         <a class="btn btn-climate-secondary" href="/references">Read references</a>
     </section>
 {% endblock %}
