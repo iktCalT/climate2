@@ -8,6 +8,20 @@ checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
+### PROVIDER-001 — immutable source identity (active)
+
+Base main `380197d`; branch `codex/provider-write-isolation`. Lead owns docs.
+Developer owns `climate/data/db.py`, `climate/providers/open_meteo.py`,
+`climate/cli/{prefetch_climate,migrate_weather_sqlite,compare_climate_providers}.py`
+and own log. QA owns tests/own log; Reviewer read-only + own log. Sequential.
+Scope extension: Developer also owns `climate/services/map_data.py` solely to
+disable its opt-in Open-Meteo fallback under non-CMIP6 public selection.
+Acceptance: source writers/checkpoints isolated from public selector, comparison
+uses distinct providers, public cache reads unchanged; fake DB regression tests.
+No live data, activation, dependencies or unrelated refactor. Developer and QA
+complete (142 Python tests, 8 database skips); Reviewer found no defects.
+Lead integrating. NOAA activation remains separate.
+
 ### PAGES-001 — Home and References clarity (active)
 
 Base main `a86172a`; branch `codex/page-clarity`. Requirement is recorded atop

@@ -2,6 +2,12 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-001 | immutable acquisition source | done
+
+- Result: added seven fake-connection regressions under simulated NOAA public selection. They cover CMIP6 insert/update and migration rows, prefetch checkpoint and stale NOAA-only cache gaps, source-specific probes, distinct comparison inputs, NOAA public history/map reads, and disabled opt-in Open-Meteo fallbacks. No production defect found.
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests` passed 142 tests (8 PostgreSQL skips); `git diff --check` clean. No live database or provider calls.
+- Next: Reviewer inspects PROVIDER-001; Lead integrates. Tests do not exercise a live database or actual provider responses.
+
 ## 2026-09-28 | PAGES-001 | Home and References clarity | done
 
 - Result: replaced stale page-copy assertions with offline route checks for active CMIP6/inactive NOAA, date selection versus uneven coverage, °C and mean daily mm/day, linked comparison/manual scales, dated historical checkpoints, navigation/heading anchors, and all pre-refresh References citation URLs. Static page requests fail if they touch mocked climate data paths.

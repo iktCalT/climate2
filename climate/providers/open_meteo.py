@@ -7,7 +7,12 @@ import requests_cache
 from openmeteo_requests import OpenMeteoRequestsError
 from retry_requests import retry
 
-from climate.data.db import ACTIVE_CLIMATE_PROVIDER, fetch_loc_id, weather_db
+from climate.data.db import (
+    ACTIVE_CLIMATE_PROVIDER,
+    OPEN_METEO_PROVIDER,
+    fetch_loc_id,
+    weather_db,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -181,13 +186,13 @@ def get_data_in_database(lat, lon, con=None):
                 AND provider = %s
                 LIMIT 1
                 """,
-                (lat, lon, ACTIVE_CLIMATE_PROVIDER),
+                (lat, lon, OPEN_METEO_PROVIDER),
             )
             return cur.fetchall()
 
 
-def load_location_history(location, date_start, date_end, fields, con=None):
-    """Load monthly cached values for a location and requested fields."""
+def load_location_history(location, date_start, date_end, fields, con=None, provider=None):
+    """Load cached values; public reads use the selected provider by default."""
     invalid_fields = set(fields) - set(SHORT_TO_METEO_NAMES)
     if invalid_fields:
         raise ValueError(f"Unsupported climate fields: {sorted(invalid_fields)}")
@@ -210,7 +215,7 @@ def load_location_history(location, date_start, date_end, fields, con=None):
                     float(location[1]),
                     date_start,
                     date_end,
-                    ACTIVE_CLIMATE_PROVIDER,
+                    ACTIVE_CLIMATE_PROVIDER if provider is None else provider,
                 ),
             )
             rows = cur.fetchall()
@@ -264,7 +269,10 @@ def missing_location_ranges(
 ):
     """Return missing or incomplete monthly ranges for one cached location."""
     fields = tuple(fields)
-    history = load_location_history(location, date_start, date_end, fields, con=con)
+    history = load_location_history(
+        location, date_start, date_end, fields, con=con,
+        provider=OPEN_METEO_PROVIDER,
+    )
     return _missing_month_ranges(
         history,
         _expected_months(date_start, date_end),
@@ -295,6 +303,8 @@ def get_location_history(
         missing_ranges = _missing_month_ranges(history, expected_months, fields)
         if not missing_ranges:
             return history.reindex(expected_months), False
+        if ACTIVE_CLIMATE_PROVIDER != OPEN_METEO_PROVIDER:
+            return history.reindex(expected_months), False
 
         meteo_types = [SHORT_TO_METEO_NAMES[field] for field in fields]
         for missing_start, missing_end in missing_ranges:
@@ -324,7 +334,7 @@ def _locations_with_data(con):
                 WHERE d.loc_id = l.loc_id AND d.provider = %s
             )
             """,
-            (ACTIVE_CLIMATE_PROVIDER,),
+            (OPEN_METEO_PROVIDER,),
         )
         rows = cur.fetchall()
     return {_coord_key(lat, lon) for lat, lon in rows}
@@ -390,7 +400,7 @@ def modify_database(data, type="donothing", con=None):
                 _nullable_float(getattr(row, "temp_max", None)),
                 _nullable_float(getattr(row, "temp_min", None)),
                 _nullable_float(getattr(row, "precip", None)),
-                ACTIVE_CLIMATE_PROVIDER,
+                OPEN_METEO_PROVIDER,
             )
             for row in data.itertuples()
         ]

@@ -8,7 +8,7 @@ from datetime import date
 from math import isfinite
 from statistics import fmean
 
-from climate.data.db import ACTIVE_CLIMATE_PROVIDER, CLIMATE_TYPES, weather_db
+from climate.data.db import CLIMATE_TYPES, OPEN_METEO_PROVIDER, weather_db
 from climate.data.months import last_complete_month, parse_month
 from climate.providers.noaa_core import (
     CANONICAL_LATS,
@@ -185,13 +185,13 @@ def render_report(core_rows, active_rows, months):
         "# Climate provider comparison",
         "",
         f"- NOAA provider: `{NOAA_CORE_PROVIDER}`",
-        f"- Active provider: `{ACTIVE_CLIMATE_PROVIDER}`",
+        f"- Open-Meteo provider: `{OPEN_METEO_PROVIDER}`",
         "- Months: " + ", ".join(month.strftime("%Y-%m") for month in months),
         "- Operation: PostgreSQL read only; no provider request and no active-provider change",
         "- Evidence status: "
         + ("COMPLETE" if evidence_complete(core_rows, active_rows, months) else "INCOMPLETE"),
         "",
-        "CORe is a model-and-observation reanalysis. The active Open-Meteo series is a two-model CMIP6 average. Differences are expected and do not by themselves show that either product is incorrect. This report supplies evidence for a separate human review; it never approves or activates a provider.",
+        "CORe is a model-and-observation reanalysis. The Open-Meteo series is a two-model CMIP6 average. Differences are expected and do not by themselves show that either product is incorrect. This report supplies evidence for a separate human review; it never approves or activates a provider.",
         "",
         "## Coverage",
         "",
@@ -278,7 +278,7 @@ def run(requested_months=None):
         con.execute("SET TRANSACTION READ ONLY")
         months = choose_months(requested_months, available_core_months(con))
         core_rows = load_rows(con, NOAA_CORE_PROVIDER, months)
-        active_rows = load_rows(con, ACTIVE_CLIMATE_PROVIDER, months)
+        active_rows = load_rows(con, OPEN_METEO_PROVIDER, months)
     print(render_report(core_rows, active_rows, months), end="")
     return 0
 

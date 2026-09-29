@@ -7,6 +7,12 @@ Climate is a Flask website for exploring modelled historical climate data. Publi
 
 ## Current features
 
+Provider isolation: Open-Meteo ingestion, prefetch checkpoints and legacy CMIP6
+migration use an explicit source identity independent of the public-read selector.
+The comparison command always compares NOAA against CMIP6. This safeguard does
+not activate NOAA; location-grid handling and public labels still need a separate
+activation change.
+
 Home provides a short guide to maps, location history and linked comparisons.
 References separates current data limitations from historical import checkpoints
 and retains the source/software credits. Selectable months do not guarantee local

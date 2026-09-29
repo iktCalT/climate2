@@ -1,5 +1,20 @@
 # Next requirements
 
+## Immutable acquisition-source identities
+
+**Status:** Implemented and reviewed 2026-09-29 following NOAA readiness review.
+
+Separate the public-read provider selector from immutable acquisition identities.
+Open-Meteo writes, legacy CMIP6 migration, and Open-Meteo prefetch checkpoint/read
+logic must always use `open_meteo_cmip6`, even if public reads later select NOAA.
+Keep public cache-only reads provider-selected. Disable source-specific fallback
+under another public provider, including the
+opt-in map and history helpers. The comparison tool must always
+compare NOAA against explicit CMIP6, never NOAA against itself. Verify normal
+and force-update writes, migrations, prefetch and comparison with fake database
+tests under a simulated NOAA public selector. No live data changes, fetching,
+activation, new dependencies, or arbitrary-coordinate policy change in this task.
+
 ## Home and References clarity refresh
 
 **Status:** Implemented and reviewed 2026-09-28; user-approved.

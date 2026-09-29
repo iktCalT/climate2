@@ -30,6 +30,11 @@ must not import the Flask app or CLI commands. Package initializers have no
 startup side effects. The Flask app remains module-level; an app-factory or
 Blueprint migration is a separate design task.
 
+`OPEN_METEO_PROVIDER` identifies acquisition and legacy-migration writes;
+`ACTIVE_CLIMATE_PROVIDER` selects public cache reads. Never use the public
+selector to label source writes. Open-Meteo fallback is disabled when public
+reads select another provider; comparisons always use explicit NOAA/CMIP6 IDs.
+
 Some inherited boundaries are intentionally preserved: Open-Meteo aggregation
 and cache access share a module, NOAA retrieval and upserts share a module,
 and administrator cleanup shares the import service's lock helper. Do not
