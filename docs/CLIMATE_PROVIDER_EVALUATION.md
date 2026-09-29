@@ -1,18 +1,28 @@
 # Climate provider evaluation
 
-**Current scope (2026-09-26):** acquisition is now administrator-managed for
+**Current status (2026-09-29):** public Maps and Locations select saved
+`noaa_core` rows. Activation is a code default and takes effect after an
+application restart; it does not migrate, fetch, rewrite, or relabel data.
+`open_meteo_cmip6` remains separately stored for comparison. Rollback changes
+the selector to `open_meteo_cmip6` and restarts the application. Both paths are
+cache-only, and no cross-provider fallback occurs. The first/last five-year
+administrator import scope and prior coverage snapshot below are historical
+evidence, not a claim of complete coverage or scientific accuracy.
+
+**Historical scope (2026-09-26):** acquisition was administrator-managed for
 1950–1954 and 2022–2026, excluding incomplete months. This supersedes the
 full-history and reverse 2016–2026 backfill priorities recorded below.
-Both five-year windows are already complete through August 2026 (60 and 56
+At that snapshot, both five-year windows were complete through August 2026 (60 and 56
 months respectively). Existing middle-year rows remain intact. The active
-provider has not changed; a switch still requires separate validation, not
+provider had not changed then; a switch still required separate validation, not
 completion of the full-history backfill. The inherited Open-Meteo ocean-cache
 anomaly documented on the References page remains unresolved.
 
 This document records the result of requirements 11 and 16 in
 [`NEXT_REQUIREMENTS.md`](NEXT_REQUIREMENTS.md). Research was updated on
 2026-09-24 using provider-owned documentation and direct inspection of NOAA's
-public file indexes. It does not change the active application provider.
+public file indexes. The decision and assessment below record that research;
+current provider selection is stated above.
 
 ## Decision
 
@@ -31,8 +41,8 @@ than make one HTTP request per map point. This is a better match for the
 project's deliberately coarse 2-degree by 4-degree grid than Open-Meteo's
 point-by-point request model.
 
-Open-Meteo remains the only active website provider while imported CORe values
-are compared and reviewed. No archive, credential, generated data file, or
+At the time of this research, Open-Meteo remained the only active website
+provider while imported CORe values were compared and reviewed. No archive, credential, generated data file, or
 database export belongs in Git. PostgreSQL remains the durable checkpoint and
 public data source for the application.
 
@@ -163,22 +173,19 @@ API requests. The largest representative precipitation differences were
 edges. These are signals of product and aggregation differences to communicate,
 not proof that either dataset is wrong.
 
-## Activation decision
+## Historical activation decision (2026-09-26)
 
-Keep `open_meteo_cmip6` as the active website provider. The field, unit,
-coordinate, pole, dateline, historical, leap-month, recent-year, and newest-
-month checks are sufficient to continue the resumable NOAA import, but not to
-change live reads. All 92 recorded edge-period months are now complete under
-`noaa_core`, but the middle decades are not; switching now would still leave
-most of the advertised timeline unavailable. Mixing providers by month would
-also make same-scale date comparisons scientifically confusing.
+At that point, the recommendation was to keep `open_meteo_cmip6` active. The
+field, unit, coordinate, pole, dateline, historical, leap-month, recent-year,
+and newest-month checks were considered sufficient to continue the resumable
+NOAA import, but not to change live reads. The note recorded that 92 edge-period
+months were complete under `noaa_core`, while the middle decades were not.
+This recommendation was superseded by the current selector status at the top
+of this document.
 
-Use the explicit bounded full-history backfill under `noaa_core` rather than a
-slow synchronous archive download during a visitor request. Revisit activation
-only after January 1950 through the latest complete month is present and a
-separate review defines foreground behavior without silently combining
-reanalysis with the CMIP6 series. Any future switch remains an explicit,
-separately recorded change.
+The historical plan was to use explicit bounded full-history backfill under
+`noaa_core` rather than synchronous archive downloads during visitor requests.
+The current public-read selector is now recorded at the top of this document.
 
 ## Alternatives not selected
 
@@ -212,7 +219,10 @@ degrees under the UK Open Government Licence. It covers land areas except
 Antarctica and is released periodically, so it cannot supply the ocean cells
 or near-real-time global coverage used by this map.
 
-## Staged integration plan
+## Historical staged integration plan
+
+This plan records the rollout as originally proposed; its activation step is
+superseded by the current status at the top of this document.
 
 1. Implement a small optional `noaa_core` importer; do not change foreground
    cache-miss requests or active site reads.

@@ -2,6 +2,20 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-003 | activate saved NOAA public reads | done
+
+- Result: no actionable finding in the scoped activation diff. The startup
+  selector propagates to Flask, public history/map queries and saved-month
+  discovery; Open-Meteo writes and migration remain fixed to CMIP6; map/history
+  fallbacks remain disabled for NOAA public reads. Conditional admin copy and
+  current README/PostgreSQL/provider status match the selected provider, and
+  dated evaluation conclusions are labeled historical. Test changes preserve
+  CMIP6-only map-fetch coverage and add fake-SQL selector and no-fallback checks.
+- Check: read-only diff and caller/test inspection; `git diff --check HEAD`
+  passed. QA reports 155 Python tests (8 PostgreSQL skips) and three Node map
+  suites passed; not rerun. No live DB/provider/network or browser check.
+- Next: Lead integrates; browser verification remains unavailable this round.
+
 ## 2026-09-29 | PROVIDER-002 | NOAA location/presentation readiness | done
 
 - Result: one P3 wording finding. `location_sampling.py:21` says “closest canonical grid point,” and Home/Locations call the coordinate-wise result “nearest”; independent latitude/longitude rounding need not minimize great-circle distance (for example, the 89°N, 2°E tie chooses 88°N, 0°E while the pole is closer). Describe coordinate-wise rounding in these labels; keep the agreed sampling rule. No other actionable issue found in fixed sampling, cache-only provider reads, chart identity/titles, two-mode copy, or citations. Public selector remains CMIP6.

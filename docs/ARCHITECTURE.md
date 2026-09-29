@@ -34,6 +34,9 @@ Blueprint migration is a separate design task.
 `ACTIVE_CLIMATE_PROVIDER` selects public cache reads. Never use the public
 selector to label source writes. Open-Meteo fallback is disabled when public
 reads select another provider; comparisons always use explicit NOAA/CMIP6 IDs.
+The public selector is a startup code setting, not a runtime configuration API;
+restart all application workers after changing it. NOAA Location requests use
+`data/location_sampling.py` to round coordinates to one fixed saved grid point.
 
 Some inherited boundaries are intentionally preserved: Open-Meteo aggregation
 and cache access share a module, NOAA retrieval and upserts share a module,

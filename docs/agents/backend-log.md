@@ -2,6 +2,12 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-003 | activate saved NOAA public reads | done
+
+- Result: selected `noaa_core` for startup public reads; source writers remain pinned to CMIP6. Updated provider-aware admin copy, current README claims, and current PostgreSQL/evaluation status with restart and selector rollback. Historical evaluation decision is explicitly superseded; existing NOAA citations remain.
+- Check: AST parse, selector/source identity assertions, Jinja compilation for admin and References templates, and `git diff --check` passed. No database, provider, browser, or test-suite access; QA owns regressions, and the browser inventory was empty.
+- Next: hand off to QA; no production blockers found.
+
 ## 2026-09-29 | PROVIDER-002 review follow-up | grid-rounding wording | done
 
 - Result: clarified that NOAA latitude and circular longitude round separately; the chosen fixed grid coordinate need not minimize great-circle distance. Sampling behavior is unchanged.

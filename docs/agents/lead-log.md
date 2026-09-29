@@ -2,6 +2,18 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | PROVIDER-003 | NOAA public selector | done
+
+- Result: startup public reads select `noaa_core`; CMIP6 writes stay isolated.
+  Admin copy follows either provider; README/status docs explain restart and
+  selector-only rollback. User requested economical models: all three sequential
+  specialists used Luna/medium; Reviewer found no actionable issue.
+- Check: 155 offline Python tests (8 PostgreSQL skips), three Node suites passed.
+  Default propagation and query parameters tested with fake connections.
+  Browser unavailable (no connected browser); no live DB/account/provider work.
+- Next: publish reviewed change, then restart application workers to adopt it.
+  No server deployment was performed; prior coverage audits remain dated evidence.
+
 ## 2026-09-29 | PROVIDER-002 | NOAA location/presentation readiness | done
 
 - Result: fixed coordinate-wise NOAA grid sampling, disclosed distance and

@@ -11,6 +11,7 @@ from unittest.mock import patch
 
 import pandas as pd
 
+import climate.data.cache_availability as availability
 import climate.cli.compare_climate_providers as comparison
 import climate.cli.migrate_weather_sqlite as migration
 import climate.cli.prefetch_climate as prefetch
@@ -68,6 +69,29 @@ def connection_context(con):
 
 
 class ProviderIdentityTests(unittest.TestCase):
+    def test_default_provider_reaches_history_map_and_saved_month_sql(self):
+        from climate.data.db import ACTIVE_CLIMATE_PROVIDER
+
+        self.assertEqual(ACTIVE_CLIMATE_PROVIDER, NOAA_CORE_PROVIDER)
+        history_con = RecordingConnection()
+        meteo.load_location_history(
+            (1, 2), "2020-01-01", "2020-01-31", ("temp_mean",), con=history_con
+        )
+        self.assertEqual(history_con.recording.calls[0][1],
+                         (1.0, 2.0, "2020-01-01", "2020-01-31", NOAA_CORE_PROVIDER))
+
+        map_con = RecordingConnection()
+        maps._query_weather_rows(map_con, "2020-01-01", "temp_mean", [0, 2], [0, 4])
+        self.assertEqual(map_con.recording.calls[0][1][1], NOAA_CORE_PROVIDER)
+
+        months_con = RecordingConnection()
+        with patch.object(availability, "weather_db", return_value=connection_context(months_con)):
+            self.assertEqual(availability.saved_map_months("2020-01", "2020-02"), [])
+        saved_dates_query, saved_dates_params = months_con.recording.calls[-1]
+        self.assertIn("WHERE provider = %s AND dates BETWEEN %s AND %s", saved_dates_query)
+        self.assertEqual(saved_dates_params,
+                         (NOAA_CORE_PROVIDER, "2020-01-01", "2020-02-01"))
+
     def test_normal_and_force_write_rows_keep_cmip6_identity(self):
         frame = pd.DataFrame(
             {"loc_id": [7], "temp_mean": [12.5]},

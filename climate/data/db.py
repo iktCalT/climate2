@@ -15,7 +15,7 @@ except ImportError:  # Lets non-database commands explain the missing dependency
 
 CLIMATE_TYPES = ("temp_mean", "temp_max", "temp_min", "precip")
 DEFAULT_DATABASE_URL = "postgresql://localhost/climate"
-ACTIVE_CLIMATE_PROVIDER = "open_meteo_cmip6"
+ACTIVE_CLIMATE_PROVIDER = "noaa_core"
 # Acquisition identity is fixed even if public cache reads select another source.
 OPEN_METEO_PROVIDER = "open_meteo_cmip6"
 

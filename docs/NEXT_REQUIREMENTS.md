@@ -1,5 +1,25 @@
 # Next requirements
 
+## Activate saved NOAA public reads
+
+**Status:** Implemented and reviewed 2026-09-29, continuing the selected-provider rollout after
+the source-isolation and location-sampling prerequisites (PRs #58–59).
+
+Select `noaa_core` for public Maps, Locations and saved-month discovery on
+application startup. Keep acquisition identities fixed and public browsing
+cache-only. Preserve stored CMIP6 rows, comparison tooling, missing-data states,
+manual shared scales, US map view and existing date ranges. Update current
+README/provider/admin descriptions and preserve citations and historical notes.
+Activation is a code default requiring an application restart, not a database
+migration or a running-server deployment. No fetching, cleanup, schema change,
+new dependency or live account access. Rollback is the public selector plus a
+restart; it must never relabel or rewrite source data.
+
+Validate default provider propagation, provider-scoped queries, no cross-source
+fallback, sampled Locations, page/footer/admin copy and existing offline suites.
+Prior dated coverage/physical-range checks are evidence, not proof of scientific
+accuracy or a promise of complete history. Browser smoke-check if available.
+
 ## NOAA location-grid and presentation readiness
 
 **Status:** Implemented 2026-09-29; follows source-isolation prerequisite.

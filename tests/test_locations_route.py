@@ -9,7 +9,7 @@ import pandas as pd
 os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from climate.web.app import app, default_map_month
-from climate.data.db import ACTIVE_CLIMATE_PROVIDER
+from climate.data.db import OPEN_METEO_PROVIDER
 from climate.services.map_data import (
     MAX_FETCH_PER_VIEWPORT,
     MAX_ZOOM,
@@ -357,7 +357,9 @@ class LocationsRouteTests(unittest.TestCase):
             cached_cell["longitude"],
             17.5,
         )
-        with patch("climate.services.map_data.weather_db"):
+        with patch("climate.services.map_data.ACTIVE_CLIMATE_PROVIDER", OPEN_METEO_PROVIDER), patch(
+            "climate.services.map_data.weather_db"
+        ):
             with patch(
                 "climate.services.map_data._query_weather_rows", return_value=[cached_row]
             ) as query:
@@ -379,7 +381,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(payload["metadata"]["fetched"], 0)
         self.assertEqual(payload["metadata"]["missing"], len(cells) - 2)
         self.assertEqual(
-            payload["metadata"]["provider"], ACTIVE_CLIMATE_PROVIDER
+            payload["metadata"]["provider"], OPEN_METEO_PROVIDER
         )
         self.assertAlmostEqual(query.call_args.args[5], lat_step * 1.5)
         self.assertAlmostEqual(query.call_args.args[6], lon_step * 1.5)
@@ -393,7 +395,9 @@ class LocationsRouteTests(unittest.TestCase):
 
     def test_one_map_fetch_caches_every_metric_for_a_location(self):
         cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
-        with patch("climate.services.map_data.get_data", return_value=True) as fetch:
+        with patch("climate.services.map_data.ACTIVE_CLIMATE_PROVIDER", OPEN_METEO_PROVIDER), patch(
+            "climate.services.map_data.get_data", return_value=True
+        ) as fetch:
             fetched = _fetch_missing_cells(object(), cells[:1], "2026-08")
 
         self.assertEqual(fetched, 1)
@@ -409,7 +413,9 @@ class LocationsRouteTests(unittest.TestCase):
 
     def test_map_fetch_batch_is_spread_across_the_missing_viewport(self):
         cells, _, _, _, _ = _viewport_cells(-2, 100, 2, 104, 5)
-        with patch("climate.services.map_data.get_data", return_value=True) as fetch:
+        with patch("climate.services.map_data.ACTIVE_CLIMATE_PROVIDER", OPEN_METEO_PROVIDER), patch(
+            "climate.services.map_data.get_data", return_value=True
+        ) as fetch:
             fetched = _fetch_missing_cells(object(), cells, "2026-08")
 
         locations = [call.kwargs["location"] for call in fetch.call_args_list]

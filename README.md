@@ -3,11 +3,11 @@
 > [!IMPORTANT]
 > This repository is an AI-assisted refactor produced with [OpenAI Codex](https://openai.com/codex/) (GPT-5). It is derived from [iktCalT/climate](https://github.com/iktCalT/climate), which its human author implemented as a CS50 final project with substantial guidance from [ChatGPT](https://chatgpt.com/). Keep this work in the `climate2` fork; do not push these commits to the original repository.
 
-Climate is a Flask website for exploring modelled historical climate data. Public browsing reads saved values from a local PostgreSQL cache without contacting climate providers. Administrators manage acquisition separately; the active dataset is still [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) CMIP6 output.
+Climate is a Flask website for exploring historical climate data. Public browsing reads saved values from a local PostgreSQL cache without contacting climate providers. The active public dataset is NOAA CORe reanalysis; Open-Meteo CMIP6 rows remain stored separately for comparison.
 
 ## Current features
 
-NOAA readiness (not activation): Location history can sample the imported 2° ×
+NOAA Location history samples the imported 2° ×
 4° NOAA grid by rounding to the closest latitude and circular longitude, with
 ties toward the smaller coordinate. Dateline aliases use −180°; sampled poles
 use 0° longitude. Requested/sample coordinates and approximate distance are
@@ -16,21 +16,21 @@ CMIP6 keeps exact-coordinate lookup. Both retain the January 1951 history start.
 
 Provider isolation: Open-Meteo ingestion, prefetch checkpoints and legacy CMIP6
 migration use an explicit source identity independent of the public-read selector.
-The comparison command always compares NOAA against CMIP6. This safeguard does
-not activate NOAA; enabling public NOAA reads remains a separate explicit change.
+The comparison command always compares NOAA against CMIP6. Changing the public
+selector never relabels or rewrites either source.
 
 Home provides a short guide to maps, location history and linked comparisons.
 References separates current data limitations from historical import checkpoints
 and retains the source/software credits. Selectable months do not guarantee local
 coverage: temperatures are °C, and precipitation is mean daily mm/day, not a
-monthly total. NOAA import availability does not mean NOAA is active on the site.
+monthly total.
 
 - **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Opening Maps shows the newest saved active-provider mean-temperature month, no later than the stable-date limit (previous month during the first six UTC hours of a new month, current month otherwise), and starts over the contiguous United States. Explicitly selected dates are never replaced. If no suitable saved month exists, the date selector opens instead. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. The global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells. As the viewport shrinks, cell size decreases more slowly so fewer cells are displayed, stopping at 0.5-degree latitude by 1-degree longitude cells and city-scale zoom level 10. Tiles reuse direct or sufficiently nearby PostgreSQL observations without requiring the sample to match the tile or zoom center. Public viewport requests never fetch missing climate cells. Missing coverage and display-only spatial estimates remain visibly distinguished from cached values in every comparison panel; nothing is queued for download.
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. Only saved active-provider monthly values are read; gaps stay missing, with coverage counts and a clear empty state. Seasonal means use available months and may represent incomplete seasons. Rendered chart URLs are keyed to current data content so imports and cleanup are reflected on the next page request.
 - **Accounts:** visitors and normal registered users can browse climate data. Administrators can start/resume bounded NOAA edge-window batches and view live coverage through `/admin/data`. The older Open-Meteo point-grid tool remains at `/update` for advanced use.
-- **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current reads select the active `open_meteo_cmip6` series so future NOAA CORe reanalysis cannot be silently mixed into existing comparisons. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
+- **Local-first storage:** weather data uses PostgreSQL 18. Every climate row is scoped to an explicit provider/product identifier, and all current public reads select `noaa_core`. Open-Meteo acquisition and migration remain pinned to `open_meteo_cmip6`; switching public reads does not relabel or rewrite stored rows. Account and profile data remains in a separate, ignored SQLite file so new personal information is not committed.
 - **Resumable NOAA bulk import:** `import_noaa_core.py` anonymously retrieves only the indexed NOAA CORe GRIB2 records needed for a complete month, derives monthly extremes from daily records, nearest-samples the native Gaussian grid to the canonical 2°×4° points, validates metadata and physical bounds, and commits the month atomically under `noaa_core`. If a daily file omits both extrema, the importer may recover them only from all eight exact 0–3 hour extrema pairs in NOAA's official 3-hourly archive; any incomplete fallback rejects the month. PostgreSQL is the checkpoint, the default batch is one month, and full 1950–present selection is explicit rather than automatic.
-- **Read-only provider review:** `compare_climate_providers.py` compares up to 12 imported months against the active Open-Meteo rows already in PostgreSQL. It reports canonical-grid coverage, per-metric deltas, and stable land, ocean, polar, and dateline samples as Markdown without contacting either provider, writing the database, or switching the website.
+- **Read-only provider review:** `compare_climate_providers.py` compares up to 12 imported months across NOAA and Open-Meteo rows already in PostgreSQL. It reports canonical-grid coverage, per-metric deltas, and stable land, ocean, polar, and dateline samples as Markdown without contacting either provider, writing the database, or changing the website selector.
 
 On **Maps → Change selection**, **Find a saved month** lists saved dates and
 finite-value point counts for the chosen variable. Use a date as the first
@@ -43,13 +43,19 @@ if it fails, the selector explains the problem and keeps manual entry usable.
 The listing refreshes on a new page request, so imports and cleanup affect the
 next visit without a persistent availability cache. No packages were added.
 
-The displayed values are climate-model output, not direct station observations. See the in-app References page for data and software attribution.
+The displayed values are gridded climate estimates, not direct station
+observations. See the in-app References page for data and software attribution.
 
-The shared footer follows the active climate provider. It currently credits Open-Meteo and CMIP6; the existing NOAA CORe citation replaces that credit automatically only when a separate activation change switches live reads to `noaa_core`.
+The shared footer follows the active climate provider and currently credits NOAA CORe.
+
+The active public provider is selected by `ACTIVE_CLIMATE_PROVIDER` at startup.
+Changing it requires an application restart and only changes which saved rows
+public pages read; it does not rewrite stored data. Rollback sets the selector
+to `open_meteo_cmip6` and restarts the application.
 
 ## Provider status
 
-- **Current data scope:** administrator-started NOAA fetching is limited to 1950–1954 and 2022–2026, through the latest complete month. Manual full-history and 2016–2026 backfill work is no longer a priority; saved rows remain intact unless an administrator explicitly uses the optional cleanup tool. Open-Meteo CMIP6 is still active pending a separate validated provider switch. Some inherited ocean temperatures disagree with fresh source checks and have not been repaired. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
+- **Current data scope:** administrator-started NOAA fetching is limited to 1950–1954 and 2022–2026, through the latest complete month. Manual full-history and 2016–2026 backfill work is no longer a priority; saved rows remain intact unless an administrator explicitly uses the optional cleanup tool. NOAA CORe is the active public provider; Open-Meteo CMIP6 remains stored separately. Some inherited Open-Meteo ocean temperatures disagree with fresh source checks and have not been repaired. See the [provider evaluation](docs/CLIMATE_PROVIDER_EVALUATION.md).
 
 On 2026-09-26, the administrator coverage check found both windows complete:
 60/60 months for 1950–1954 and 56/56 for 2022–August 2026. No additional
@@ -63,7 +69,7 @@ Browser -> Flask -> provider-scoped PostgreSQL weather cache
 
 Administrator tools -> Open-Meteo or NOAA importer -> PostgreSQL
 
-NOAA CORe -> indexed GRIB2 importer -> PostgreSQL (`noaa_core`, inactive)
+NOAA CORe -> indexed GRIB2 importer -> PostgreSQL (`noaa_core`)
 
 Accounts -> ignored local SQLite database
 ```
@@ -131,7 +137,7 @@ If you still have the legacy weather database, its non-personal climate rows can
 .venv/bin/python -m climate.cli.migrate_weather_sqlite static/weather.db
 ```
 
-The migration is optional and safe to rerun. Public browsing never fills PostgreSQL automatically: administrators use the existing Open-Meteo point-grid tool or NOAA importer for deliberate acquisition. NOAA rows remain separate and inactive. PostgreSQL climate rows do not expire automatically; administrators can deliberately update or clean them. Identical Open-Meteo responses used by acquisition tools are cached locally for seven days. Cache-only browsing removes climate-provider network waits, but database, chart rendering, and basemap/asset loading still take time. Sparse or empty views are expected where active-provider data has not been imported.
+The migration is optional and safe to rerun. Public browsing never fills PostgreSQL automatically: administrators use the existing Open-Meteo point-grid tool or NOAA importer for deliberate acquisition. Public reads select only `noaa_core`; Open-Meteo rows remain separate. PostgreSQL climate rows do not expire automatically; administrators can deliberately update or clean them. Identical Open-Meteo responses used by acquisition tools are cached locally for seven days. Cache-only browsing removes climate-provider network waits, but database, chart rendering, and basemap/asset loading still take time. Sparse or empty views are expected where active-provider data has not been imported.
 
 To resumably fill the canonical global grid for 1950–1953 and 2023–2026,
 run a bounded batch repeatedly:
@@ -173,9 +179,9 @@ is retried in full, while a completed month is skipped. If both extrema are
 absent from a daily aggregate index, the importer uses all eight exact 0–3
 hour extrema pairs from that day's official 3-hourly files; it rejects partial
 daily or 3-hourly evidence rather than interpolating or skipping a day. The
-local checkpoint completed all 92 edge-period months on 2026-09-25. These rows
-do not change website output because all current reads still select
-`open_meteo_cmip6`. The `1950-present` period is opt-in and dynamically stops
+local checkpoint completed all 92 edge-period months on 2026-09-25. The active
+public selector reads saved `noaa_core` rows; Open-Meteo acquisition continues
+to write only `open_meteo_cmip6`. The `1950-present` period is opt-in and dynamically stops
 at the latest complete month; use `--through YYYY-MM` to set an earlier bound.
 Default selection remains the two recorded edge periods, so a normal rerun
 does not unexpectedly begin the much larger full-history job.
@@ -200,7 +206,7 @@ errors contain no raw connection details. No credentials are entered in the UI.
 On **Admin → Data**, choose **Preview cleanup (no deletion)** to see retained
 and removable row counts for each provider. Cleanup keeps every climate row in
 **1950–1954 and 2022–2026**, and removes only rows outside those windows, from
-all providers including active Open-Meteo. Back up PostgreSQL first if you need
+all providers, including stored Open-Meteo CMIP6 rows. Back up PostgreSQL first if you need
 exact recovery: there is no in-app undo and re-fetching can return revised data.
 After reviewing the counts, check the explicit confirmation and click
 **Delete up to 50,000 rows**. Each click commits one bounded batch. Preview and
@@ -250,10 +256,10 @@ At most 12 distinct complete months may be requested. With no `--month`, the
 command selects the latest 12 available CORe months. It opens a read-only
 transaction, ignores non-canonical user-entered coordinates, and prints a
 Markdown report to standard output. `COMPLETE` means both providers contain
-all required comparison values for the selected canonical grid; it is not an
-activation decision. CORe and the active two-model CMIP6 average are different
-products, so a human review across the recorded historical, leap-year, recent,
-polar, ocean, and dateline cases is still required.
+all required comparison values for the selected canonical grid; it does not
+establish accuracy or complete coverage beyond those months. CORe and the
+two-model CMIP6 average remain different products; their values and provenance
+are never blended.
 
 ## Administrator setup
 
@@ -317,8 +323,8 @@ available.
 
 Current data and evaluated providers:
 
-- [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) supplies the active downscaled climate-model data; its underlying models follow the [CMIP6 terms](https://pcmdi.llnl.gov/CMIP6/TermsOfUse).
-- [NOAA Conventional Observation Reanalysis (CORe)](https://www.cpc.ncep.noaa.gov/products/CORe/index.html), its [public NODD archive](https://www.cpc.ncep.noaa.gov/products/CORe/archive.html), and [field/retrieval documentation](https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt) define the selected anonymous bulk source. The retrieval guide documents the monthly, daily, and 3-hourly file layout used by the exact daily-extrema fallback. NOAA documents the analyses and downloader as public domain; the [NOAA NCEI open-data policy](https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf) explains NOAA's public-domain and CC0 policy. CORe is imported but not yet the active website provider.
+- [Open-Meteo Climate API](https://open-meteo.com/en/docs/climate-api) supplied the separately stored downscaled climate-model data; its underlying models follow the [CMIP6 terms](https://pcmdi.llnl.gov/CMIP6/TermsOfUse).
+- [NOAA Conventional Observation Reanalysis (CORe)](https://www.cpc.ncep.noaa.gov/products/CORe/index.html), its [public NODD archive](https://www.cpc.ncep.noaa.gov/products/CORe/archive.html), and [field/retrieval documentation](https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt) define the active public data source and anonymous bulk importer. The retrieval guide documents the monthly, daily, and 3-hourly file layout used by the exact daily-extrema fallback. NOAA documents the analyses and downloader as public domain; the [NOAA NCEI open-data policy](https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf) explains NOAA's public-domain and CC0 policy.
 - NOAA's [CORe regridding guidance](https://www.cpc.ncep.noaa.gov/products/CORe/regridding.html) documents its 512-by-256 Gaussian grid, the [Physical Sciences Laboratory overview](https://psl.noaa.gov/data/coreinfo.html) describes its reanalysis role, and the [Weather Program Office announcement](https://wpo.noaa.gov/ncep-introduces-operational-reanalysis-for-climate-monitoring-core/) records the operational transition. The [NCEP/NCAR Reanalysis 1 update notice](https://psl.noaa.gov/news/2026/r1datanotice.html) explains why that retired predecessor was not selected.
 - [Copernicus CDS ERA5 monthly data](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview) remains an evaluated alternative under CC BY, but was not selected because programmatic retrieval requires an account, dataset-licence acceptance, and a private token.
 - [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/) and [CRU gridded datasets](https://crudata.uea.ac.uk/cru/data/hrg/) were evaluated as documented alternatives but are not active providers.
