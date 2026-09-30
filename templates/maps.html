@@ -216,6 +216,7 @@
                 requestController: undefined,
                 viewportGeneration: 0,
                 viewportDirty: false,
+                styleReady: false,
                 interpolation: null,
                 rasterBounds: null,
                 overlayLayers: [],
@@ -235,7 +236,7 @@
             }
 
             function redrawNoaaRaster(panel) {
-                if (!useInterpolatedNoaa || !panel.interpolation || !panel.rasterBounds) return;
+                if (!useInterpolatedNoaa || !panel.styleReady || !panel.interpolation || !panel.rasterBounds) return;
                 const interpolation = panel.interpolation;
                 const rasterBounds = panel.rasterBounds;
                 clearNoaaRaster(panel, false);
@@ -301,9 +302,10 @@
                 }
                 renderScale(scale);
                 panels.forEach((panel) => {
+                    if (!panel.styleReady) return;
                     if (useInterpolatedNoaa) {
-                        if (panel.map.isStyleLoaded()) redrawNoaaRaster(panel);
-                    } else if (panel.map.isStyleLoaded() && panel.map.getLayer("climate-cells")) {
+                        redrawNoaaRaster(panel);
+                    } else if (panel.map.getLayer("climate-cells")) {
                         panel.map.setPaintProperty(
                             "climate-cells",
                             "fill-color",
@@ -519,6 +521,7 @@
                             "fill-antialias": false,
                         },
                     });
+                    panel.styleReady = true;
                     startViewportLoad(panel);
                 });
 
@@ -532,6 +535,9 @@
                     panel.moveTimer = setTimeout(() => startViewportLoad(panel), 350);
                 });
                 panel.map.on("remove", () => {
+                    panel.styleReady = false;
+                    panel.interpolation = null;
+                    panel.rasterBounds = null;
                     clearTimeout(panel.moveTimer);
                     panel.requestController?.abort();
                     panel.viewportGeneration += 1;

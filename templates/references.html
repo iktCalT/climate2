@@ -41,6 +41,7 @@
         </div>
         <div class="reference-guidance" aria-labelledby="reference-compare-heading">
             <h3 id="reference-compare-heading">Reading a comparison</h3>
+            <p>Manual scale changes apply to initialized panels even while basemap sources are loading, without requesting climate data. Panels still initializing use the latest scale on their first render.</p>
             <p>On <a href="/maps?select=1">Maps</a>, select one variable and two to four months. Click a location in any panel to see each month's own value and provenance at the same coordinates. NOAA values are interpolated estimates from source-grid values; CMIP6 readouts retain their containing-cell value. The first month is the labelled baseline; later panels show signed differences in °C or mm/day when both values are available. The displayed difference uses at most two decimal places, but is calculated from unrounded values. If either value is an estimate, the difference is labelled estimate-based. These differences are not exact-location observations or a climate trend. Loading, failed and missing data explain why a difference is unavailable. Valid selected coordinates link to saved Location history, which uses its own sampling rule and may differ from a map display estimate. Single-map readouts have no baseline or difference. All panels share a manual color scale. Choose a preset or custom range to keep colors comparable; narrower color bands do not improve data accuracy.</p>
         </div>
         {% if climate_provider != "noaa_core" %}
@@ -169,6 +170,8 @@
                 ("MapLibre Popup API", "Linked, text-safe location readouts across comparison months", "https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/"),
                 ("MapLibre Canvas Source API", "Static CanvasSource for the interpolated NOAA map raster", "https://maplibre.org/maplibre-gl-js/docs/API/classes/CanvasSource/"),
                 ("MapLibre layer style specification", "Documents raster opacity, neutral fills below the raster, and lines and symbols above it", "https://maplibre.org/maplibre-style-spec/layers/"),
+                ("MapLibre v6.6.0 map implementation", "BSD-3-Clause source: isStyleLoaded delegates to the full style-loading check", "https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/ui/map.ts"),
+                ("MapLibre v6.6.0 style implementation", "BSD-3-Clause source: full loading includes source completion, distinct from style mutation readiness", "https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/style/style.ts"),
                 ("MapLibre demo tiles", "Current demonstration basemap style and tiles", "https://github.com/maplibre/demotiles"),
                 ("ColorBrewer 2.0", "Cartographic palette guidance adapted for map-scale presets", "https://colorbrewer2.org/"),
                 ("NumPy", "Grid and numerical operations", "https://numpy.org/doc/stable/"),
