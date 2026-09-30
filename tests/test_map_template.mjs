@@ -6,7 +6,7 @@ const moduleScript = template.match(/<script type="module">([\s\S]*?)<\/script>/
 assert.ok(moduleScript, "map page has its module script");
 
 assert.match(template, /\/static\/map_selection\.js/);
-assert.match(moduleScript, /const selection = createMapSelection\(\{panels, Popup, document, unit: activeScale\.unit\}\)/);
+assert.match(moduleScript, /const selection = createMapSelection\(\{\s*panels, Popup, document, unit: activeScale\.unit,\s*sample: useInterpolatedNoaa \? sampleGrid : undefined,/);
 assert.match(moduleScript, /panel\.map\.on\("click", event => selection\.select\(event\.lngLat\)\)/);
 assert.doesNotMatch(moduleScript.match(/panel\.map\.on\("click"[\s\S]*?\n\s*\}\);/)?.[0] || "", /fetch\(/,
     "click handling only updates the selected location; it does not request data");
@@ -42,6 +42,16 @@ const functionsSource = moduleScript.slice(
 );
 const deferred = [];
 const events = [];
+const sources = new Map([["climate", {setData: () => events.push("source-updated")}]]);
+const layers = new Map([["border", {}], ["label", {}]]);
+let activeScale = {stops: [[0, "#000000"], [12, "#ffffff"]]};
+const redrawSource = moduleScript.slice(moduleScript.indexOf("function clearNoaaRaster"), moduleScript.indexOf("function formatScaleValue"));
+const makeRasterFunctions = new Function("useInterpolatedNoaa", "createInterpolatedRaster", "getScale",
+    `${redrawSource.replace("scale: activeScale", "scale: getScale()")}; return {clearNoaaRaster, redrawNoaaRaster};`);
+const {clearNoaaRaster, redrawNoaaRaster} = makeRasterFunctions(true, ({scale}) => {
+    events.push("raster-created");
+    return {canvas: {scale}, coordinates: [[-1, 1], [1, 1], [1, -1], [-1, -1]]};
+}, () => activeScale);
 const fakeSelection = {
     beginLoading: () => events.push("loading"),
     acceptData: () => events.push("accepted"),
@@ -49,18 +59,27 @@ const fakeSelection = {
 };
 const makeFunctions = new Function(
     "selection", "climateType", "fetch", "AbortController", "URLSearchParams", "formatStep",
+    "useInterpolatedNoaa", "clearNoaaRaster", "redrawNoaaRaster",
     `${functionsSource}\nreturn {startViewportLoad, invalidateViewport};`,
 );
 const functions = makeFunctions(fakeSelection, "temp_mean", () => new Promise((resolve, reject) => {
     deferred.push({resolve, reject});
-}), AbortController, URLSearchParams, value => String(value));
+}), AbortController, URLSearchParams, value => String(value), true, clearNoaaRaster, redrawNoaaRaster);
 const panel = {
     month: "1990-01", status: {textContent: ""}, moveTimer: undefined,
     viewportGeneration: 0, viewportDirty: false,
+    overlayLayers: ["border", "label"],
     map: {
         getBounds: () => ({getSouth: () => -1, getWest: () => -1, getNorth: () => 1, getEast: () => 1}),
         getZoom: () => 3,
-        getSource: () => ({setData: () => events.push("source-updated")}),
+        getCanvas: () => ({clientWidth: 1200, clientHeight: 800}),
+        getSource: id => sources.get(id),
+        getLayer: id => layers.get(id),
+        addSource: (id, source) => { assert.equal(sources.has(id), false); sources.set(id, source); events.push("source-added"); },
+        removeSource: id => { sources.delete(id); events.push("source-removed"); },
+        addLayer: layer => { layers.set(layer.id, layer); events.push("layer-added"); },
+        removeLayer: id => { layers.delete(id); events.push("layer-removed"); },
+        moveLayer: id => events.push(`above:${id}`),
     },
 };
 const flushAsync = async () => {
@@ -85,5 +104,45 @@ functions.invalidateViewport(panel);
 deferred[1].reject(new Error("stale fake failure"));
 await flushAsync();
 assert.equal(events.includes("failed"), false, "an obsolete failure cannot replace loading state");
+
+const payload = {features: [], interpolation: {latitudes: [0, 2], longitudes: [0, 4], values: [[0, 4], [8, 12]]},
+    metadata: {provider: "noaa_core"}};
+functions.startViewportLoad(panel);
+deferred[2].resolve({ok: true, json: async () => payload});
+await flushAsync();
+assert.equal(events.filter(event => event === "accepted").length, 1);
+assert.equal(panel.interpolation, payload.interpolation);
+assert.match(panel.status.textContent, /Smooth display — interpolated estimate.*2° × 4° source spacing/);
+const firstSource = sources.get("climate-raster");
+assert.equal(firstSource.animate, false);
+assert.equal(firstSource.type, "canvas");
+assert.equal(layers.get("climate-raster").paint["raster-opacity"], 1);
+assert.deepEqual(events.slice(-3), ["layer-added", "above:border", "above:label"]);
+activeScale = {stops: [[0, "#ff0000"], [12, "#0000ff"]]};
+redrawNoaaRaster(panel);
+assert.notEqual(sources.get("climate-raster"), firstSource, "static canvas source is freshly recreated");
+assert.equal(sources.get("climate-raster").canvas.scale, activeScale);
+assert.equal(deferred.length, 3, "manual scale redraw never fetches");
+const scaleFunction = moduleScript.slice(moduleScript.indexOf("function setActiveScale"), moduleScript.indexOf("Object.values(SCALE_PRESETS"));
+assert.match(scaleFunction, /redrawNoaaRaster\(panel\)/);
+assert.doesNotMatch(scaleFunction, /fetch\(|loadData\(|startViewportLoad\(/);
+functions.invalidateViewport(panel);
+assert.equal(sources.has("climate-raster"), false);
+assert.equal(panel.interpolation, null);
+assert.equal(panel.rasterBounds, null);
+functions.startViewportLoad(panel);
+deferred[3].reject(new Error("current fake failure"));
+await flushAsync();
+assert.equal(events.filter(event => event === "failed").length, 1);
+assert.equal(sources.has("climate-raster"), false);
+functions.startViewportLoad(panel);
+deferred[4].resolve({ok: true, json: async () => ({...payload, interpolation: {...payload.interpolation, values: [[null, null], [null, null]]}})});
+await flushAsync();
+assert.equal(sources.has("climate-raster"), false);
+assert.equal(panel.interpolation, null);
+assert.match(panel.status.textContent, /No saved source nodes/);
+assert.match(moduleScript, /"fill-opacity": useInterpolatedNoaa \? 0 : \[\s*"case",/);
+assert.match(moduleScript, /setPaintProperty\(layer\.id, "fill-color", "#e8e8e8"\)/);
+assert.match(moduleScript, /setPaintProperty\(layer\.id, "fill-opacity", 1\)/);
 
 console.log("Map template wiring preserves debounced loading, stale guards, cleanup, and fixed scale.");

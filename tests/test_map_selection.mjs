@@ -5,8 +5,10 @@ const source = await readFile(new URL("../static/map_selection.js", import.meta.
 const {createMapSelection} = await import(
     `data:text/javascript;base64,${Buffer.from(source).toString("base64")}`
 );
+const interpolationSource = await readFile(new URL("../static/map_interpolation.js", import.meta.url), "utf8");
+const {sampleGrid} = await import(`data:text/javascript;base64,${Buffer.from(interpolationSource).toString("base64")}`);
 
-function harness(months, unit = "°C") {
+function harness(months, unit = "°C", sample) {
     const panels = months.map(month => ({month, map: {}}));
     const popups = [];
     const document = {
@@ -30,7 +32,7 @@ function harness(months, unit = "°C") {
             return collect(this.content);
         }
     }
-    return {panels, popups, selection: createMapSelection({panels, Popup, document, unit})};
+    return {panels, popups, selection: createMapSelection({panels, Popup, document, unit, sample})};
 }
 
 function feature({west, east, south, north, value, latitude, longitude, source = "direct_cache"}) {
@@ -233,6 +235,27 @@ function historyLinks(popup) {
     selection.select({lng: 1, lat: 1});
     assert.equal(popups.length, afterRemoval + 1);
     assert.equal(popups.at(-1).map, panels[0].map);
+}
+
+{
+    const {panels, popups, selection} = harness(["baseline", "current"], "°C", sampleGrid);
+    const interpolation = {latitudes: [0, 2], longitudes: [0, 4], values: [[0, 4], [8, 12]]};
+    panels.forEach((panel, index) => selection.acceptData(panel, {
+        interpolation: {...interpolation, values: interpolation.values.map(row => row.map(value => value + index * 3))},
+        features: [feature({west: 0, east: 4, south: 0, north: 2, value: 999, latitude: 1, longitude: 2})],
+    }));
+    selection.select({lng: 1, lat: 0.5});
+    assert.match(popups.at(-2).text(), /3 °C/);
+    assert.match(popups.at(-1).text(), /6 °C/);
+    assert.match(popups.at(-1).text(), /\+3 °C/);
+    assert.match(popups.at(-1).text(), /Interpolated estimate from NOAA source-grid values/);
+    assert.match(popups.at(-1).text(), /Estimate-based difference/);
+    assert.doesNotMatch(popups.at(-1).text(), /Grid center|999 °C|Direct PostgreSQL/);
+    selection.acceptData(panels[0], {interpolation: {...interpolation, values: [[null, 4], [8, 12]]}});
+    assert.match(popups.at(-1).text(), /Baseline has no saved climate value/);
+    selection.beginLoading(panels[1]);
+    assert.match(popups.at(-1).text(), /This month is still loading/);
+    assert.doesNotMatch(popups.at(-1).text(), /\+3 °C/);
 }
 
 console.log("Map selection readouts passed for one/four panels, values, states, safe text, and cleanup.");

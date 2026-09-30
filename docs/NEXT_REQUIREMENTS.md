@@ -1,5 +1,38 @@
 # Next requirements
 
+## Smooth estimated NOAA map display
+
+**Status:** Implemented and reviewed 2026-09-30; user explicitly chose smooth interpolation after
+reporting blocky maps and darker direct-cache squares.
+
+For active NOAA Maps, replace zoom-subdivided nearest-value polygons with a
+bounded raster of bilinearly interpolated numeric values from the saved canonical
+2° × 4° nodes. Do not interpolate colors first, download data, store interpolated
+rows or claim added resolution/accuracy. Query one source-grid halo around the
+viewport in the existing provider-scoped batched read; include a bounded regular
+grid (null for missing/nonfinite/noncanonical nodes) as an additive response field.
+Require finite surrounding nodes for interpolation: no distant nearest fill,
+extrapolation, cross-provider fallback or filling missing months. Exact grid
+points/edges may use only nodes with nonzero interpolation weights.
+
+Render at most 512 × 512 pixels with Mercator-correct latitude placement. Use
+uniform opaque climate colors, a neutral basemap and borders/labels above the
+raster, removing the opacity checkerboard and political-fill color contamination.
+Use the existing manually chosen scale, including clipping/custom stops; changing
+it redraws locally without fetching. Missing samples remain transparent/unavailable.
+No continuous canvas animation. Clear stale raster/readouts on viewport changes,
+errors and empty results; preserve request-generation guards and bounded requests.
+
+Show “Smooth display — interpolated estimate” and original source spacing in
+status/guidance. Click values and date differences must use the same numeric
+interpolator and be labelled interpolated/estimate-based, not direct cache values
+or fabricated grid centers. Preserve linked selections/history links. CMIP6's
+existing polygon path remains unchanged. Keep legacy GeoJSON fields compatible;
+add tests for interpolation, holes, boundaries/dateline, Mercator placement, scale
+redraw, async stale results and no-fetch/no-write behavior. Cite MapLibre's Canvas
+Source documentation in README and References. Browser check if available;
+otherwise verify a generated synthetic raster and explicitly report the UI limit.
+
 ## Map-to-history navigation and coordinate form usability
 
 **Status:** Implemented and reviewed 2026-09-29; follow-up to linked map readouts.
