@@ -41,6 +41,13 @@ private data, or global caches. No automatic cleanup job is introduced.
 
 ## Indexed context and local cache cleanup
 
+Maintenance round COORD-004 (2026-09-30): shorten the active task board and
+Lead-owned log, index concise completed-round records, and refresh stale workspace
+and provider context. Preserve unresolved caveats and revision-based recovery.
+Lead owns these documentation edits; other agents' logs, application files,
+fixed REFACTOR plan, databases, environments and caches stay untouched. Validate
+links, status/commit references and diff/secret checks, not application suites.
+
 Status: implemented; cleanup and recovery recorded in
 `docs/agents/context/maintenance.md`.
 

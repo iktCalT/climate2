@@ -1,39 +1,35 @@
 # Data and map decisions
 
-Update 2026-09-29, `codex/activate-noaa-cache` based on `7211024`: PROVIDER-003
-changes the startup public selector to `noaa_core`; restart is required. No live
-server was deployed or data changed in this round. PRs #58–59 separated CMIP6
-acquisition identities and added fixed NOAA location sampling/provider-aware
-labels. Current requirements and task board supersede the older provider status
-below. Validation limitations and dated coverage remain in the Lead log and
-provider evaluation; do not infer complete history or scientific accuracy.
+Snapshot 2026-09-30, main `002223e`. Code/documentation evidence, not a fresh
+database or production-server check.
 
-Snapshot: 2026-09-27, local `main` at `cbeda44`, inherited by the restructure
-branch. This note summarizes existing repository
-records, not a fresh database check or independent provider verification.
+- Public Maps, Locations and saved-month discovery select `noaa_core` on app
+  startup (PR #60). Restart all workers to adopt a changed selector; no restart
+  was verified. Open-Meteo acquisition remains fixed to `open_meteo_cmip6`.
+  Never mix source families or relabel rows. Public browsing is cache-only.
+- NOAA location history rounds latitude and circular longitude separately to
+  one fixed 2° × 4° sample, with requested/sample coordinates and distance
+  disclosed. It starts January 1951; map dates start January 1950.
+- User's acquisition scope: **1950–1954 and 2022–2026**, completed months only,
+  explicit admin batches. This supersedes full-history/reverse backfills.
+  Cleanup remains explicit, bounded and destructive; development work does
+  not authorize it. Previously saved middle years are not automatically removed.
+- Temperatures are °C; precipitation is mean daily mm/day, not monthly totals.
+  Maps start over the US. Two-to-four panels share a manually controlled scale,
+  linked selections and first-month displayed-value differences. Popups link
+  selected coordinates to history, whose own sampling may differ from the map.
+  Estimates, gaps and loading remain labelled; these are not direct observations.
+- Dated evidence: Sept 26 admin check found 60/60 and 56/56 edge-window months
+  complete through August 2026. Sept 28 read-only audit found 8,281 finite,
+  complete canonical rows for each Jan–Aug 2026 month (66,248 total), no tested
+  physical/order violations, and equal dateline endpoints. Paired CMIP6 coverage
+  was only 9 points/month, 15 in August. This does not establish ground truth,
+  full history, current coverage or future availability.
+- Inherited CMIP6 ocean-cache anomalies remain unresolved; activation does not
+  repair them. Browser verification and live deployment of recent changes
+  remain unverified.
 
-- User direction: concentrate acquisition on the first/last five years,
-  **1950–1954 and 2022–2026**, completed months only, through administrator
-  controls. This supersedes full-history and reverse 2016–2026 fetching.
-- Local main documents NOAA CORe as the selected anonymous bulk source, with
-  resumable PostgreSQL imports under `noaa_core`. Public reads still use
-  `open_meteo_cmip6`; importing NOAA does not activate it. Footer attribution
-  follows the actual active provider. Provider comparison/validation remains
-  necessary before activation; inherited ocean-cache anomalies are unresolved.
-- Climate rows are keyed by location, month, and provider. Temperatures use
-  Celsius; precipitation is mean daily precipitation in mm/day, not a monthly
-  total. Never silently combine provider families or mislabel these units.
-- Public Maps/Locations use saved data; acquisition belongs to explicit admin
-  tools. Missing values stay visible. Maps initially show the US; comparisons
-  share one manually controlled scale across two to four dates. Scales do not
-  change automatically. Saved-month discovery helps select available data.
-- Administrator cleanup is explicit and bounded; development-file cleanup does
-  not authorize removing climate rows. Recheck current coverage in the database
-  when needed; historical counts are not live status.
-
-Sources: on local `main`, `docs/NEXT_REQUIREMENTS.md` requirements 16–25,
-`docs/CLIMATE_PROVIDER_EVALUATION.md`, and `README.md`. Read those versions with
-`git show main:docs/NEXT_REQUIREMENTS.md` (or substitute another listed path).
-Use the recorded revision above for historical evidence if the branch has
-moved. Current [requirements](../../NEXT_REQUIREMENTS.md) and
-[architecture](../../ARCHITECTURE.md) describe subsequent work.
+Sources: [requirements](../../NEXT_REQUIREMENTS.md),
+[provider evaluation](../../CLIMATE_PROVIDER_EVALUATION.md),
+[completed rounds](completed-rounds.md). Original audit handoff:
+`git show 002223e:docs/agents/lead-log.md` (NOAA-READINESS).

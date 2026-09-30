@@ -1,22 +1,23 @@
 # Workspace and verification context
 
-Observed 2026-09-27 using local Git; recheck before relying on this snapshot.
+Snapshot 2026-09-30, main `002223e` (PR #62). Recheck Git before acting.
 
-- Active branch: `codex/project-structure`, based on local main `cbeda44`.
-  The older `codex/original-error-artwork` checkout was brought forward using
-  a local stash named `climate2 pre-layout working changes`. The stash is kept
-  as a recovery copy; do not apply it over the reorganized tree blindly.
-- Existing artwork/template/style/test changes, `run.sh`, and coordination
-  notes were preserved. The new code paths are in
-  [architecture](../../ARCHITECTURE.md). Check `git status` and the latest commit
-  before editing. No remote freshness check was performed in this restructure.
-- Fork agents from the restructure branch/checkpoint, not older main. Separate
-  worktrees do not share uncommitted files; confirm the branch and task ownership
-  before starting. The task board is not a lock.
-- This checkout uses `.venv` and `requirements.txt`. Existing tests use
-  `unittest`; role skill names do not authorize a pytest/SQLAlchemy migration.
-  The skill validator previously could not import PyYAML in this venv; basic
-  Markdown links, metadata, and structure were checked without installing it.
+- Main is checked out in another climate2 worktree; do not switch this checkout
+  to main or touch unrelated repositories. Verify the same climate2 origin and
+  a clean worktree before fast-forwarding main. Create task branches from the
+  updated main ref; do not reuse the old restructure checkpoint.
+- The pre-layout recovery stash `climate2 pre-layout working changes` still
+  exists. Keep it; do not apply it over the reorganized tree blindly.
+- Use repository-local Meow-5 identity, existing `.venv`, `requirements.txt`,
+  unittest and dependency-free Node tests. No framework/tool migration implied
+  by role skill names. Canonical paths/commands are in
+  [architecture](../../ARCHITECTURE.md).
+- Latest application check: MAP-003, 156 Python tests (8 isolated-database-only
+  checks skipped), three Node suites passed. No connected built-in browser in
+  the last check; no application restart/deployment was verified.
+- Temporary scripts can disappear between sessions. Recreate only necessary
+  safe helpers; never treat a missing temporary tool as a reason to skip secret
+  checks. Preserve databases, environments, session files and recovery data.
 
-Sources: `git status --short`, `git worktree list`, `git rev-parse main`,
-[task board](../../AGENT_TASKS.md), and [Lead log](../lead-log.md).
+Source: local Git worktree/status/stash inspection; [completed rounds](completed-rounds.md).
+Full older notes: `git show 002223e:docs/agents/context/workspace.md`.
