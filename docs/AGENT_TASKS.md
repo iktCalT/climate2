@@ -8,6 +8,18 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**PAGES-002 — public environmental-awareness purpose (complete).** Base `435129a`
+(PR #65), branch `codex/environment-awareness-copy`; contract atop NEXT_REQUIREMENTS.
+Lead owns requirements/board/log. Developer owns README, `templates/index.html`,
+`templates/references.html` and backend log (copy-only frontend exception).
+QA owns `tests/test_content_pages.py` and QA log; Reviewer read-only/own log.
+Sequential available Sol/medium fallback. Check both provider renderings, existing
+credits/actions and focused content tests. No data, routes, dependencies, new
+external resources or unrelated feature work; reuse previous full regression run.
+Developer rendering checks and QA's 18 focused content/readiness tests passed;
+both provider branches, credit URLs and navigation preserved. Review cleared.
+No live browser available; no data or behavior changes.
+
 **MAP-005 — scale synchronization during source loading (complete).** Base
 `89f4e15` (PR #64), branch `codex/map-scale-loading-sync`; contract atop
 NEXT_REQUIREMENTS. Lead owns requirements/board/log. Developer owns
@@ -57,10 +69,10 @@ older full records remain in Git. No application or cache changes.
 
 ## Latest application integration
 
-MAP-004 merged in PR #64, main `89f4e15`: smooth NOAA estimates, transparent
-holes and matched linked readouts. QA: 160 Python tests (8 skips), six Node
-tests; after the finite-JSON fix, 48 targeted checks passed. Review cleared;
-synthetic raster inspected, live browser unavailable. No deployment/live data work.
+MAP-005 merged in PR #65, main `435129a`: manual scales stay synchronized during
+source loading; environmental-awareness purpose recorded. QA: 162 Python tests
+(8 skips), seven Node tests. Review cleared. User screenshot confirmed the
+earlier smooth-map appearance; automated live interaction remains unavailable.
 
 ## Prior work and open limitations
 

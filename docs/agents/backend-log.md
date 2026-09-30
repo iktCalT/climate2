@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | PAGES-002 | environmental-awareness copy | done
+- Result: README, Home and References now state the awareness purpose; Home labels its preview illustrative, gives provider-aware readouts and a two-month trend caveat. NOAA smoothing is tied to the saved 2° × 4° sampling grid without claiming added accuracy. Credits, actions, units and cache gaps remain.
+- Check: offline Jinja renders for Home and References under NOAA and CMIP6 passed; `git diff --check` passed. No full suite, live database, browser or commit; QA owns focused content tests.
+- Next: QA verifies copy and preserved credits/actions, then Reviewer.
+
 ## 2026-09-30 | MAP-005 | scale synchronization during source loading | done
 - Result: Maps tracks `styleReady` after layer initialization and clears it plus saved raster inputs on removal. Actual manual-scale handler and NOAA redraw use initialization rather than `isStyleLoaded()`; NOAA and CMIP6 update while basemap sources load. Pre-initialization choices remain the first-render scale. Added behavior guidance and official MapLibre v6.6.0 loading-source citations to README/References.
 - Check: focused execution of actual handler/redraw passed both provider paths, mixed initialized/uninitialized states, cleared data, removed panel and rapid choices with full-loaded predicate false. Jinja/inline module syntax and whitespace passed. No full-suite/live checks or commits.

@@ -16,7 +16,7 @@ import climate.web.app as web_app
 from climate.web.app import app
 
 
-# External URLs in the pre-refresh References page. Keep these credits visible.
+# External URLs in the pre-PAGES-002 References page. Keep this credit set stable.
 REFERENCE_URLS = set("""
 https://carto.com/attributions
 https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview
@@ -44,7 +44,9 @@ https://github.com/open-meteo/python-requests
 https://jquery.com/
 https://leafletjs.com/
 https://maplibre.org/maplibre-gl-js/docs/
+https://maplibre.org/maplibre-gl-js/docs/API/classes/CanvasSource/
 https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/
+https://maplibre.org/maplibre-style-spec/layers/
 https://nodejs.org/
 https://numpy.org/doc/stable/
 https://open-meteo.com/en/docs/climate-api
@@ -56,6 +58,8 @@ https://power.larc.nasa.gov/docs/services/api/temporal/monthly/
 https://psl.noaa.gov/data/coreinfo.html
 https://psl.noaa.gov/news/2026/r1datanotice.html
 https://python-visualization.github.io/folium/
+https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/style/style.ts
+https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/ui/map.ts
 https://requests-cache.readthedocs.io/en/stable/
 https://wpo.noaa.gov/ncep-introduces-operational-reanalysis-for-climate-monitoring-core/
 https://www.cpc.ncep.noaa.gov/products/CORe/archive.html
@@ -98,8 +102,9 @@ class ContentPageTests(unittest.TestCase):
         app.config.update(TESTING=True)
         self.client = app.test_client()
 
-    def get_page(self, path):
-        with (patch("climate.web.app.saved_map_months", side_effect=AssertionError("database read")),
+    def get_page(self, path, provider="noaa_core"):
+        with (patch.dict(app.config, {"CLIMATE_PROVIDER": provider}),
+              patch("climate.web.app.saved_map_months", side_effect=AssertionError("database read")),
               patch("climate.web.app.get_location_history", side_effect=AssertionError("history read")),
               patch("climate.web.app.viewport_geojson", side_effect=AssertionError("map read"))):
             response = self.client.get(path)
@@ -135,14 +140,54 @@ class ContentPageTests(unittest.TestCase):
         for expected in (
             "two to four different months",
             "Click a location in any panel",
-            "Each panel shows its own monthly value",
-            "nearby point, or a labelled display estimate",
+            "each month's value and provenance",
+            "NOAA readouts are interpolated estimates from the saved 2° × 4° grid",
             "Missing values stay marked",
             "shared scale presets or enter a custom range",
             "The scale stays fixed until you change it",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
+
+    def test_both_public_modes_explain_purpose_preview_and_comparison_limits(self):
+        for provider, source, readout, excluded_readout in (
+            (
+                "noaa_core",
+                "NOAA CORe reanalysis grid data",
+                "NOAA readouts are interpolated estimates from the saved 2° × 4° grid; smoothing adds no source detail or accuracy.",
+                "CMIP6 readouts show their containing-cell value",
+            ),
+            (
+                "open_meteo_cmip6",
+                "Open-Meteo CMIP6 model data",
+                "CMIP6 readouts show their containing-cell value and saved-data provenance.",
+                "NOAA readouts are interpolated estimates",
+            ),
+        ):
+            with self.subTest(provider=provider):
+                home = self.get_page("/", provider)
+                references = self.get_page("/references", provider)
+                self.assertIn(source, home)
+                self.assertIn("build awareness of environmental protection", home)
+                self.assertIn("Illustrative pattern · not live climate data", home)
+                self.assertIn(readout, home)
+                self.assertNotIn(excluded_readout, home)
+                self.assertIn("Two months show a comparison, not proof of a long-term climate trend.", home)
+                self.assertIn("awareness of broad climate patterns, not high-precision reporting", references)
+                self.assertIn("two months cannot establish a long-term climate trend", references)
+                self.assertIn("Visitors do not trigger provider downloads", references)
+                self.assertIn("mean daily mm/day, not a monthly total", references)
+                reference_links = PageStructure()
+                reference_links.feed(references)
+                self.assertEqual(
+                    {link["href"] for link in reference_links.links
+                     if link.get("href", "").startswith("https://")},
+                    REFERENCE_URLS,
+                )
+                if provider == "noaa_core":
+                    self.assertIn("Maps smooth the saved 2° × 4° sampling grid by bilinear interpolation; this adds no source resolution or accuracy", references)
+                else:
+                    self.assertIn("model outputs, not direct station observations", references)
 
     def test_references_distinguish_provider_dates_coverage_and_history(self):
         page = self.get_page("/references")
@@ -177,7 +222,8 @@ class ContentPageTests(unittest.TestCase):
         self.assertEqual(structure.headings.count("h1"), 1)
         self.assertTrue(set(structure.labelled_by) <= structure.ids)
         self.assertIn("/maps?select=1", hrefs)
-        self.assertTrue(REFERENCE_URLS <= hrefs, sorted(REFERENCE_URLS - hrefs))
+        external_urls = {href for href in hrefs if href and href.startswith("https://")}
+        self.assertEqual(external_urls, REFERENCE_URLS)
         for link in structure.links:
             if link.get("href", "").startswith("https://") and link.get("target") == "_blank":
                 self.assertTrue({"noopener", "noreferrer"} <= set(link.get("rel", "").split()))

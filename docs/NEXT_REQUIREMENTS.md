@@ -1,5 +1,23 @@
 # Next requirements
 
+## Public environmental-awareness purpose
+
+**Status:** Implemented and reviewed 2026-09-30; PAGES-002 follows the user's confirmed purpose
+in PROJECT_DIRECTION.
+
+Explain in Home, README and References that climate2 encourages environmental
+awareness through accessible exploration, not detailed high-precision reporting.
+Keep source names, units, saved-data/missing-coverage caveats and navigation.
+Explain coarse NOAA interpolation without implying extra accuracy; make Home's
+comparison-readout wording provider-aware. Label the decorative preview as
+illustrative, not live data. A two-month comparison is not proof of a long-term
+trend. Use concise, welcoming language, without alarmist claims or new scientific
+statistics. No fetching, new resources, routes, styling system or behavior change.
+
+Validate rendered Home/References for both providers and preserve existing credit
+URLs and actions. Run focused content tests; reuse MAP-005's full regression
+evidence because application behavior is unchanged. Browser check if connected.
+
 ## Keep manual scales synchronized during source loading
 
 **Status:** Implemented and reviewed 2026-09-30; MAP-005 follow-up to the smooth NOAA display.
