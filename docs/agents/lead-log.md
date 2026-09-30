@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 002223e:docs/agents/lead-log.md`.
 
+## 2026-09-30 | PAGES-002 | public awareness purpose | done
+
+- Result: Home, README and References now foreground environmental awareness,
+  explain saved-grid estimates and comparison limits, and label the decorative
+  preview as illustrative. Existing actions, credits and data caveats retained.
+- Check: both provider renders, eight content tests, ten NOAA-location tests and
+  whitespace passed; independent review cleared. Prior full regression reused
+  for this copy-only change. Browser disconnected; no live data operations.
+- Next: integrate `codex/environment-awareness-copy` (base `435129a`); no
+  additional implementation assigned.
+
 ## 2026-09-30 | MAP-005 | manual scale readiness and product purpose | done
 
 - Result: reproduced skipped redraws during source loading; explicit panel
@@ -44,21 +55,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 - Check: 156 Python tests (8 PostgreSQL skips), three Node suites passed;
   review cleared. Browser disconnected; no live database/provider/account work.
 - Next: no code work pending; explicit link clicks use cache-only Locations.
-
-## 2026-09-29 | MAP-002 | signed map-value differences | done
-
-- Result: PR #61, `dfcab70`; first-month differences, estimate/unavailable labels,
-  precise cached-value wording. No extra requests or automatic scale changes.
-- Check: negative-zero/removal bugs fixed. Three Node suites passed; Python
-  batch 155 tests (8 skips), three stale assertions corrected, 40 affected tests
-  rechecked without repeating full suite. README review issue resolved.
-- Next: no code work pending; differences are coarse values, not a climate trend.
-
-## 2026-09-29 | PROVIDER-003 | NOAA public selector | done
-
-- Result: PR #60, `ee0e568`; startup public reads select NOAA; CMIP6 writes remain
-  isolated. Restart and selector-only rollback documented.
-- Check: 155 Python tests (8 skips), three Node suites, review cleared.
-  No live data/account work or browser verification.
-- Next: runtime restart/deployment remains unverified. Dated coverage/audit
-  caveats are retained in [data/map context](context/data-and-maps.md).

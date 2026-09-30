@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | PAGES-002 | awareness copy | done
+- Result: Updated stale Home assertions and added mocked, rendered NOAA/CMIP6 checks for awareness purpose, illustrative preview, provider-specific readouts, NOAA smoothing limits, and two-month trend caveat. Both References modes preserve the exact pre-change external URL set, units, cache gaps, and existing actions. No production edits.
+- Check: `test_content_pages.py` passed 8; `test_noaa_location_readiness.py` passed 10; scoped `git diff --check` passed. Database reads fail if called. No browser, live data, full suite, or Node rerun.
+- Next: Reviewer; no QA blockers.
+
 ## 2026-09-30 | MAP-005 | manual scale synchronization | done
 - Result: `test_map_template.mjs` executes actual scale/redraw/render and
   load/remove handlers for both providers with full-loaded predicate false.

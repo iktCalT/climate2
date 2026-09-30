@@ -15,7 +15,7 @@
             <p class="eyebrow">Saved climate {% if climate_provider == "noaa_core" %}reanalysis{% else %}model{% endif %} data</p>
             <h1>Explore climate patterns by map or location.</h1>
             <p class="lead-copy">
-                Explore saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis grid data{% else %}Open-Meteo CMIP6 model data{% endif %}. Choose a date
+                Explore saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis grid data{% else %}Open-Meteo CMIP6 model data{% endif %} and build awareness of environmental protection. Choose a date
                 on Maps or enter coordinates on Locations. Public browsing reads
                 the existing cache; dates you can select may have little or no
                 data where you look.
@@ -29,7 +29,7 @@
             {% for tone in [1, 1, 2, 3, 4, 4, 1, 2, 2, 3, 4, 5, 2, 2, 3, 4, 5, 5, 2, 3, 4, 4, 5, 5] %}
                 <span class="heat-{{ tone }}"></span>
             {% endfor %}
-            <div class="grid-caption">A zoom-aware climate tile mesh</div>
+            <div class="grid-caption">Illustrative pattern · not live climate data</div>
         </div>
     </section>
 
@@ -68,9 +68,10 @@
         <h2 id="comparison-guide-heading">Compare the same place across months</h2>
         <ol>
             <li>Choose a variable and two to four different months on <a href="/maps?select=1">Maps</a>.</li>
-            <li>Click a location in any panel. Each panel shows its own monthly value and whether it comes from a saved point, a nearby point, or a labelled display estimate. Missing values stay marked.</li>
+            <li>Click a location in any panel to see each month's value and provenance. {% if climate_provider == "noaa_core" %}NOAA readouts are interpolated estimates from the saved 2° × 4° grid; smoothing adds no source detail or accuracy.{% else %}CMIP6 readouts show their containing-cell value and saved-data provenance.{% endif %} Missing values stay marked.</li>
             <li>Use the shared scale presets or enter a custom range to compare colors. The scale stays fixed until you change it; a narrower range shows detail, not greater accuracy.</li>
         </ol>
+        <p>Two months show a comparison, not proof of a long-term climate trend.</p>
     </section>
 
     <section class="data-note text-start">

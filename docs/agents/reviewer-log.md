@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | PAGES-002 | environmental-awareness copy | done
+- Result: no actionable finding on `codex/environment-awareness-copy`, base `435129a`. The three-page diff frames exploration as awareness, labels the preview illustrative, distinguishes NOAA interpolated estimates from CMIP6 cell readouts, and limits two-month interpretation. Saved sampling is not called NOAA's native grid; units, coverage caveats, actions, provider branches and existing credit URLs remain.
+- Check: read-only scoped diff, surrounding copy and focused test inspection; `git diff --check 435129a` passed. QA reports eight content and ten NOAA-location tests passed with database reads guarded; not rerun. Prior MAP-005 full regression evidence reused. No browser or live data check.
+- Next: Lead integrates; visual browser check remains unavailable.
+
 ## 2026-09-30 | MAP-005 | manual scale / panel readiness | done
 - Result: no actionable finding on `codex/map-scale-loading-sync`, base `89f4e15`. Explicit readiness gates both provider paths after layer initialization; removal clears readiness/raster inputs. Pre-load selections reach first render; cleared NOAA data cannot redraw, and existing generation/abort guards prevent stale restoration. No new requests/timers. README/References citations and environmental-awareness direction match scope.
 - Check: read-only diff, lifecycle and actual-handler regression inspection; `git diff --check` passed. QA reports 162 Python tests/eight expected skips and seven Node passes; not rerun. Browser disconnected; prior user screenshot verifies MAP-004 appearance only.
