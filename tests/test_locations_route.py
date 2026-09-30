@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 import os
 import unittest
+from html.parser import HTMLParser
 from pathlib import Path
 from unittest.mock import patch
 
@@ -22,6 +23,41 @@ from climate.services.map_data import (
     step_for_zoom,
     viewport_geojson,
 )
+
+
+class CoordinateFormParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.labels = {}
+        self.inputs = {}
+        self.forms = []
+        self.current_label = None
+        self.guidance = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "label":
+            self.current_label = attrs.get("for")
+            if self.current_label:
+                self.labels[self.current_label] = ""
+        elif tag == "input" and attrs.get("id"):
+            self.inputs[attrs["id"]] = attrs
+        elif tag == "form" and attrs.get("action") == "/locations":
+            self.forms.append(attrs)
+        elif attrs.get("id") == "coordinate-guidance":
+            self.in_guidance = True
+
+    def handle_endtag(self, tag):
+        if tag == "label":
+            self.current_label = None
+        elif tag == "p":
+            self.in_guidance = False
+
+    def handle_data(self, data):
+        if self.current_label:
+            self.labels[self.current_label] += data
+        if getattr(self, "in_guidance", False):
+            self.guidance.append(data)
 
 
 class LocationsRouteTests(unittest.TestCase):
@@ -90,6 +126,29 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"from 1951 through the current month", response.data)
         self.assertIn(b"maximum, and minimum temperature", response.data)
+
+    def test_coordinate_form_semantics_render_without_database_access(self):
+        with patch("climate.web.app.saved_map_months", side_effect=AssertionError("database read")), \
+             patch("climate.web.app.get_location_history", side_effect=AssertionError("history read")):
+            response = self.client.get("/locations")
+
+        self.assertEqual(response.status_code, 200)
+        parser = CoordinateFormParser()
+        parser.feed(response.get_data(as_text=True))
+        self.assertIn({"action": "/locations", "method": "get", "class": "mx-auto", "style": "width:100%;max-width:640px"}, parser.forms)
+        self.assertEqual(parser.labels["latitude"].strip(), "Latitude (°N):")
+        self.assertEqual(parser.labels["longitude"].strip(), "Longitude (°E):")
+        for identifier, minimum, maximum in (("latitude", "-90", "90"), ("longitude", "-180", "180")):
+            field = parser.inputs[identifier]
+            self.assertEqual(field["type"], "number")
+            self.assertEqual(field["step"], "any")
+            self.assertEqual(field["min"], minimum)
+            self.assertEqual(field["max"], maximum)
+            self.assertEqual(field["aria-describedby"], "coordinate-guidance")
+            self.assertIn(identifier, parser.labels)
+        guidance = " ".join(parser.guidance)
+        self.assertIn("Negative latitude is south", guidance)
+        self.assertIn("negative longitude is west", guidance)
 
     def test_unavailable_history_returns_a_service_error(self):
         with patch(

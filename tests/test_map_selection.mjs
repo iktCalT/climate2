@@ -39,6 +39,14 @@ function feature({west, east, south, north, value, latitude, longitude, source =
     ]]}, properties: {value, latitude, longitude, source}};
 }
 
+function historyLinks(popup) {
+    const collect = element => [
+        ...(element.tag === "a" ? [element] : []),
+        ...element.children.flatMap(collect),
+    ];
+    return collect(popup.content).filter(link => link.textContent === "View saved location history");
+}
+
 {
     const {panels, popups, selection} = harness(["1990-01"]);
     selection.acceptData(panels[0], {features: [feature({west: -2, east: 2, south: -2, north: 2,
@@ -51,6 +59,39 @@ function feature({west, east, south, north, value, latitude, longitude, source =
     assert.match(popups[0].text(), /Selected: 1\.0000° lat, 1\.0000° lon/);
     assert.equal(popups[0].options.closeOnClick, false);
     assert.doesNotMatch(popups[0].text(), /Baseline|Difference from baseline/);
+    assert.equal(historyLinks(popups[0]).length, 1);
+    assert.equal(historyLinks(popups[0])[0].href,
+        "/locations?latitude=1&longitude=1", "the URL uses the selected point, not its grid center");
+    assert.match(popups[0].text(), /History uses its own sampling rule/);
+}
+
+{
+    const {panels, popups, selection} = harness(["one", "two", "three", "four"]);
+    selection.select({lng: -0.123456789012345, lat: 0});
+    assert.equal(popups.length, 4);
+    const expected = "/locations?latitude=0&longitude=-0.123456789012345";
+    assert.ok(popups.every(popup => historyLinks(popup).length === 1
+        && historyLinks(popup)[0].href === expected), "all panels share precise selected coordinates");
+    assert.ok(popups.every((popup, index) => popup.map === panels[index].map));
+
+    selection.select({lng: -180, lat: -90});
+    assert.ok(popups.slice(-4).every(popup => historyLinks(popup)[0].href
+        === "/locations?latitude=-90&longitude=-180"), "inclusive range endpoints are linkable");
+    selection.select({lng: 180, lat: 90});
+    assert.ok(popups.slice(-4).every(popup => historyLinks(popup)[0].href
+        === "/locations?latitude=90&longitude=180"), "opposite inclusive endpoints are linkable");
+}
+
+{
+    const {panels, popups, selection} = harness(["month"]);
+    selection.select({lng: 0, lat: 0});
+    assert.equal(historyLinks(popups.at(-1))[0].href, "/locations?latitude=0&longitude=0");
+    selection.select({lng: 180.000001, lat: 0});
+    assert.equal(historyLinks(popups.at(-1)).length, 0, "out-of-range coordinates have no URL");
+    selection.select({lng: 0, lat: -90.000001});
+    assert.equal(historyLinks(popups.at(-1)).length, 0, "out-of-range latitude has no URL");
+    selection.acceptData(panels[0], {features: []});
+    assert.equal(historyLinks(popups.at(-1)).length, 0);
 }
 
 {
@@ -109,10 +150,13 @@ function feature({west, east, south, north, value, latitude, longitude, source =
         value: 2, latitude: 0, longitude: 0})]});
     selection.select({lng: 0, lat: 0});
     assert.match(popups[1].text(), /Baseline has no saved climate value/);
+    assert.equal(historyLinks(popups[1]).length, 1, "missing coverage keeps the history link");
     selection.beginLoading(panels[0]);
     assert.match(popups.at(-1).text(), /Baseline is still loading/);
+    assert.equal(historyLinks(popups.at(-1)).length, 1, "loading coverage keeps the history link");
     selection.fail(panels[0]);
     assert.match(popups.at(-1).text(), /Baseline map data is unavailable/);
+    assert.equal(historyLinks(popups.at(-1)).length, 1, "failed coverage keeps the history link");
     selection.acceptData(panels[0], {features: [feature({west: -1, east: 1, south: -1, north: 1,
         value: Infinity, latitude: 0, longitude: 0})]});
     assert.match(popups.at(-1).text(), /Baseline has no saved climate value/);
@@ -177,6 +221,7 @@ function feature({west, east, south, north, value, latitude, longitude, source =
     const {panels, popups, selection} = harness(["1990-01", "1990-02"]);
     selection.select({lng: 4, lat: 5});
     assert.ok(popups.every(popup => /Loading viewport data/.test(popup.text())));
+    assert.ok(popups.every(popup => historyLinks(popup).length === 1));
     popups[0].close();
     const afterClose = popups.length;
     selection.acceptData(panels[0], {features: []});

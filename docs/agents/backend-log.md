@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-003 | map history links and coordinate form | done
+- Result: valid selected map coordinates now link to saved Locations with round-trip numeric precision in ready/loading/missing readouts; popup and page guidance explain independent history sampling. Locations form has associated input IDs, responsive width, arbitrary precision and south/west guidance. No routes, data access, packages or citations changed.
+- Check: `node --check static/map_selection.js`, Jinja syntax compilation for the three templates, and `git diff --check` passed. Regression suite/browser check not run; QA owns the batch pass.
+- Next: hand off to Lead and QA; no known blockers.
+
 ## 2026-09-29 | MAP-002 review follow-up | README map terminology | done
 
 - Result: changed README tile reuse wording from PostgreSQL “observations” to

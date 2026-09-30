@@ -2,6 +2,18 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-003 | map-to-history navigation | done
+
+- Result: popups link selected, in-range coordinates to saved history with a
+  sampling caveat; form has responsive width, associated labels, direction hints
+  and no fixed decimal step. Lead clarified precision copy only. No backend,
+  dependency, source or scale changes. Sequential Luna implementation/QA/review.
+- Check: one batch: 156 Python tests (8 PostgreSQL skips), three Node suites
+  passed. Reviewer no findings; copy clarification inspected without full rerun.
+  Browser disconnected; no live database/provider/account work.
+- Next: integrate. Explicit link clicks open existing cache-only Locations;
+  selecting a map point alone never navigates or downloads data.
+
 ## 2026-09-29 | MAP-002 | signed map-value differences | done
 
 - Result: first-month baseline differences, concise numbers, estimate/unavailable
