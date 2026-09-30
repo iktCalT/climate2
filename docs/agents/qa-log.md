@@ -2,6 +2,32 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-004 review follow-up | finite legacy JSON | done
+- Result: added canonical None/NaN/±Infinity and finite aggregation-overflow
+  regressions in `test_map_interpolation.py`. Strict JSON serialization succeeds;
+  interpolation holes and remaining finite nodes survive; legacy feature values
+  stay finite. Developer's NOAA-only filtering/guard passes without production
+  edits by QA.
+- Check: offline unittest discovery restricted to `test_map_interpolation.py`
+  (six passed), `test_locations_route.py` (34 passed), and
+  `test_provider_identity.py` (eight passed); same disabled-live environment as
+  below. Whitespace check passed. Full suite/Node were not repeated: JS unchanged.
+- Next: Reviewer verify P2 fix, then Lead integration. Lead inspected prior
+  synthetic PNG: smooth gradient and transparent missing-data gap confirmed.
+
+## 2026-09-30 | MAP-004 | NOAA numeric raster / async readouts | done
+- Result: on `codex/smooth-noaa-display` (base `5a557e0`), added focused fake-SQL,
+  bilinear/color, holes, boundaries/dateline, Mercator, size-cap, popup and async
+  source lifecycle tests. Updated template mocks for the additive raster path;
+  local scale redraw recreates static sources without fetching. No defects found.
+- Check: full offline `python -m unittest discover -s tests`: 160 tests, eight
+  expected skips (`DATABASE_URL=`; cleanup/availability flags zero; bytecode off).
+  `node --test tests/test_map*.mjs`: six passed. `git diff --check`: passed.
+  Actual JS raster plus Node PNG encoder produced disposable
+  `climate2-smooth-noaa.png`: 512 × 384, 10,396 transparent hole pixels.
+- Next: Lead visual artifact check and Reviewer. Browser disconnected; no live
+  database/provider/account operations, new dependencies or production edits.
+
 ## 2026-09-29 | MAP-003 | history links and coordinate form | done
 - Result: Added fake-popup checks for selected-coordinate URL precision, distinct
   feature centers, zero/negative/inclusive endpoints, out-of-range omission,

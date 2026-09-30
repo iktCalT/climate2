@@ -2,6 +2,16 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-004 review follow-up | strict NOAA JSON | done
+- Result: confirmed canonical NaN broke strict response JSON through legacy GeoJSON. NOAA-only legacy bucketing/nearby lookup now exclude null/nonfinite values, while original rows retain interpolation null holes. Final NOAA feature guard excludes nonfinite aggregation results, including finite-input overflow; CMIP6 path unchanged.
+- Check: targeted mocked `viewport_geojson` reproducer fails before fix and passes strict `json.dumps(..., allow_nan=False)` after fix for null, NaN, positive/negative infinity and finite-input aggregation overflow. Interpolation null holes, finite feature values, no-fetch assertion, Python AST and `git diff --check` passed. No live data or full-suite rerun.
+- Next: QA adds strict-JSON regression; Reviewer rechecks the focused change.
+
+## 2026-09-30 | MAP-004 | smooth NOAA map raster | done
+- Result: resumed saved patch on `codex/smooth-noaa-display`; canonical NOAA halo grid feeds numeric bilinear raster/readouts, transparent holes, bounded Mercator canvas, local manual-scale redraw and stale clears. Fixed fill-opacity expression and concise NOAA-only status; clarified CMIP6 grid and layer-order copy. Legacy response fields and CMIP6 display remain compatible. MapLibre CanvasSource/style citations included.
+- Check: Node syntax for interpolation/selection and inline Maps module, Python AST, Jinja parsing and `git diff --check` passed. No live operations or dependencies. Full offline regressions and synthetic raster verification deferred to QA/Lead; browser disconnected.
+- Next: QA owns boundary, hole, scale-redraw and async regressions; Lead owns synthetic visual check. Contract: [requirements](../NEXT_REQUIREMENTS.md#smooth-estimated-noaa-map-display).
+
 ## 2026-09-29 | MAP-003 | map history links and coordinate form | done
 - Result: valid selected map coordinates now link to saved Locations with round-trip numeric precision in ready/loading/missing readouts; popup and page guidance explain independent history sampling. Locations form has associated input IDs, responsive width, arbitrary precision and south/west guidance. No routes, data access, packages or citations changed.
 - Check: `node --check static/map_selection.js`, Jinja syntax compilation for the three templates, and `git diff --check` passed. Regression suite/browser check not run; QA owns the batch pass.

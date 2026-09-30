@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 002223e:docs/agents/lead-log.md`.
 
+## 2026-09-30 | MAP-004 | smooth estimated NOAA maps | done
+
+- Result: coordinated numeric bilinear raster/readouts from saved canonical
+  nodes, transparent gaps, neutral basemap, fixed manual scales and citations
+  on `codex/smooth-noaa-display` (base `5a557e0`). No stored-data changes.
+- Check: 160 Python tests (8 expected skips), six Node tests; after review's
+  invalid-JSON finding, NOAA finite guards and 48 targeted checks passed.
+  Review cleared. Actual-renderer synthetic gradient/gap visually inspected;
+  browser disconnected, so live appearance/deployment remains unverified.
+- Next: integrate this reviewed branch; no further implementation assigned.
+
 ## 2026-09-30 | COORD-004 | compact shared context | done
 
 - Result: active board reduced to current ownership/status; completed rounds
@@ -38,11 +49,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   No live data/account work or browser verification.
 - Next: runtime restart/deployment remains unverified. Dated coverage/audit
   caveats are retained in [data/map context](context/data-and-maps.md).
-
-## 2026-09-29 | PROVIDER-002 | NOAA location readiness | done
-
-- Result: PR #59, `7211024`; fixed coordinate-wise grid sample with distance,
-  provider-aware chart identity and labels; January 1951 history start retained.
-- Check: 152 Python tests (8 skips), three Node suites. Review corrected
-  coordinate-rounding wording, not the algorithm. Browser unavailable.
-- Next: activation subsequently completed in PROVIDER-003; no pending fix.

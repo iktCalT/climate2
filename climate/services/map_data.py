@@ -254,6 +254,34 @@ def _query_weather_rows(
         return cur.fetchall()
 
 
+def _canonical_axis(low, high, step, lower, upper):
+    """Return canonical source nodes bracketing the viewport plus one halo."""
+    first = max(0, math.floor((low - lower) / step) - 1)
+    last = min(round((upper - lower) / step), math.ceil((high - lower) / step) + 1)
+    return [round(lower + index * step, 6) for index in range(first, last + 1)]
+
+
+def _interpolation_grid(rows, latitudes, longitudes):
+    """Serialize finite canonical samples as a regular row-major lattice."""
+    lat_index = {value: index for index, value in enumerate(latitudes)}
+    lon_index = {value: index for index, value in enumerate(longitudes)}
+    values = [[None for _ in longitudes] for _ in latitudes]
+    for latitude, longitude, value in rows:
+        if value is None:
+            continue
+        try:
+            latitude = round(float(latitude), 6)
+            longitude = round(float(longitude), 6)
+            value = float(value)
+        except (TypeError, ValueError, OverflowError):
+            continue
+        row = lat_index.get(latitude)
+        column = lon_index.get(longitude)
+        if row is not None and column is not None and math.isfinite(value):
+            values[row][column] = value
+    return {"latitudes": latitudes, "longitudes": longitudes, "values": values}
+
+
 def _fetch_missing_cells(con, cells, month):
     """Fetch one bounded batch and cache every metric for each coordinate."""
     if ACTIVE_CLIMATE_PROVIDER != OPEN_METEO_PROVIDER:
@@ -305,20 +333,37 @@ def viewport_geojson(
     fetch_missing = fetch_missing and ACTIVE_CLIMATE_PROVIDER == OPEN_METEO_PROVIDER
     latitude_padding = lat_step * NEIGHBOR_REUSE_RADIUS_CELLS
     longitude_padding = lon_step * NEIGHBOR_REUSE_RADIUS_CELLS
+    interpolation_latitudes = None
+    interpolation_longitudes = None
+    query_lat_edges = lat_edges
+    query_lon_edges = lon_edges
+    if ACTIVE_CLIMATE_PROVIDER == "noaa_core":
+        interpolation_latitudes = _canonical_axis(south, north, 2.0, -90.0, 90.0)
+        interpolation_longitudes = _canonical_axis(west, east, 4.0, -180.0, 180.0)
+        query_lat_edges = [interpolation_latitudes[0], interpolation_latitudes[-1]]
+        query_lon_edges = [interpolation_longitudes[0], interpolation_longitudes[-1]]
+        latitude_padding = longitude_padding = 0
 
     with weather_db() as con:
         rows = _query_weather_rows(
             con,
             date,
             climate_type,
-            lat_edges,
-            lon_edges,
+            query_lat_edges,
+            query_lon_edges,
             latitude_padding,
             longitude_padding,
         )
-        cell_values = _bucket_rows(rows, lat_edges, lon_edges)
+        # Legacy GeoJSON must also remain valid JSON when NOAA has missing nodes.
+        # Keep the original rows for the interpolation grid's explicit null holes.
+        legacy_rows = (
+            [row for row in rows if row[2] is not None and math.isfinite(row[2])]
+            if interpolation_latitudes is not None
+            else rows
+        )
+        cell_values = _bucket_rows(legacy_rows, lat_edges, lon_edges)
         reused_values = _nearby_cached_values(
-            cells, rows, cell_values, lat_step, lon_step
+            cells, legacy_rows, cell_values, lat_step, lon_step
         )
         satisfied = set(cell_values) | set(reused_values)
         missing = [cell for cell in cells if cell["index"] not in satisfied]
@@ -331,8 +376,8 @@ def viewport_geojson(
                     con,
                     date,
                     climate_type,
-                    lat_edges,
-                    lon_edges,
+                    query_lat_edges,
+                    query_lon_edges,
                     latitude_padding,
                     longitude_padding,
                 )
@@ -362,7 +407,9 @@ def viewport_geojson(
             value = estimates.get(cell["index"])
             source = "display_estimate"
             source_count = 0
-        if value is None:
+        if value is None or (
+            interpolation_latitudes is not None and not math.isfinite(value)
+        ):
             continue
         features.append(
             {
@@ -392,7 +439,7 @@ def viewport_geojson(
         )
     satisfied = set(cell_values) | set(reused_values)
     missing_count = len(cells) - len(satisfied)
-    return {
+    response = {
         "type": "FeatureCollection",
         "features": features,
         "metadata": {
@@ -411,3 +458,8 @@ def viewport_geojson(
             "cache_only": not fetch_missing,
         },
     }
+    if interpolation_latitudes is not None:
+        response["interpolation"] = _interpolation_grid(
+            rows, interpolation_latitudes, interpolation_longitudes
+        )
+    return response

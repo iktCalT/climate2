@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-004 | smooth NOAA raster / JSON hole handling | done
+- Result: P2 resolved on `codex/smooth-noaa-display`, base `5a557e0`. NOAA-only finite legacy inputs and final aggregation guard prevent invalid JSON; raw grid rows preserve explicit null holes. CMIP6 remains unchanged. No remaining actionable interpolation, lifecycle, scale, provenance or security finding.
+- Check: read-only fix/regression inspection and `git diff --check` passed. QA reports six interpolation, 34 map/route and eight provider-identity tests passed after correction; earlier full batch had 160 Python/eight skips and six Node passes. Not rerun. Browser disconnected; no live/network operations.
+- Next: Lead integrates; browser behavior remains unverified.
+
 ## 2026-09-29 | MAP-003 | map history links and coordinate form | done
 - Result: no actionable finding in the scoped diff against `dfcab70`. Popup links use the finite selected numeric coordinates and preserve JavaScript round-trip precision; they are root-relative, rendered in all popup states, and use text content. Selection has no link-triggered request/navigation. The Locations GET form retains its action/ranges, adds explicit label IDs, `step="any"`, shared guidance and capped full width. README/Maps/References copy explains differing history sampling; existing References citations are unchanged.
 - Check: read-only surrounding-code/diff review and `git diff --check dfcab70` passed. QA reports 156 Python tests (8 PostgreSQL skips) and three Node suites passed; not rerun. No live data, network, or browser access.

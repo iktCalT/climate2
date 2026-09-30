@@ -8,6 +8,24 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**MAP-004 — smooth NOAA estimated maps (complete).** Base `5a557e0`, branch
+`codex/smooth-noaa-display`; contract atop NEXT_REQUIREMENTS.
+Lead owns design/docs coordination. Developer owns `climate/services/map_data.py`,
+new `static/map_interpolation.js`, `static/map_selection.js`, Maps/References
+templates, README and backend log (frontend exception). QA owns tests/QA log;
+Reviewer read-only/own log. Sequential specialists; batch tests after implementation.
+Luna reached its usage limit mid-implementation; Sol/medium resumes the saved
+patch and remaining verification without expanding scope.
+Implementation/syntax checks complete. QA passed 160 Python tests (8 expected
+database skips) and six Node tests. Lead inspected the synthetic smooth raster
+and transparent gap. Review's nonfinite legacy-JSON finding was fixed with
+NOAA-only sanitization and an overflow guard; 48 affected checks passed,
+including new strict-JSON regressions. Review cleared. Live browser remains
+disconnected; no live data/account operations or deployment verification.
+No live DB/provider/account operations, acquisition changes, dependencies or
+automatic scale changes. Check synthetic raster, offline regressions and browser
+if connected. Report API design deviations before implementing.
+
 **COORD-004 — compact shared context (Lead, complete).**
 Base main `002223e`; branch `codex/compact-agent-context`.
 

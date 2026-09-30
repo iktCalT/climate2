@@ -78,7 +78,7 @@
                 Narrower colors show more contrast, not more accurate data. Click a cell for its numeric value.</p>
         </section>
         {% if climate_provider == "noaa_core" %}
-            <p class="small text-start text-muted">Data-quality note: these maps use saved NOAA CORe reanalysis grid values, not direct observations at every map location.
+            <p class="small text-start text-muted">Smooth display — interpolated estimate. NOAA source spacing is 2° latitude × 4° longitude; interpolation adds no source resolution or accuracy. Missing source nodes remain transparent. These are reanalysis grid values, not direct observations at every map location.
                 Display estimates and missing areas remain labelled. <a href="/references">Read the limitations</a> before interpreting comparisons.</p>
         {% else %}
             <p class="small text-start text-muted">Data-quality note: these maps use Open-Meteo CMIP6 model output.
@@ -181,9 +181,11 @@
                 scaleFamily,
             } from "/static/map_scales.js";
             import {createMapSelection} from "/static/map_selection.js";
+            import {createInterpolatedRaster, sampleGrid} from "/static/map_interpolation.js";
 
             const months = {{ months | tojson }};
             const climateType = {{ data_type | tojson }};
+            const useInterpolatedNoaa = {{ (climate_provider == "noaa_core") | tojson }};
             const family = scaleFamily(climateType);
             const presetPicker = document.getElementById("scale-preset");
             const customFields = document.getElementById("custom-scale-fields");
@@ -214,8 +216,48 @@
                 requestController: undefined,
                 viewportGeneration: 0,
                 viewportDirty: false,
+                interpolation: null,
+                rasterBounds: null,
+                overlayLayers: [],
             }));
-            const selection = createMapSelection({panels, Popup, document, unit: activeScale.unit});
+            const selection = createMapSelection({
+                panels, Popup, document, unit: activeScale.unit,
+                sample: useInterpolatedNoaa ? sampleGrid : undefined,
+            });
+
+            function clearNoaaRaster(panel, forget = true) {
+                if (panel.map.getLayer("climate-raster")) panel.map.removeLayer("climate-raster");
+                if (panel.map.getSource("climate-raster")) panel.map.removeSource("climate-raster");
+                if (forget) {
+                    panel.interpolation = null;
+                    panel.rasterBounds = null;
+                }
+            }
+
+            function redrawNoaaRaster(panel) {
+                if (!useInterpolatedNoaa || !panel.interpolation || !panel.rasterBounds) return;
+                const interpolation = panel.interpolation;
+                const rasterBounds = panel.rasterBounds;
+                clearNoaaRaster(panel, false);
+                const raster = createInterpolatedRaster({
+                    grid: interpolation,
+                    bounds: rasterBounds,
+                    scale: activeScale,
+                    width: panel.map.getCanvas().clientWidth,
+                    height: panel.map.getCanvas().clientHeight,
+                });
+                panel.map.addSource("climate-raster", {
+                    type: "canvas", canvas: raster.canvas,
+                    coordinates: raster.coordinates, animate: false,
+                });
+                panel.map.addLayer({
+                    id: "climate-raster", type: "raster", source: "climate-raster",
+                    paint: {"raster-opacity": 1, "raster-fade-duration": 0, "raster-resampling": "linear"},
+                });
+                panel.overlayLayers.forEach(layerId => {
+                    if (panel.map.getLayer(layerId)) panel.map.moveLayer(layerId);
+                });
+            }
 
             function formatScaleValue(value) {
                 return Number.isInteger(value) ? value.toString() : value.toFixed(1);
@@ -259,7 +301,9 @@
                 }
                 renderScale(scale);
                 panels.forEach((panel) => {
-                    if (panel.map.isStyleLoaded() && panel.map.getLayer("climate-cells")) {
+                    if (useInterpolatedNoaa) {
+                        if (panel.map.isStyleLoaded()) redrawNoaaRaster(panel);
+                    } else if (panel.map.isStyleLoaded() && panel.map.getLayer("climate-cells")) {
                         panel.map.setPaintProperty(
                             "climate-cells",
                             "fill-color",
@@ -336,6 +380,7 @@
                 const north = Math.min(85, bounds.getNorth());
                 const east = Math.min(180, bounds.getEast());
                 if (south >= north || west >= east) {
+                    clearNoaaRaster(panel);
                     panel.status.textContent = "Move the map back toward the visible world.";
                     selection.fail(panel);
                     return;
@@ -370,12 +415,28 @@
 
                     panel.map.getSource("climate").setData(data);
                     selection.acceptData(panel, data);
+                    const hasSourceNodes = data.interpolation?.values?.some(row => row.some(Number.isFinite));
+                    if (useInterpolatedNoaa) {
+                        if (hasSourceNodes) {
+                            panel.interpolation = data.interpolation;
+                            panel.rasterBounds = {south, west, north, east};
+                            redrawNoaaRaster(panel);
+                        } else {
+                            clearNoaaRaster(panel);
+                        }
+                    }
                     const metadata = data.metadata;
                     const providerLabels = {
                         open_meteo_cmip6: "Open-Meteo CMIP6",
                         noaa_core: "NOAA CORe reanalysis",
                     };
-                    panel.status.textContent = [
+                    panel.status.textContent = (useInterpolatedNoaa ? [
+                        providerLabels[metadata.provider] || metadata.provider,
+                        "Smooth display — interpolated estimate",
+                        "2° × 4° source spacing",
+                        "Saved data only · no climate downloads",
+                        hasSourceNodes ? "" : "No saved source nodes for this view and month",
+                    ] : [
                         providerLabels[metadata.provider] || metadata.provider,
                         `${metadata.tiles} cells`,
                         `${metadata.rows} × ${metadata.columns} grid`,
@@ -385,11 +446,12 @@
                         `${metadata.reused_nearby} nearby-cache cells`,
                         `${metadata.missing} without cached coverage`,
                         data.features.length === 0 ? "No saved climate data for this view and month" : "",
-                    ].filter(Boolean).join(" · ");
+                    ]).filter(Boolean).join(" · ");
                 } catch (error) {
                     if (error.name !== "AbortError" && !controller.signal.aborted
                         && generation === panel.viewportGeneration) {
                         panel.status.textContent = `Map data unavailable: ${error.message}`;
+                        clearNoaaRaster(panel);
                         selection.fail(panel);
                     }
                 } finally {
@@ -404,6 +466,7 @@
                 panel.viewportGeneration += 1;
                 panel.viewportDirty = false;
                 selection.beginLoading(panel);
+                clearNoaaRaster(panel);
                 loadData(panel, panel.viewportGeneration);
             }
 
@@ -414,11 +477,27 @@
                 panel.viewportGeneration += 1;
                 panel.status.textContent = "Loading viewport data…";
                 selection.beginLoading(panel);
+                clearNoaaRaster(panel);
             }
 
             panels.forEach((panel) => {
                 panel.map.on("load", () => {
                     panel.map.setProjection({type: "mercator"});
+                    if (useInterpolatedNoaa) {
+                        panel.overlayLayers = panel.map.getStyle().layers
+                            .filter(layer => layer.type === "line" || layer.type === "symbol")
+                            .map(layer => layer.id);
+                    }
+                    if (useInterpolatedNoaa) {
+                        for (const layer of panel.map.getStyle().layers) {
+                            if (layer.type === "fill") {
+                                panel.map.setPaintProperty(layer.id, "fill-color", "#e8e8e8");
+                                panel.map.setPaintProperty(layer.id, "fill-opacity", 1);
+                            } else if (layer.type === "background") {
+                                panel.map.setPaintProperty(layer.id, "background-color", "#e8e8e8");
+                            }
+                        }
+                    }
                     panel.map.addControl(new NavigationControl());
                     panel.map.addControl(new FullscreenControl());
                     panel.map.addSource("climate", {
@@ -431,7 +510,7 @@
                         source: "climate",
                         paint: {
                             "fill-color": colorExpression(activeScale),
-                            "fill-opacity": [
+                            "fill-opacity": useInterpolatedNoaa ? 0 : [
                                 "case",
                                 ["boolean", ["get", "estimated"], false],
                                 0.5,

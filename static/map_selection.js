@@ -4,6 +4,7 @@ const SOURCE_LABELS = {
     direct_cache: "Direct PostgreSQL value",
     nearby_cache: "Reused nearby PostgreSQL value",
     display_estimate: "Display-only nearest estimate (no cached coverage; not queued)",
+    interpolated_estimate: "Interpolated estimate from NOAA source-grid values",
 };
 
 function containingCell(features, longitude, latitude) {
@@ -35,10 +36,16 @@ function displayValue(value) {
     return String(rounded === 0 ? 0 : rounded);
 }
 
-function panelValue(entry, selected) {
+function panelValue(entry, selected, sample) {
     if (!entry) return {status: "removed"};
     if (entry.phase === "loading") return {status: "loading"};
     if (entry.phase === "error") return {status: "error"};
+    if (sample) {
+        const value = sample(entry.data?.interpolation, selected.lng, selected.lat);
+        return Number.isFinite(value)
+            ? {status: "ready", value, source: "interpolated_estimate", feature: null}
+            : {status: "missing"};
+    }
     const feature = containingCell(entry.data?.features, selected.lng, selected.lat);
     const value = feature?.properties?.value;
     if (typeof value !== "number" || !Number.isFinite(value)) return {status: "missing"};
@@ -53,7 +60,7 @@ function unavailableReason(value, label) {
     return "";
 }
 
-export function createMapSelection({panels, Popup, document, unit}) {
+export function createMapSelection({panels, Popup, document, unit, sample}) {
     let selected = null;
     let suppressClose = false;
     const state = new Map(panels.map(panel => [panel, {
@@ -81,7 +88,7 @@ export function createMapSelection({panels, Popup, document, unit}) {
     function render() {
         discardPopups();
         if (!selected) return;
-        const values = panels.map(panel => panelValue(state.get(panel), selected));
+        const values = panels.map(panel => panelValue(state.get(panel), selected, sample));
         const comparing = panels.filter(panel => state.has(panel)).length > 1;
         const baseline = values[0];
         for (const panel of panels) {
@@ -103,9 +110,9 @@ export function createMapSelection({panels, Popup, document, unit}) {
                 } else {
                     line(document, body, `${displayValue(value.value)} ${unit}`, true);
                     line(document, body, SOURCE_LABELS[value.source] || "Source unavailable");
-                    const centerLat = Number(value.feature.properties.latitude);
-                    const centerLng = Number(value.feature.properties.longitude);
-                    if (Number.isFinite(centerLat) && Number.isFinite(centerLng)) {
+                    const centerLat = Number(value.feature?.properties?.latitude);
+                    const centerLng = Number(value.feature?.properties?.longitude);
+                    if (value.source !== "interpolated_estimate" && Number.isFinite(centerLat) && Number.isFinite(centerLng)) {
                         line(document, body, `Grid center: ${centerLat.toFixed(4)}° lat, ${centerLng.toFixed(4)}° lon`);
                     }
                 }
@@ -126,7 +133,8 @@ export function createMapSelection({panels, Popup, document, unit}) {
                         const displayedDifference = Number(difference.toFixed(2));
                         const sign = displayedDifference > 0 ? "+" : displayedDifference < 0 ? "−" : "";
                         line(document, section, `${sign}${displayValue(Math.abs(displayedDifference))} ${unit}`, true);
-                        if (baseline.source === "display_estimate" || value.source === "display_estimate") {
+                        if (baseline.source === "display_estimate" || value.source === "display_estimate"
+                            || baseline.source === "interpolated_estimate" || value.source === "interpolated_estimate") {
                             line(document, section, "Estimate-based difference");
                         }
                     }
