@@ -2,6 +2,16 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-003 | history links and coordinate form | done
+- Result: Added fake-popup checks for selected-coordinate URL precision, distinct
+  feature centers, zero/negative/inclusive endpoints, out-of-range omission,
+  missing/loading/error links, and identical four-panel destinations. Added a
+  rendered GET form semantics check with DB reads patched to fail.
+- Check: Offline Python suite: 156 passed, 8 PostgreSQL skips. `node --test
+  tests/test_map*.mjs`: all 3 suites passed. `git diff --check` passed. No
+  browser or live data access.
+- Next: Send results to Lead for review/integration; no QA blockers.
+
 ## 2026-09-29 | MAP-002 | numeric comparison readouts | done
 - Result: added fake-Popup regressions for one/four panels, baseline, °C/mm/day,
   raw precision, estimate provenance, loading/missing/error/nonfinite/overflow,

@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-29 | MAP-003 | map history links and coordinate form | done
+- Result: no actionable finding in the scoped diff against `dfcab70`. Popup links use the finite selected numeric coordinates and preserve JavaScript round-trip precision; they are root-relative, rendered in all popup states, and use text content. Selection has no link-triggered request/navigation. The Locations GET form retains its action/ranges, adds explicit label IDs, `step="any"`, shared guidance and capped full width. README/Maps/References copy explains differing history sampling; existing References citations are unchanged.
+- Check: read-only surrounding-code/diff review and `git diff --check dfcab70` passed. QA reports 156 Python tests (8 PostgreSQL skips) and three Node suites passed; not rerun. No live data, network, or browser access.
+- Next: Lead integrates; no findings.
+
 ## 2026-09-29 | MAP-002 | numeric map differences | done
 - Result: the P3 copy finding was resolved; README.md:28 now says
   “PostgreSQL-cached values.” No other confirmed defect in the scoped review.

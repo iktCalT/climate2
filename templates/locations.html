@@ -42,7 +42,7 @@
         {% endif %}
         
     {% else %}
-        <form action="/locations" method="get" class="mx-auto" style="width:60%">
+        <form action="/locations" method="get" class="mx-auto" style="width:100%;max-width:640px">
             <div class="mb-3 row">
                 <h5>Explore a location from 1951 through the current month</h5>
                 <p class="text-muted">Enter coordinates to chart saved {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 modelled{% endif %} mean, maximum, and minimum temperature with precipitation.
@@ -53,14 +53,15 @@
                 {% endif %}
                 <div class="form-group col-sm-6">
                     <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
-                    <input autocomplete="off" class="form-control ms-auto w-100" name="latitude"
-                        type="number" step=".01" min="-90" max="90" required>
+                    <input id="latitude" autocomplete="off" class="form-control ms-auto w-100" name="latitude"
+                        type="number" step="any" min="-90" max="90" required aria-describedby="coordinate-guidance">
                 </div>
                 <div class="form-group col-sm-6">
                     <label for="longitude" class="col-form-label d-block me-auto w-100">Longitude (°E):</label>
-                    <input autocomplete="off" class="form-control me-auto w-100" name="longitude"
-                        type="number" step=".01" min="-180" max="180" required>
+                    <input id="longitude" autocomplete="off" class="form-control me-auto w-100" name="longitude"
+                        type="number" step="any" min="-180" max="180" required aria-describedby="coordinate-guidance">
                 </div>
+                <p id="coordinate-guidance" class="form-text">Negative latitude is south; negative longitude is west. Decimal coordinates are accepted without a 0.01° step restriction.</p>
             </div>
             <button class="btn btn-success" type="submit">Generate</button>
         </form>

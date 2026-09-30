@@ -133,6 +133,18 @@ export function createMapSelection({panels, Popup, document, unit}) {
                 }
                 body.append(section);
             }
+            if (Number.isFinite(selected.lat) && selected.lat >= -90 && selected.lat <= 90
+                && Number.isFinite(selected.lng) && selected.lng >= -180 && selected.lng <= 180) {
+                const historyLink = document.createElement("a");
+                const query = new URLSearchParams({
+                    latitude: String(selected.lat),
+                    longitude: String(selected.lng),
+                });
+                historyLink.href = `/locations?${query.toString()}`;
+                historyLink.textContent = "View saved location history";
+                body.append(historyLink);
+                line(document, body, "History uses its own sampling rule and may differ from the map display estimate.");
+            }
             const popup = new Popup({closeOnClick: false})
                 .setLngLat(selected)
                 .setDOMContent(body)

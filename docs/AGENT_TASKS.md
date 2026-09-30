@@ -8,7 +8,24 @@ checks return to Backend, then QA and Reviewer recheck the affected change.
 
 ## Current assignments
 
-### MAP-002 — numeric comparison differences (active)
+### MAP-003 — map-to-history navigation and coordinate form (active)
+
+Base main `dfcab70`; branch `codex/map-history-navigation`. Contract atop
+NEXT_REQUIREMENTS. Lead owns planning/coordination and integration. Developer
+frontend exception: `static/map_selection.js`, `templates/locations.html`,
+Maps/References templates and README, own backend log. Batch popup links and
+coordinate form improvements; no backend/provider/data/dependency changes.
+QA owns focused tests/QA log and one final offline Python/Node run; Reviewer
+read-only/own log. Sequential Luna/medium. No live data or account access.
+Acceptance: selected-coordinate safe same-site links with no automatic requests,
+truthful sampling caveat, accessible responsive form, unchanged comparison state.
+Developer and QA complete (156 Python tests, 8 PostgreSQL skips; three Node
+suites passed). Lead assigned a copy-only exception in README/Locations to
+describe removal of the decimal-step restriction, not unlimited numeric precision.
+Reviewer found no actionable issues after the copy clarification. Lead integrating.
+Browser unavailable (no connected browser); no live data or deployment performed.
+
+### MAP-002 — numeric comparison differences (completed, PR #61)
 
 Base main `ee0e568`; branch `codex/map-value-differences`. Top NEXT_REQUIREMENTS
 defines acceptance. Lead owns requirements/policy/board and integration.
@@ -22,7 +39,7 @@ Developer and QA complete. Two focused defects (negative zero and removed-panel
 selection) fixed before the batch run. Three Node suites passed; the 155-test
 Python run found three stale copy assertions, corrected with 40 affected tests
 passing. Full suite not repeated after test-only corrections. Review found one
-README wording issue, corrected and rechecked; Lead integrating. Browser
+README wording issue, corrected and rechecked; merged as `dfcab70`. Browser
 unavailable; no live data operations.
 
 ### PROVIDER-003 — activate saved NOAA public reads (completed, PR #60)

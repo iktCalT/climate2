@@ -1,5 +1,27 @@
 # Next requirements
 
+## Map-to-history navigation and coordinate form usability
+
+**Status:** Implemented and reviewed 2026-09-29; follow-up to linked map readouts.
+
+Add a normal same-site “View saved location history” link to every selected map
+popup, including missing/loading cells. Use the selected coordinates, not a grid
+center, with their existing precision. Only offer a URL for finite coordinates
+in the Locations domain (latitude −90…90, longitude −180…180); never construct
+a link from provider strings or feature metadata. Selection itself must not
+fetch or navigate. Explain that history uses its own provider sampling rule and
+may differ from a displayed map estimate. Preserve comparison values/differences,
+safe DOM text and shared close behavior. No new routes, provider calls or assets.
+
+Improve the existing Locations entry form with explicit input-label IDs,
+responsive full width capped at a readable maximum, no fixed decimal input step
+(`step="any"`) within unchanged coordinate ranges, and concise negative-coordinate
+guidance. Preserve server validation and normal GET behavior; do not add a place
+search/geocoder, geolocation permissions or data downloads. Update README and
+References descriptions while preserving citations. Batch both edits before
+one regression pass; verify safe links/coordinate precision, missing/invalid
+selections, one/four panels, and form semantics without live databases.
+
 ## Numeric differences in linked map readouts
 
 **Status:** Implemented 2026-09-29 as a comparison-usability follow-up.
