@@ -2,6 +2,19 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-005 | manual scale synchronization | done
+- Result: `test_map_template.mjs` executes actual scale/redraw/render and
+  load/remove handlers for both providers with full-loaded predicate false.
+  Rapid preset/custom choices align ready rendering, saved scale and legend;
+  pre-load choices govern first render. Uninitialized/removed panels remain
+  untouched; cleared NOAA data stays absent. Existing async stale harness passes.
+- Check: on `codex/map-scale-loading-sync` (base `89f4e15`), one offline unittest
+  batch: 162 tests, eight expected skips (`DATABASE_URL=`; cleanup/availability
+  flags zero; bytecode off). `node --test tests/test_map*.mjs`: seven passed.
+  `git diff --check`: passed. No production edits or live operations.
+- Next: Reviewer. Browser disconnected; user screenshot confirms MAP-004
+  appearance, not this loading interaction. No QA blockers found.
+
 ## 2026-09-30 | MAP-004 review follow-up | finite legacy JSON | done
 - Result: added canonical None/NaN/±Infinity and finite aggregation-overflow
   regressions in `test_map_interpolation.py`. Strict JSON serialization succeeds;

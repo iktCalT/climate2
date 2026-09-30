@@ -4,6 +4,19 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 002223e:docs/agents/lead-log.md`.
 
+## 2026-09-30 | MAP-005 | manual scale readiness and product purpose | done
+
+- Result: reproduced skipped redraws during source loading; explicit panel
+  readiness now keeps NOAA/CMIP6 colors aligned with manual choices without
+  requests or stale restoration. Recorded the user's environmental-awareness
+  purpose in PROJECT_DIRECTION, superseding finer acquisition as a priority.
+- Check: 162 Python tests (8 expected skips), seven Node tests, syntax and
+  whitespace passed. Review cleared; persisted handoff recovered after quota
+  interruption. User screenshot confirms MAP-004 smooth appearance; browser
+  automation for this loading-state fix remains unavailable.
+- Next: integrate `codex/map-scale-loading-sync` (base `89f4e15`); no live data
+  changes, deployment or additional feature work assigned.
+
 ## 2026-09-30 | MAP-004 | smooth estimated NOAA maps | done
 
 - Result: coordinated numeric bilinear raster/readouts from saved canonical

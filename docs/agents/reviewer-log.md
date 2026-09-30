@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-005 | manual scale / panel readiness | done
+- Result: no actionable finding on `codex/map-scale-loading-sync`, base `89f4e15`. Explicit readiness gates both provider paths after layer initialization; removal clears readiness/raster inputs. Pre-load selections reach first render; cleared NOAA data cannot redraw, and existing generation/abort guards prevent stale restoration. No new requests/timers. README/References citations and environmental-awareness direction match scope.
+- Check: read-only diff, lifecycle and actual-handler regression inspection; `git diff --check` passed. QA reports 162 Python tests/eight expected skips and seven Node passes; not rerun. Browser disconnected; prior user screenshot verifies MAP-004 appearance only.
+- Next: Lead integrates; live scale interaction remains unverified.
+
 ## 2026-09-30 | MAP-004 | smooth NOAA raster / JSON hole handling | done
 - Result: P2 resolved on `codex/smooth-noaa-display`, base `5a557e0`. NOAA-only finite legacy inputs and final aggregation guard prevent invalid JSON; raw grid rows preserve explicit null holes. CMIP6 remains unchanged. No remaining actionable interpolation, lifecycle, scale, provenance or security finding.
 - Check: read-only fix/regression inspection and `git diff --check` passed. QA reports six interpolation, 34 map/route and eight provider-identity tests passed after correction; earlier full batch had 160 Python/eight skips and six Node passes. Not rerun. Browser disconnected; no live/network operations.

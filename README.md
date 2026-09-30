@@ -236,7 +236,10 @@ For finer comparison colors, manually choose **Cold detail** (−10 to 10 °C),
 **Mild detail** (0 to 20 °C), or **Warm detail** (20 to 40 °C). Their color stops
 are 2 °C apart, with continuous interpolation. All panels share that scale;
 saved presets/custom scales are preserved. Values outside the selected range
-use the endpoint colors. More contrast is not greater data accuracy.
+use the endpoint colors. Initialized panels apply manual changes immediately,
+even while basemap sources are loading; panels still initializing use the latest
+selection on their first render. Scale changes make no climate-data requests.
+More contrast is not greater data accuracy.
 
 Click a location on any comparison map to show that same location on every
 panel. NOAA readouts use the same numeric bilinear interpolation as the raster
@@ -355,6 +358,7 @@ Current application software and delivery services:
 - [Open-Meteo's Python client](https://github.com/open-meteo/python-requests), [requests-cache](https://requests-cache.readthedocs.io/en/stable/), and [retry-requests](https://github.com/MazeMap/retry-requests) provide API transport, local response caching, and bounded retries.
 - [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/) (BSD-3-Clause) renders maps using the [MapLibre demo style and tiles](https://github.com/maplibre/demotiles). Its [Popup API](https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/) supplies linked, text-safe location readouts across comparison panels. The [Canvas Source API](https://maplibre.org/maplibre-gl-js/docs/API/classes/CanvasSource/) displays the static interpolated NOAA raster, and the [layer style specification](https://maplibre.org/maplibre-style-spec/layers/) documents the fill, line, symbol, and raster layer behavior used to keep geography neutral and borders/labels visible.
 - [ColorBrewer 2.0](https://colorbrewer2.org/) provides the cartographic diverging and sequential palette guidance adapted for the temperature and precipitation scale presets.
+- MapLibre GL JS v6.6.0's [map implementation](https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/ui/map.ts) and [style implementation](https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/style/style.ts) (BSD-3-Clause) document why full style-loading checks include source completion; manual map-scale changes instead track initialized panels.
 - [Bootstrap 5](https://getbootstrap.com/docs/5.3/) is delivered through [jsDelivr](https://www.jsdelivr.com/), and the interface loads Audiowide, Space Mono, and Muli through [Google Fonts](https://fonts.google.com/).
 
 Project, learning, and visual sources:

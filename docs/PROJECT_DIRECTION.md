@@ -3,6 +3,19 @@
 This document records requirements added after the original refactor plan. It
 supplements, but does not replace or edit, `docs/REFACTOR.md`.
 
+## Purpose: environmental awareness
+
+Confirmed by the user on 2026-09-30: climate2 aims to raise awareness of
+environmental protection, not provide detailed, high-precision climate reporting.
+Prioritize accessible explanations, clear visual comparisons and responsive
+exploration. Coarse monthly data and explicitly labelled interpolation are
+acceptable; finer resolution and exhaustive fetching are not goals in themselves.
+
+Keep the presentation honest: cite sources, distinguish estimates from direct
+observations, preserve missing-data gaps, and use shared manual comparison
+scales. Do not present a pair of individual months as proof of a long-term
+climate trend. This direction does not weaken data-integrity or security checks.
+
 ## Four-agent responsibilities and coordination
 
 Status: implemented (shared instructions and task board; no agents launched).
@@ -145,6 +158,10 @@ recognizing that `.gitignore` does not make an already tracked or staged secret
 safe.
 
 ## Progressive, data-driven maps
+
+Historical direction, superseded where it calls for finer fetched data by the
+environmental-awareness purpose above and the cache-only smooth NOAA display
+in [NEXT_REQUIREMENTS](NEXT_REQUIREMENTS.md#smooth-estimated-noaa-map-display).
 
 The fixed 91×91 global grid and pre-rendered Folium image overlays are not the
 desired long-term map experience. After the location cache-miss work, replace

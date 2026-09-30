@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-005 | scale synchronization during source loading | done
+- Result: Maps tracks `styleReady` after layer initialization and clears it plus saved raster inputs on removal. Actual manual-scale handler and NOAA redraw use initialization rather than `isStyleLoaded()`; NOAA and CMIP6 update while basemap sources load. Pre-initialization choices remain the first-render scale. Added behavior guidance and official MapLibre v6.6.0 loading-source citations to README/References.
+- Check: focused execution of actual handler/redraw passed both provider paths, mixed initialized/uninitialized states, cleared data, removed panel and rapid choices with full-loaded predicate false. Jinja/inline module syntax and whitespace passed. No full-suite/live checks or commits.
+- Next: QA updates template harness initialized-panel fixtures (`styleReady: true`) and adds regression, then Reviewer.
+
 ## 2026-09-30 | MAP-004 review follow-up | strict NOAA JSON | done
 - Result: confirmed canonical NaN broke strict response JSON through legacy GeoJSON. NOAA-only legacy bucketing/nearby lookup now exclude null/nonfinite values, while original rows retain interpolation null holes. Final NOAA feature guard excludes nonfinite aggregation results, including finite-input overflow; CMIP6 path unchanged.
 - Check: targeted mocked `viewport_geojson` reproducer fails before fix and passes strict `json.dumps(..., allow_nan=False)` after fix for null, NaN, positive/negative infinity and finite-input aggregation overflow. Interpolation null holes, finite feature values, no-fetch assertion, Python AST and `git diff --check` passed. No live data or full-suite rerun.

@@ -8,6 +8,20 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**MAP-005 — scale synchronization during source loading (complete).** Base
+`89f4e15` (PR #64), branch `codex/map-scale-loading-sync`; contract atop
+NEXT_REQUIREMENTS. Lead owns requirements/board/log. Developer owns
+`templates/maps.html`, README, References and backend log (frontend exception).
+QA owns `tests/test_map_template.mjs` and QA log; Reviewer read-only/own log.
+Lead also records the user's environmental-awareness purpose in PROJECT_DIRECTION;
+coarse, honestly labelled data is sufficient, not a mandate for finer acquisition.
+Sequential Sol/medium fallback after Luna's usage failure. Reproduce, fix,
+one offline regression batch, then review; no live data, dependencies, source
+acquisition, new controls, automatic scales or unrelated refactoring.
+QA passed 162 Python tests (8 expected skips) and seven Node tests. Review
+cleared; saved verdict recovered after a model quota interruption. User screenshot
+confirms MAP-004 appearance; live interaction for MAP-005 remains unverified.
+
 **MAP-004 — smooth NOAA estimated maps (complete).** Base `5a557e0`, branch
 `codex/smooth-noaa-display`; contract atop NEXT_REQUIREMENTS.
 Lead owns design/docs coordination. Developer owns `climate/services/map_data.py`,
@@ -43,9 +57,10 @@ older full records remain in Git. No application or cache changes.
 
 ## Latest application integration
 
-MAP-003 merged in PR #62, main `002223e`: map-to-history links and responsive,
-labelled coordinate form. QA: 156 Python tests (8 PostgreSQL skips), three Node
-suites passed. Review cleared; browser unavailable. No deployment/live data work.
+MAP-004 merged in PR #64, main `89f4e15`: smooth NOAA estimates, transparent
+holes and matched linked readouts. QA: 160 Python tests (8 skips), six Node
+tests; after the finite-JSON fix, 48 targeted checks passed. Review cleared;
+synthetic raster inspected, live browser unavailable. No deployment/live data work.
 
 ## Prior work and open limitations
 

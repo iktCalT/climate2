@@ -1,5 +1,24 @@
 # Next requirements
 
+## Keep manual scales synchronized during source loading
+
+**Status:** Implemented and reviewed 2026-09-30; MAP-005 follow-up to the smooth NOAA display.
+
+The current scale handler saves/renders a new legend but skips updating panels
+when `isStyleLoaded()` is false. MapLibre's full-loaded predicate includes source
+loading, not just whether the style can be edited, so an initialized panel can
+retain old colors indefinitely. A deterministic handler reproduction confirms
+zero redraws in this state.
+
+Track panel initialization/removal explicitly. Apply manual scales to initialized
+NOAA rasters and legacy CMIP6 layers without waiting for unrelated source loads.
+Before initialization, remember the selection for the first render; after removal,
+never touch that map. Cleared/error/loading viewport data must not be resurrected.
+Keep shared scales manual, data/readouts unchanged, no new requests, timers or
+polling loops. Record the behavior and MapLibre loading-semantics source in README
+and References. Verify the actual scale handler with mixed panel states and rapid
+successive selections, plus existing stale-response tests; browser if connected.
+
 ## Smooth estimated NOAA map display
 
 **Status:** Implemented and reviewed 2026-09-30; user explicitly chose smooth interpolation after
