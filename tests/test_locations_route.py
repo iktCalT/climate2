@@ -188,6 +188,65 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"from 1951 through the current month", response.data)
         self.assertIn(b"maximum, and minimum temperature", response.data)
 
+    def test_old_chart_version_is_redrawn_and_current_version_is_reused(self):
+        history = pd.DataFrame(
+            {field: [10.0] for field in ("temp_mean", "temp_max", "temp_min", "precip")},
+            index=pd.to_datetime(["2026-01-01"]),
+        )
+        # Discover the old-version filename with the same data and coordinates.
+        with patch("climate.web.app.get_location_history", return_value=(history, False)), \
+             patch("climate.web.app.LOCATION_CHART_VERSION", "v6"), \
+             patch("climate.web.app.os.path.isfile", return_value=False), \
+             patch("climate.web.app.draw_chart") as draw:
+            old_response = self.client.get("/locations?latitude=10&longitude=10")
+        self.assertEqual(old_response.status_code, 200)
+        old_name = draw.call_args.kwargs["filename"]
+        self.assertTrue(old_name.startswith("v6_"))
+
+        with patch("climate.web.app.get_location_history", return_value=(history, False)) as load, \
+             patch("climate.web.app.os.path.isfile",
+                   side_effect=lambda path: Path(path).name == old_name) as exists, \
+             patch("climate.web.app.draw_chart") as draw:
+            response = self.client.get("/locations?latitude=10&longitude=10")
+        self.assertEqual(response.status_code, 200)
+        draw.assert_called_once()
+        new_name = draw.call_args.kwargs["filename"]
+        self.assertEqual(new_name, "v7_" + old_name.removeprefix("v6_"))
+        exists.assert_called_once_with("static/location_data/" + new_name)
+        self.assertIn(("/static/location_data/" + new_name).encode(), response.data)
+        self.assertIs(load.call_args.kwargs["fetch_missing"], False)
+
+        with patch("climate.web.app.get_location_history", return_value=(history, False)), \
+             patch("climate.web.app.os.path.isfile",
+                   side_effect=lambda path: Path(path).name == new_name) as exists, \
+             patch("climate.web.app.draw_chart") as draw:
+            refreshed = self.client.get("/locations?latitude=10&longitude=10")
+        self.assertEqual(refreshed.status_code, 200)
+        exists.assert_called_once_with("static/location_data/" + new_name)
+        draw.assert_not_called()
+        self.assertIn(("/static/location_data/" + new_name).encode(), refreshed.data)
+
+    def test_saved_history_explains_season_groups_and_coverage_limits(self):
+        history = pd.DataFrame(
+            {field: [10.0] for field in ("temp_mean", "temp_max", "temp_min", "precip")},
+            index=pd.to_datetime(["2026-01-01"]),
+        )
+        with patch("climate.web.app.get_location_history", return_value=(history, False)), \
+             patch("climate.web.app.os.path.isfile", return_value=True):
+            response = self.client.get("/locations?latitude=1&longitude=2")
+        self.assertEqual(response.status_code, 200)
+        page = " ".join(response.get_data(as_text=True).split())
+        for expected in (
+            "Northern Hemisphere calendar months", "March–May", "June–August",
+            "September–November", "December–February, labelled by January's year",
+            "three stored monthly values contribute to the mean",
+            "stored-month coverage, not measurement accuracy",
+            "may not match local seasons everywhere",
+            "Gaps are not filled with newly downloaded data",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, page)
+
     def test_coordinate_form_semantics_render_without_database_access(self):
         with patch("climate.web.app.saved_map_months", side_effect=AssertionError("database read")), \
              patch("climate.web.app.get_location_history", side_effect=AssertionError("history read")):

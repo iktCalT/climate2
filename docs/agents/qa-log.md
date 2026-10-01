@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | HISTORY-001 | seasonal chart coverage | done
+- Result: preserved inherited chart tests and added all-metric 0/1/2/3 coverage with unchanged means, all-null stored months, December–February winter assignment, contiguous sparse-year NaN gaps, empty traces, units and unchanged default/dropdown. Mocked route checks prove same-content v6 renders are replaced by v7 and v7 is reused. Locations/README/References checks cover season guidance, coverage limits and approved Plotly citations. Changed only three assigned test files and this log on `codex/seasonal-coverage-readouts` (base `eab3e85`).
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_chart_rendering tests.test_locations_route tests.test_content_pages` passed 59 tests. No production edits, live data, Node/full-suite or browser check; browser unavailable.
+- Next: Lead dispatch Reviewer; no QA blockers.
+
 ## 2026-10-01 | MAP-010 | typed map coordinates | done
 - Result: Added actual-template submit/clear and load/remove lifecycle coverage for invalid finite/range inputs, decimal endpoints, readiness transitions/rechecks, removed/all-removed panels, one/four-panel synchronization (including an already-centered source), retained view properties, and clear-without-pan/fetch. Rendered route tests check native labels/bounds/live status and selector absence; content tests check README/References wording. Updated scale lifecycle harness to bind the readiness helper. No production edits.
 - Check: focused Flask route/content batch passed 50 tests; `node --test tests/test_map*.mjs` passed 13; scoped `git diff --check` passed. No live DB/provider access or browser connection.

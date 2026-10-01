@@ -29,6 +29,7 @@
             <article>
                 <h3>Coverage is uneven</h3>
                 <p>Visitors do not trigger provider downloads or queue missing values. Map dates can be selected from January 1950 through the current month; Location history starts in January 1951. A selectable date does not guarantee saved values for a region, coordinate, or variable. Maps opens the newest saved mean-temperature month within its stable-date limit unless you choose a date. Saved-month counts come from bounded, read-only cache queries and count finite active-provider values globally, not regional completeness or accuracy.</p>
+                <p>Location charts group fixed Northern Hemisphere calendar months into spring (March–May), summer (June–August), fall (September–November), and winter (December–February), labelled by January's year. These season names may not match local seasons everywhere. Each plotted mean reports its contributing stored months out of three; counts describe coverage, not measurement accuracy. Precipitation is a monthly average daily rate in mm/day.</p>
             </article>
             <article>
                 <h3>Separate source</h3>
@@ -176,7 +177,9 @@
                 ("ColorBrewer 2.0", "Cartographic palette guidance adapted for map-scale presets", "https://colorbrewer2.org/"),
                 ("NumPy", "Grid and numerical operations", "https://numpy.org/doc/stable/"),
                 ("pandas", "Daily-to-monthly resampling", "https://pandas.pydata.org/docs/"),
-                ("Plotly Python", "Location history charts", "https://plotly.com/python/"),
+                ("Plotly Python", "MIT-licensed location history charts", "https://plotly.com/python/"),
+                ("Plotly hover text and formatting", "Official guidance used for unit-bearing seasonal hover labels", "https://plotly.com/python/hover-text-and-formatting/"),
+                ("Plotly Scatter customdata", "Official reference for per-point contributing-month metadata in chart hovers", "https://plotly.com/python/reference/scatter/#scatter-customdata"),
                 ("Open-Meteo Python client", "Climate API transport", "https://github.com/open-meteo/python-requests"),
                 ("requests-cache", "Local HTTP response caching", "https://requests-cache.readthedocs.io/en/stable/"),
                 ("retry-requests", "Bounded HTTP retries", "https://github.com/MazeMap/retry-requests")
