@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-006 | popup row layout | done
+- Result: `line()` now appends one block `div` per popup row, nesting `strong` for emphasized text and retaining `textContent`. README and References describe readable label/value rows. No data, arithmetic, links, scale or requests changed.
+- Check: JS syntax, direct DOM-shape smoke, References Jinja parse and `git diff --check` passed. Existing Node test stops at its old direct-child text assertion (line 213); QA owns updating the fixture/assertion and adding structural regressions. No full suite, live DB, browser or commit.
+- Next: QA updates and runs focused Node map tests, then Reviewer.
+
 ## 2026-09-30 | PAGES-002 | environmental-awareness copy | done
 - Result: README, Home and References now state the awareness purpose; Home labels its preview illustrative, gives provider-aware readouts and a two-month trend caveat. NOAA smoothing is tied to the saved 2° × 4° sampling grid without claiming added accuracy. Credits, actions, units and cache gaps remain.
 - Check: offline Jinja renders for Home and References under NOAA and CMIP6 passed; `git diff --check` passed. No full suite, live database, browser or commit; QA owns focused content tests.

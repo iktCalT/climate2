@@ -2,6 +2,14 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-006 | popup row layout | done
+- Result: updated the month XSS assertion for nested `strong`; added DOM checks
+  that month and baseline have separate strong-only rows, the value has its own
+  row, and the difference heading and number are separate rows.
+- Check: `node --test tests/test_map*.mjs` passed (7); scoped
+  `git diff --check -- tests/test_map_selection.mjs` passed. No browser check.
+- Next: Reviewer; no QA blockers.
+
 ## 2026-09-30 | PAGES-002 | awareness copy | done
 - Result: Updated stale Home assertions and added mocked, rendered NOAA/CMIP6 checks for awareness purpose, illustrative preview, provider-specific readouts, NOAA smoothing limits, and two-month trend caveat. Both References modes preserve the exact pre-change external URL set, units, cache gaps, and existing actions. No production edits.
 - Check: `test_content_pages.py` passed 8; `test_noaa_location_readiness.py` passed 10; scoped `git diff --check` passed. Database reads fail if called. No browser, live data, full suite, or Node rerun.

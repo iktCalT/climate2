@@ -249,7 +249,8 @@ panel. NOAA readouts use the same numeric bilinear interpolation as the raster
 and are labelled estimates; CMIP6 readouts retain their loaded grid-cell value
 and provenance. Selected coordinates and source grid centers are distinct.
 The first month is the labelled baseline; later panels show their signed value
-difference in °C or mm/day when both cells have finite values. Unavailable
+difference in °C or mm/day when both cells have finite values. Popup labels and
+values appear on separate rows for readability. Unavailable
 differences explain whether the baseline or current month is loading, failed, or
 missing coverage. Estimate-based differences are labelled, and displayed
 numbers use at most two decimal places while calculations use the raw values.

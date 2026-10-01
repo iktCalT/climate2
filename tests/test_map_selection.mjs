@@ -49,6 +49,13 @@ function historyLinks(popup) {
     return collect(popup.content).filter(link => link.textContent === "View saved location history");
 }
 
+function strongRows(element) {
+    return element.children
+        .filter(child => child.tag === "div" && child.children.length === 1
+            && child.children[0].tag === "strong")
+        .map(child => ({row: child, text: child.children[0].textContent}));
+}
+
 {
     const {panels, popups, selection} = harness(["1990-01"]);
     selection.acceptData(panels[0], {features: [feature({west: -2, east: 2, south: -2, north: 2,
@@ -114,6 +121,21 @@ function historyLinks(popup) {
         "difference uses raw inputs (-4.1234 and 0.2534) before two-place display rounding");
     assert.match(popups[2].text(), /Difference from baseline/);
     assert.match(popups[2].text(), /1990-03/);
+    const baselineRows = strongRows(popups[0].content);
+    assert.deepEqual(baselineRows.slice(0, 2).map(({text}) => text), ["1990-01", "Baseline"]);
+    assert.ok(baselineRows.slice(0, 2).every(({row}) => row.tag === "div" && row.children.length === 1),
+        "month and baseline each occupy a separate row with a sole strong child");
+    assert.ok(baselineRows.some(({row, text}) => text === "-4.12 mm/day"
+        && row.tag === "div" && row.children.length === 1), "the value occupies its own strong row");
+    const differenceSection = popups[1].content.children.find(child => child.tag === "div"
+        && strongRows(child).some(({text}) => text === "Difference from baseline"));
+    assert.ok(differenceSection, "comparison content has a distinct section");
+    const differenceRows = strongRows(differenceSection);
+    assert.deepEqual(differenceRows.slice(0, 2).map(({text}) => text), [
+        "Difference from baseline", "+4.38 mm/day",
+    ]);
+    assert.ok(differenceRows.slice(0, 2).every(({row}) => row.tag === "div" && row.children.length === 1),
+        "difference heading and numeric value occupy separate rows");
     assert.equal(popups[4 - 1].map, panels[3].map);
 }
 
@@ -210,7 +232,7 @@ function historyLinks(popup) {
     selection.acceptData(panels[0], {features: [feature({west: -1, east: 1, south: -1, north: 1,
         value: NaN, latitude: 0, longitude: 0})]});
     selection.select({lng: 0, lat: 0});
-    assert.equal(popups[0].content.children[0].textContent, "<img onerror=alert(1)>");
+    assert.equal(popups[0].content.children[0].children[0].textContent, "<img onerror=alert(1)>");
     assert.match(popups[0].text(), /No saved climate data/);
     assert.ok(popups[0].content.children.every(child => !("innerHTML" in child)));
     selection.select({lng: 0.2, lat: 0.2});
