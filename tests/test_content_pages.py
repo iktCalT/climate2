@@ -286,6 +286,30 @@ class ContentPageTests(unittest.TestCase):
                     with self.subTest(provider=provider, expected=expected):
                         self.assertIn(expected, page)
 
+    def test_location_edit_guidance_matches_readme_and_both_reference_modes(self):
+        readme = " ".join(Path(__file__).resolve().parents[1].joinpath("README.md").read_text().split())
+        for expected in (
+            "coordinate form stays visible above saved history and empty results",
+            "prefilled with your requested coordinates rather than NOAA's sampled grid point",
+            "editing fields alone leaves the displayed history unchanged",
+            "returns to blank entry fields without reading history",
+            "No JavaScript is required",
+        ):
+            with self.subTest(expected=expected):
+                self.assertIn(expected, readme)
+        for provider in ("noaa_core", "open_meteo_cmip6"):
+            references = self.get_page("/references", provider)
+            for expected in (
+                "coordinate form stays visible above saved history and empty results",
+                "fields retain your requested coordinates, rather than NOAA's sampled grid point",
+                "Submit Update location to read saved history for another location",
+                "editing fields alone leaves the displayed result unchanged",
+                "Clear returns to blank entry fields without reading history",
+                "form works without JavaScript and never triggers provider downloads",
+            ):
+                with self.subTest(provider=provider, expected=expected):
+                    self.assertIn(expected, references)
+
     def test_footer_attribution_follows_the_active_climate_provider(self):
         original_provider = app.config["CLIMATE_PROVIDER"]
         try:

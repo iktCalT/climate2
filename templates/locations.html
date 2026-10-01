@@ -6,6 +6,43 @@
 
 {% block main %}
 
+    <form action="/locations" method="get" class="mx-auto mb-4" style="width:100%;max-width:640px">
+        <div class="mb-3 row">
+            {% if lat is defined %}
+                <h5>Edit requested coordinates</h5>
+                <p class="text-muted">Submit coordinates to show saved history for another location. The displayed result stays the same until you submit.</p>
+            {% else %}
+                <h5>Explore a location from 1951 through the current month</h5>
+                <p class="text-muted">Enter coordinates to chart saved {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 modelled{% endif %} mean, maximum, and minimum temperature with precipitation.
+                    Only the active provider's PostgreSQL cache is read. Seasonal groups are fixed to Northern Hemisphere
+                    calendar months (March–May, June–August, September–November, and December–February, labelled by
+                    January's year); season names may not match local seasons everywhere. Chart points report contributing
+                    stored months out of three, which describes coverage, not measurement accuracy. Missing months stay unavailable;
+                    administrators manage data imports separately.</p>
+                {% if climate_provider == "noaa_core" %}
+                    <p class="text-muted">History rounds latitude and longitude separately to one fixed 2° × 4° NOAA grid point for every month. The result shows its coordinates and approximate distance from your request.</p>
+                {% endif %}
+            {% endif %}
+            <div class="form-group col-sm-6">
+                <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
+                <input id="latitude" autocomplete="off" class="form-control ms-auto w-100" name="latitude"
+                    type="number" step="any" min="-90" max="90" required aria-describedby="coordinate-guidance"
+                    value="{{ lat if lat is defined else '' }}">
+            </div>
+            <div class="form-group col-sm-6">
+                <label for="longitude" class="col-form-label d-block me-auto w-100">Longitude (°E):</label>
+                <input id="longitude" autocomplete="off" class="form-control me-auto w-100" name="longitude"
+                    type="number" step="any" min="-180" max="180" required aria-describedby="coordinate-guidance"
+                    value="{{ lon if lon is defined else '' }}">
+            </div>
+            <p id="coordinate-guidance" class="form-text">Negative latitude is south; negative longitude is west. Decimal coordinates are accepted without a 0.01° step restriction.</p>
+        </div>
+        <button class="btn btn-success" type="submit">{% if lat is defined %}Update location{% else %}Generate{% endif %}</button>
+        {% if lat is defined %}
+            <a class="btn btn-outline-success" href="/locations">Clear</a>
+        {% endif %}
+    </form>
+
     {% if lat is defined %}
         <div class="row">
             <div class="col"></div>
@@ -22,11 +59,7 @@
                 {% endif %}
                 <p class="text-center text-muted small">Refreshing rechecks PostgreSQL. Browsing never downloads climate data.</p>
             </div>
-            <div class="col my-auto">
-                <form action="/locations" method="get">
-                    <button class="btn btn-success me-auto d-block" type="submit">Clear</button>
-                </form>
-            </div>
+            <div class="col"></div>
         </div>
         <p role="status">{{ available_months }} of {{ total_months }} months have saved values;
             {{ complete_months }} have all four fields. Missing data is not queued for download.</p>
@@ -43,34 +76,6 @@
             Try another location or ask an administrator to import data for the active provider.
             No external climate request was made.</div>
         {% endif %}
-        
-    {% else %}
-        <form action="/locations" method="get" class="mx-auto" style="width:100%;max-width:640px">
-            <div class="mb-3 row">
-                <h5>Explore a location from 1951 through the current month</h5>
-                <p class="text-muted">Enter coordinates to chart saved {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 modelled{% endif %} mean, maximum, and minimum temperature with precipitation.
-                    Only the active provider's PostgreSQL cache is read. Seasonal groups are fixed to Northern Hemisphere
-                    calendar months (March–May, June–August, September–November, and December–February, labelled by
-                    January's year); season names may not match local seasons everywhere. Chart points report contributing
-                    stored months out of three, which describes coverage, not measurement accuracy. Missing months stay unavailable;
-                    administrators manage data imports separately.</p>
-                {% if climate_provider == "noaa_core" %}
-                    <p class="text-muted">History rounds latitude and longitude separately to one fixed 2° × 4° NOAA grid point for every month. The result shows its coordinates and approximate distance from your request.</p>
-                {% endif %}
-                <div class="form-group col-sm-6">
-                    <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
-                    <input id="latitude" autocomplete="off" class="form-control ms-auto w-100" name="latitude"
-                        type="number" step="any" min="-90" max="90" required aria-describedby="coordinate-guidance">
-                </div>
-                <div class="form-group col-sm-6">
-                    <label for="longitude" class="col-form-label d-block me-auto w-100">Longitude (°E):</label>
-                    <input id="longitude" autocomplete="off" class="form-control me-auto w-100" name="longitude"
-                        type="number" step="any" min="-180" max="180" required aria-describedby="coordinate-guidance">
-                </div>
-                <p id="coordinate-guidance" class="form-text">Negative latitude is south; negative longitude is west. Decimal coordinates are accepted without a 0.01° step restriction.</p>
-            </div>
-            <button class="btn btn-success" type="submit">Generate</button>
-        </form>
     {% endif %}
 
 {% endblock %}

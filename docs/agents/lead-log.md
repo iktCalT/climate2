@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show ef5de20:docs/agents/lead-log.md`.
 
+## 2026-10-01 | HISTORY-002 | editable location coordinates | done
+
+- Result: one native GET coordinate form stays above history and empty results,
+  retaining requested coordinates without extra rounding or substituting NOAA's
+  sample. Clear returns to blank entry without reading history. README and
+  References explain editing. No backend, data, dependency or map changes.
+- Check: 57 focused route/content tests passed; review cleared. Parsed-form
+  resubmission, both providers, zero/negative values and Clear verified with
+  mocked reads. No browser connection or live data/deployment operations.
+- Next: publication status in GitHub for `codex/edit-location-coordinates`,
+  base `a6491c1`; no further specialist task assigned.
+
 ## 2026-10-01 | HISTORY-001 | seasonal coverage readouts | done
 
 - Result: chart hover metadata reports per-metric contributing months and units;
@@ -49,14 +61,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   review cleared; explicit aborted-response control assertions also passed.
   Browser unavailable. Interrupted round resumed without duplicate agents.
 - Integration: merged PR #70, main `ef5de20`; local main synchronized.
-
-## 2026-09-30 | MAP-008 | readable map metrics | done
-
-- Result: map headings, accessible names and selector labels show metric names
-  and units without changing internal values. Precipitation wording distinguishes
-  the daily rate from a monthly total; NOAA copy names the saved sampling grid.
-- Check: 47 focused Flask/content tests and eight Node tests passed. Updated
-  stale content assertions retain units/rate/not-total checks for both providers.
-  Review cleared. No data, scale or dependency changes. Browser disconnected.
-- Integration: merged PR #69, main `0a5f5ef`. No live data or deployment
-  operations assigned.

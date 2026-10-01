@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | HISTORY-002 | editable Location coordinates | done
+- Result: extended the existing HTML parser to verify one native GET form, contained inputs/submit/Clear link, labels, bounds, required flags, unique IDs and blank entry. Both providers' covered/empty results preserve requested decimal and signed-zero values while reads use provider sampling. Parsed fields are edited and resubmitted to the route; Clear returns blank without history reads. Invalid/nonfinite/range inputs remain 400; incomplete requests retain blank-entry behavior. README/References editing guidance and existing provenance/coverage checks pass. Only assigned tests and this log changed on `codex/edit-location-coordinates` (base `a6491c1`).
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed 57 tests. No live DB/providers, browser, Node/chart/full-suite rerun or Git operations.
+- Next: Lead dispatch Reviewer; no QA blockers.
+
 ## 2026-10-01 | HISTORY-001 | seasonal chart coverage | done
 - Result: preserved inherited chart tests and added all-metric 0/1/2/3 coverage with unchanged means, all-null stored months, December–February winter assignment, contiguous sparse-year NaN gaps, empty traces, units and unchanged default/dropdown. Mocked route checks prove same-content v6 renders are replaced by v7 and v7 is reused. Locations/README/References checks cover season guidance, coverage limits and approved Plotly citations. Changed only three assigned test files and this log on `codex/seasonal-coverage-readouts` (base `eab3e85`).
 - Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_chart_rendering tests.test_locations_route tests.test_content_pages` passed 59 tests. No production edits, live data, Node/full-suite or browser check; browser unavailable.

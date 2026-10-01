@@ -12,6 +12,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql://localhost/climate")
 
 from climate.web.app import app, default_map_month
 from climate.data.db import OPEN_METEO_PROVIDER
+from climate.data.location_sampling import sample_noaa_location
 from climate.services.map_data import (
     MAX_FETCH_PER_VIEWPORT,
     MAX_ZOOM,
@@ -41,9 +42,27 @@ class CoordinateFormParser(HTMLParser):
         self.forms = []
         self.current_label = None
         self.guidance = []
+        self.ids = []
+        self.form_inputs = []
+        self.form_buttons = []
+        self.form_links = []
+        self.tags = []
+        self.in_coordinate_form = False
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
+        self.tags.append(tag)
+        if attrs.get("id"):
+            self.ids.append(attrs["id"])
+        if tag == "form":
+            self.in_coordinate_form = attrs.get("action") == "/locations"
+        if self.in_coordinate_form:
+            if tag == "input":
+                self.form_inputs.append(attrs)
+            elif tag == "button":
+                self.form_buttons.append(attrs)
+            elif tag == "a":
+                self.form_links.append(attrs)
         if tag == "label":
             self.current_label = attrs.get("for")
             if self.current_label:
@@ -56,6 +75,9 @@ class CoordinateFormParser(HTMLParser):
             self.in_guidance = True
 
     def handle_endtag(self, tag):
+        self.tags.append("/" + tag)
+        if tag == "form":
+            self.in_coordinate_form = False
         if tag == "label":
             self.current_label = None
         elif tag == "p":
@@ -255,7 +277,16 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         parser = CoordinateFormParser()
         parser.feed(response.get_data(as_text=True))
-        self.assertIn({"action": "/locations", "method": "get", "class": "mx-auto", "style": "width:100%;max-width:640px"}, parser.forms)
+        self.assert_coordinate_form(parser, ("", ""))
+
+    def assert_coordinate_form(self, parser, values):
+        self.assertEqual(len(parser.forms), 1)
+        self.assertEqual(parser.forms[0]["method"], "get")
+        self.assertEqual(len(parser.ids), len(set(parser.ids)))
+        self.assertEqual([field["name"] for field in parser.form_inputs], ["latitude", "longitude"])
+        self.assertEqual(len(parser.form_buttons), 1)
+        self.assertEqual(parser.form_buttons[0]["type"], "submit")
+        self.assertNotIn("onsubmit", parser.forms[0])
         self.assertEqual(parser.labels["latitude"].strip(), "Latitude (°N):")
         self.assertEqual(parser.labels["longitude"].strip(), "Longitude (°E):")
         for identifier, minimum, maximum in (("latitude", "-90", "90"), ("longitude", "-180", "180")):
@@ -265,10 +296,121 @@ class LocationsRouteTests(unittest.TestCase):
             self.assertEqual(field["min"], minimum)
             self.assertEqual(field["max"], maximum)
             self.assertEqual(field["aria-describedby"], "coordinate-guidance")
+            self.assertIn("required", field)
+            self.assertEqual(field["value"], values[0 if identifier == "latitude" else 1])
             self.assertIn(identifier, parser.labels)
         guidance = " ".join(parser.guidance)
         self.assertIn("Negative latitude is south", guidance)
         self.assertIn("negative longitude is west", guidance)
+
+    def test_edit_form_preserves_requested_coordinates_on_covered_and_empty_results(self):
+        for provider in ("noaa_core", "open_meteo_cmip6"):
+            for covered in (True, False):
+                history = pd.DataFrame(
+                    {field: [10.0 if covered else float("nan")] for field in MAP_METRIC_LABELS},
+                    index=pd.to_datetime(["2026-01-01"]),
+                )
+                for coordinates in (("12.123456789", "-45.987654321"), ("0", "-0.123456789"), ("-0.0", "0")):
+                    with self.subTest(provider=provider, covered=covered, coordinates=coordinates), \
+                         patch("climate.web.app.ACTIVE_CLIMATE_PROVIDER", provider), \
+                         patch.dict(app.config, CLIMATE_PROVIDER=provider), \
+                         patch("climate.web.app.get_location_history", return_value=(history, False)) as load, \
+                         patch("climate.web.app.os.path.isfile", return_value=False), \
+                         patch("climate.web.app.draw_chart") as draw:
+                        response = self.client.get("/locations", query_string=dict(zip(("latitude", "longitude"), coordinates)))
+                        self.assertEqual(response.status_code, 200)
+                        page = response.get_data(as_text=True)
+                        parser = CoordinateFormParser()
+                        parser.feed(page)
+                        requested = tuple(map(float, coordinates))
+                        self.assert_coordinate_form(parser, tuple(map(repr, requested)))
+                        self.assertEqual(parser.tags.count("form"), 1)
+                        self.assertLess(page.index("</form>"), page.index("Latitude:"))
+                        self.assertIn("Edit requested coordinates", page)
+                        self.assertIn("Update location", page)
+                        self.assertIn("displayed result stays the same until you submit", page)
+                        self.assertEqual(parser.form_links, [{"class": "btn btn-outline-success", "href": "/locations"}])
+                        if provider == "noaa_core":
+                            sample = sample_noaa_location(*requested)
+                            self.assertEqual(load.call_args.kwargs["location"], (sample.latitude, sample.longitude))
+                            self.assertIn("sampled 2° × 4° grid point", page)
+                            self.assertIn("not an observation at the exact requested location", page)
+                        else:
+                            self.assertEqual(load.call_args.kwargs["location"], requested)
+                            self.assertIn("Open-Meteo CMIP6 model output at the requested coordinates", page)
+                            self.assertNotIn("sampled 2° × 4° grid point", page)
+                        self.assertIs(load.call_args.kwargs["fetch_missing"], False)
+                        self.assertIn("1 of 1 months" if covered else "0 of 1 months", page)
+                        self.assertEqual("<iframe" in page, covered)
+                        self.assertEqual(draw.call_count, int(covered))
+                        if not covered:
+                            self.assertLess(page.index("</form>"), page.index("No saved climate data"))
+
+    def test_parsed_edit_form_resubmits_and_clear_returns_blank_without_reading_history(self):
+        for provider in ("noaa_core", "open_meteo_cmip6"):
+            for covered in (True, False):
+                history = pd.DataFrame(
+                    {field: [10.0 if covered else float("nan")] for field in MAP_METRIC_LABELS},
+                    index=pd.to_datetime(["2026-01-01"]),
+                )
+                with self.subTest(provider=provider, covered=covered), \
+                     patch("climate.web.app.ACTIVE_CLIMATE_PROVIDER", provider), \
+                     patch.dict(app.config, CLIMATE_PROVIDER=provider), \
+                     patch("climate.web.app.get_location_history", return_value=(history, False)) as load, \
+                     patch("climate.web.app.os.path.isfile", return_value=True), \
+                     patch("climate.web.app.draw_chart") as draw:
+                    original = self.client.get("/locations?latitude=12.123456789&longitude=-45.987654321")
+                    parser = CoordinateFormParser()
+                    parser.feed(original.get_data(as_text=True))
+                    fields = {field["name"]: field["value"] for field in parser.form_inputs}
+                    fields["latitude"] = "-23.987654321"
+                    fields["longitude"] = "0"
+                    changed = self.client.get(parser.forms[0]["action"], query_string=fields)
+                    self.assertEqual(changed.status_code, 200)
+                    changed_parser = CoordinateFormParser()
+                    changed_parser.feed(changed.get_data(as_text=True))
+                    self.assert_coordinate_form(changed_parser, ("-23.987654321", "0.0"))
+                    requested = (-23.987654321, 0.0)
+                    if provider == "noaa_core":
+                        sample = sample_noaa_location(*requested)
+                        requested = (sample.latitude, sample.longitude)
+                    self.assertEqual(load.call_args.kwargs["location"], requested)
+                    self.assertEqual(load.call_count, 2)
+                    self.assertIs(load.call_args.kwargs["fetch_missing"], False)
+                    load.reset_mock()
+                    blank = self.client.get(changed_parser.form_links[0]["href"])
+                    self.assertEqual(blank.status_code, 200)
+                    blank_parser = CoordinateFormParser()
+                    blank_parser.feed(blank.get_data(as_text=True))
+                    self.assert_coordinate_form(blank_parser, ("", ""))
+                    self.assertEqual(blank_parser.form_links, [])
+                    load.assert_not_called()
+                    draw.assert_not_called()
+
+    def test_edit_coordinates_preserve_server_validation_before_history_reads(self):
+        with patch("climate.web.app.get_location_history", side_effect=AssertionError("history read")), \
+             patch("climate.web.app.draw_chart", side_effect=AssertionError("chart write")):
+            for fields in (
+                {"latitude": "bad", "longitude": "0"},
+                {"latitude": "0", "longitude": "bad"},
+                {"latitude": "nan", "longitude": "0"},
+                {"latitude": "0", "longitude": "inf"},
+                {"latitude": "-inf", "longitude": "0"},
+                {"latitude": "90.0001", "longitude": "0"},
+                {"latitude": "-90.0001", "longitude": "0"},
+                {"latitude": "0", "longitude": "180.0001"},
+                {"latitude": "0", "longitude": "-180.0001"},
+            ):
+                with self.subTest(fields=fields):
+                    self.assertEqual(self.client.get("/locations", query_string=fields).status_code, 400)
+            # Inherited route behavior: incomplete requests return blank entry.
+            for fields in ({"latitude": "", "longitude": "0"}, {"latitude": "0"}, {"longitude": "0"}):
+                with self.subTest(fields=fields):
+                    response = self.client.get("/locations", query_string=fields)
+                    self.assertEqual(response.status_code, 200)
+                    parser = CoordinateFormParser()
+                    parser.feed(response.get_data(as_text=True))
+                    self.assert_coordinate_form(parser, ("", ""))
 
     def test_unavailable_history_returns_a_service_error(self):
         with patch(

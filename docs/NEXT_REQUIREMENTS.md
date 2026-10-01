@@ -1,5 +1,29 @@
 # Next requirements
 
+## Edit coordinates while viewing saved location history
+
+**Status:** Implemented and reviewed 2026-10-01; HISTORY-002, keep location exploration editable.
+
+Location results currently hide the coordinate form; changing a location requires
+Clear and retyping both values. Keep one labelled native GET coordinate form
+visible on entry and result pages, including no-coverage results. Prefill result
+fields with the validated requested latitude/longitude, never the NOAA sampled
+point, without extra rounding; preserve zero and negative coordinates. Leave
+entry fields empty. Place the edit control before the chart/empty-state content
+so it is easy to find. Submitting uses the existing /locations route and existing
+validation/cache-only reads; no JavaScript required. Clear still opens the blank
+entry page and does not load history. Preserve decimal step=any, required flags,
+latitude ±90 and longitude ±180 bounds, labels/guidance and unique field IDs.
+
+Keep provider/sampling provenance, coverage counts, seasonal explanation, chart
+and empty-state behavior. Use concise context-appropriate submit/heading text;
+do not imply that typing inputs changes the displayed result before submitting.
+No route, data, chart calculations, dependencies or external resources added.
+Document editing in README and References. Validate rendered entry/populated/
+empty-result forms, exact requested-versus-sampled values, zero/negative and
+decimal preservation, parsed-form resubmission to another location, Clear with
+no history read, invalid server input, and both-provider copy with mocked reads.
+
 ## Seasonal history coverage in chart readouts
 
 **Status:** Implemented and reviewed 2026-10-01; HISTORY-001, explain incomplete seasonal means.
