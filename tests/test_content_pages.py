@@ -17,7 +17,7 @@ import climate.web.app as web_app
 from climate.web.app import app
 
 
-# External URLs in the pre-PAGES-002 References page. Keep this credit set stable.
+# Existing external credits plus the approved HISTORY-001 Plotly references.
 REFERENCE_URLS = set("""
 https://carto.com/attributions
 https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview
@@ -55,6 +55,8 @@ https://openai.com/codex/
 https://pandas.pydata.org/docs/
 https://pcmdi.llnl.gov/CMIP6/TermsOfUse
 https://plotly.com/python/
+https://plotly.com/python/hover-text-and-formatting/
+https://plotly.com/python/reference/scatter/#scatter-customdata
 https://power.larc.nasa.gov/docs/services/api/temporal/monthly/
 https://psl.noaa.gov/data/coreinfo.html
 https://psl.noaa.gov/news/2026/r1datanotice.html
@@ -265,6 +267,24 @@ class ContentPageTests(unittest.TestCase):
             ):
                 with self.subTest(provider=provider, expected=expected):
                     self.assertIn(expected, references)
+
+    def test_seasonal_coverage_guidance_and_plotly_citations(self):
+        readme = " ".join(Path(__file__).resolve().parents[1].joinpath("README.md").read_text().split())
+        for provider in ("noaa_core", "open_meteo_cmip6"):
+            references = self.get_page("/references", provider)
+            for page in (readme, references):
+                for expected in (
+                    "Northern Hemisphere", "March–May", "June–August",
+                    "September–November", "December–February",
+                    "labelled by January's year",
+                    "may not match local seasons everywhere",
+                    "coverage, not measurement accuracy",
+                    "monthly average daily rate in mm/day",
+                    "https://plotly.com/python/hover-text-and-formatting/",
+                    "https://plotly.com/python/reference/scatter/#scatter-customdata",
+                ):
+                    with self.subTest(provider=provider, expected=expected):
+                        self.assertIn(expected, page)
 
     def test_footer_attribution_follows_the_active_climate_provider(self):
         original_provider = app.config["CLIMATE_PROVIDER"]

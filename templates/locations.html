@@ -31,7 +31,10 @@
         <p role="status">{{ available_months }} of {{ total_months }} months have saved values;
             {{ complete_months }} have all four fields. Missing data is not queued for download.</p>
         {% if filename %}
-        <p class="small text-muted">Seasonal means use the available cached months and may represent incomplete seasons.
+        <p class="small text-muted">Season groups use Northern Hemisphere calendar months: spring is March–May,
+            summer June–August, fall September–November, and winter December–February, labelled by January's year.
+            Each point reports how many of its three stored monthly values contribute to the mean. Counts describe
+            stored-month coverage, not measurement accuracy. These season names may not match local seasons everywhere.
             Gaps are not filled with newly downloaded data.</p>
         <iframe title="Cached seasonal climate history" src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px"
         class="my-3" style="border:none;"></iframe>
@@ -46,7 +49,10 @@
             <div class="mb-3 row">
                 <h5>Explore a location from 1951 through the current month</h5>
                 <p class="text-muted">Enter coordinates to chart saved {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 modelled{% endif %} mean, maximum, and minimum temperature with precipitation.
-                    Only the active provider's PostgreSQL cache is read. Missing months stay unavailable;
+                    Only the active provider's PostgreSQL cache is read. Seasonal groups are fixed to Northern Hemisphere
+                    calendar months (March–May, June–August, September–November, and December–February, labelled by
+                    January's year); season names may not match local seasons everywhere. Chart points report contributing
+                    stored months out of three, which describes coverage, not measurement accuracy. Missing months stay unavailable;
                     administrators manage data imports separately.</p>
                 {% if climate_provider == "noaa_core" %}
                     <p class="text-muted">History rounds latitude and longitude separately to one fixed 2° × 4° NOAA grid point for every month. The result shows its coordinates and approximate distance from your request.</p>

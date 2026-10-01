@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | HISTORY-001 | seasonal coverage readouts | done
+- Result: no actionable correctness or security finding on `codex/seasonal-coverage-readouts`, base `eab3e85`. Counts use the same non-null values as unchanged means; December remains assigned to the following winter year. Contiguous transformed-year seasons retain NaN/zero gaps with connection disabled; empty histories stay empty. Metric units, default/menu behavior, version-only cache invalidation, coverage guidance and paired Plotly citations satisfy the contract.
+- Check: scoped diff, surrounding chart/cache/history code and focused test assertions reviewed; `git diff --check` passed. QA reports 59 focused chart/route/content tests passed; not rerun. No browser, network, live database or provider operations.
+- Next: Lead integration; browser verification remains unavailable.
+
 ## 2026-10-01 | MAP-010 | keyboard coordinate selection | done
 - Result: no actionable correctness or security finding in the working-tree diff on `codex/map-coordinate-selection`, base `69b6a04`. The native form validates finite bounded values before map/selection changes, rechecks all-live-panel readiness, centers via the existing move synchronization path, and selects through the established popup model. Explicit same-center sync covers divergent peers; removed maps are skipped. Clear only clears popup state. Zoom, bearing, pitch and scale are preserved. README and References explain the behavior; no third-party resources were added. `coordinateReadiness` starts undefined intentionally so its first update initializes the status; this is not a defect.
 - Check: read-only diff, surrounding movement/selection lifecycle and focused regression assertions reviewed. QA reports 50 focused Flask/content tests and 13 Node tests passed; not rerun. No browser, live database, provider, or network access.

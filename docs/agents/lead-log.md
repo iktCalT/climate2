@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show ef5de20:docs/agents/lead-log.md`.
 
+## 2026-10-01 | HISTORY-001 | seasonal coverage readouts | done
+
+- Result: chart hover metadata reports per-metric contributing months and units;
+  existing means/winter labels retained. Explicit missing years remain gaps;
+  v7 render identity replaces stale HTML without deleting old files. Locations,
+  README and References explain fixed groups, partial coverage and sources.
+- Check: 59 focused chart/route/content tests passed; review cleared. Luna
+  quota failure and stalled Sol QA required sequential replacement, preserving
+  partial tests. No live data or browser; no map/dependency changes.
+- Next: publication status in GitHub for `codex/seasonal-coverage-readouts`,
+  base `eab3e85`; no further specialist task assigned.
+
 ## 2026-10-01 | MAP-010 | keyboard map coordinate selection | done
 
 - Result: typed coordinates center synchronized maps and open linked readouts;
@@ -48,14 +60,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   Review cleared. No data, scale or dependency changes. Browser disconnected.
 - Integration: merged PR #69, main `0a5f5ef`. No live data or deployment
   operations assigned.
-
-## 2026-09-30 | MAP-007 | retain comparison selection | done
-
-- Result: map edit links retain ordered months and variable in server-rendered
-  fields; validation, baseline order and generic discovery failures preserved.
-  No data, scale or dependency changes. README/References describe editing.
-- Check: 45 focused Flask/content and eight Node tests passed. Production
-  review cleared; QA added actual form resubmission and prefilled-row removal
-  assertions after review exposed gaps. Browser unavailable; no live operations.
-- Integration: merged PR #68, main `f95d638`. Own oldest
-  completed log entries trimmed; prior evidence remains in Git/context index.

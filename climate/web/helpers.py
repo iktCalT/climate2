@@ -21,7 +21,7 @@ CHART_METRICS = (
     ("temp_mean", "Mean temperature", "Temperature (°C)", "#b2182b"),
     ("temp_min", "Minimum temperature", "Temperature (°C)", "#2166ac"),
     ("temp_max", "Maximum temperature", "Temperature (°C)", "#d6604d"),
-    ("precip", "Precipitation", "Mean daily precipitation (mm)", "#2166ac"),
+    ("precip", "Precipitation", "Mean daily precipitation (mm/day)", "#2166ac"),
 )
 
 
@@ -46,11 +46,21 @@ def _seasonal_history(df, field):
     }
     history["season"] = history.index.month.map(month_to_season)
     history["year"] = history.index.year + (history.index.month == 12).astype(int)
-    return (
-        history.groupby(["year", "season"], observed=True)[field]
-        .mean()
-        .reset_index()
+    grouped = history.groupby(["year", "season"], observed=True)[field]
+    seasonal = grouped.agg([("mean", "mean"), ("count", "count")])
+    if history.empty:
+        years = []
+    else:
+        first_year = int(history["year"].min())
+        last_year = int(history["year"].max())
+        years = range(first_year, last_year + 1)
+    season_names = [season for season, _months, _color in SEASONS]
+    full_index = pd.MultiIndex.from_product(
+        [years, season_names], names=["year", "season"]
     )
+    seasonal = seasonal.reindex(full_index).rename(columns={"mean": field})
+    seasonal["count"] = seasonal["count"].fillna(0).astype(int)
+    return seasonal.reset_index()
 
 
 def draw_chart(
@@ -74,6 +84,7 @@ def draw_chart(
         seasonal = _seasonal_history(df, field)
         for season, _months, color in SEASONS:
             values = seasonal[seasonal["season"] == season]
+            unit = "mm/day" if field == "precip" else "°C"
             fig.add_trace(
                 go.Scatter(
                     x=values["year"],
@@ -83,9 +94,13 @@ def draw_chart(
                     legendgroup=season,
                     line=dict(color=color, width=2),
                     marker=dict(color=color, size=6),
+                    customdata=[[count, len(_months)] for count in values["count"]],
+                    connectgaps=False,
                     visible=metric_index == 0,
                     hovertemplate=(
-                        f"{season} %{{x}}<br>%{{y:.2f}}<extra></extra>"
+                        f"{season} %{{x}}<br>%{{y:.2f}} {unit}"
+                        f"<br>%{{customdata[0]}}/%{{customdata[1]}} months"
+                        "<extra></extra>"
                     ),
                 )
             )

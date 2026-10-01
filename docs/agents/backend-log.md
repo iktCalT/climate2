@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | HISTORY-001 | seasonal chart coverage | done
+- Result: seasonal aggregation preserves monthly means and winter assignment while adding per-metric non-null counts and explicit zero-count NaN seasons across the complete observed year span; empty histories stay empty. Hovers show x/3 months and °C or mm/day; precipitation axis now uses mm/day, chart version is v7, and Locations/README/References explain fixed Northern Hemisphere groups and coverage limits. Added official Plotly hover/customdata citations in both public references.
+- Check: Python AST and Locations/References Jinja parses passed; in-memory chart smoke passed winter assignment, zero-count NaN, 16 traces, hover metadata, disabled gap connection, and precipitation axis. Follow-up sparse 1951–2026 and empty-history smokes passed. `git diff --check` passed. No live data/provider, persistent generated cache, browser or full test operations.
+- Next: QA owns focused chart, route cache-version and content verification.
+
 ## 2026-10-01 | MAP-010 | keyboard coordinate selection | done
 - Result: Open Maps now has labelled decimal latitude/longitude inputs, explicit submit and clear controls, range validation with a live status, and readiness gating across live panels. Valid submits recenter through one panel's existing synchronized movement lifecycle and open linked readouts; clear only closes readouts. Removed panels are skipped during synchronization. Readiness transitions now update the status and button through one shared helper while preserving messages when readiness is unchanged. README and References document the interaction and bounds.
 - Check: `node --test tests/test_map_template.mjs` (2 passed before the readiness-helper correction); `node --test tests/test_map_selector.mjs` (1 passed); focused Maps Flask render and `git diff --check` passed after correction. QA will update the template harness for the shared helper. No live data or browser check; browser unavailable.

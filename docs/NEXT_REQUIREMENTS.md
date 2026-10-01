@@ -1,5 +1,33 @@
 # Next requirements
 
+## Seasonal history coverage in chart readouts
+
+**Status:** Implemented and reviewed 2026-10-01; HISTORY-001, explain incomplete seasonal means.
+
+Location charts show means of available months but do not identify individual
+partial seasons. Add a per-metric contributing-month count to each seasonal
+point and its hover readout (for example, “2/3 months”). Count the same non-null
+monthly values used in the existing mean; keep those means and the existing
+December-to-next-year winter assignment unchanged. A group with no values
+keeps a missing mean and count zero; missing years remain gaps, not interpolated
+values. Explicitly keep Plotly line gap-connection disabled. No imputation,
+weighting changes, extra queries, provider access or schema changes.
+
+Readouts include units: °C for temperature and mm/day for mean daily
+precipitation. Correct the precipitation axis unit accordingly. Explain on
+Locations, README and References the fixed groupings March–May, June–August,
+September–November and December–February (winter labelled by January's year),
+using Northern Hemisphere season names without implying local seasons everywhere.
+Counts express stored-month coverage, not measurement accuracy. Preserve the
+four-line metric selector and default mean-temperature view. Bump the chart
+render version so unchanged data gets new chart HTML without deleting old files.
+
+Use existing pandas/Plotly only. Cite consulted Plotly hover/customdata docs in
+README and References. Validate figure counts, all four metrics, 1/2/3/zero
+month groups, winter/year boundaries, unchanged means and NaN gaps, and route
+cache-version behavior with mocked reads/writes and focused unittest checks.
+No live data or generated chart cache cleanup; browser check only if connected.
+
 ## Keyboard-accessible map coordinate selection
 
 **Status:** Implemented and reviewed 2026-10-01; MAP-010, bounded linked-readout usability.

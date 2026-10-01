@@ -8,6 +8,26 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**HISTORY-001 — seasonal coverage readouts (complete).** Base `eab3e85`
+(PR #72), branch `codex/seasonal-coverage-readouts`; contract atop requirements.
+Lead owns board/requirements/log. Developer owns `climate/web/helpers.py`,
+`climate/web/app.py` (chart version only), `templates/locations.html`, README,
+References and backend log. QA owns `tests/test_chart_rendering.py`,
+`tests/test_locations_route.py`, `tests/test_content_pages.py` and own log.
+Reviewer read-only/own log. Sequential Luna/medium; Sol 6.1/medium finishes QA
+and review after Luna's usage limit and an interrupted stalled Sol worker,
+preserving saved test edits. Focused chart/route/content
+tests, no Node rerun for Python/chart-only work. No DB/provider operations,
+dependencies, map edits or unrelated refactors. Preserve mean calculations,
+show monthly coverage and honest season/unit guidance; invalidate old chart
+renders by version only. See requirements for acceptance matrix.
+
+QA passed 59 focused chart/route/content tests; independent review cleared.
+Sparse-year gap handling was corrected before QA. Browser unavailable; no live
+data or generated-cache cleanup. Publication status is recorded in GitHub.
+
+## Previous application assignment
+
 **MAP-010 — keyboard coordinate selection (complete).** Base `69b6a04`
 (PR #71), branch `codex/map-coordinate-selection`; contract atop requirements.
 Lead owns requirements/board/log. Developer owns `templates/maps.html`, optional
@@ -44,8 +64,8 @@ remain recoverable in Git; no physical files or caches removed.
 
 ## Latest application integration
 
-**MAP-009 merged in PR #70, main `ef5de20`.** Failed panels offer manual
-saved-data retry; 48 focused Flask/content and eight Node tests passed, review
+**MAP-010 merged in PR #72, main `eab3e85`.** Coordinate entry opens linked
+readouts; 50 focused Flask/content and 13 Node tests passed, review
 cleared. Earlier full MAP-005 run: 162 Python tests (eight expected skips),
 seven Node tests. These are prior results, not new runs in this round.
 
