@@ -8,6 +8,22 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**MAP-008 — readable map metrics (complete).** Base `f95d638` (PR #68),
+branch `codex/readable-map-metrics`; contract atop NEXT_REQUIREMENTS.
+Lead owns requirements/board/log. Developer owns `templates/maps.html`, README,
+References and backend log (presentation-only frontend exception). QA owns
+`tests/test_locations_route.py`, `tests/test_content_pages.py`,
+`tests/test_map_template.mjs` and QA log;
+Reviewer is read-only except own log. Sequential Luna/medium. Acceptance:
+readable metric labels/units, honest daily-rate and saved-grid wording, unchanged
+query/form values and behavior. One focused route/content + Node test batch;
+reuse full regression evidence. No data services, downloads, dependencies,
+automatic scales or unrelated changes.
+QA scope includes updating existing References assertions for the revised
+precipitation wording; preserve checks of both units and the not-total caveat.
+All 47 focused Flask/content and eight Node tests passed. Review cleared;
+no browser connection or live data operations. Awaiting Lead publication.
+
 **MAP-007 — retain map selection (complete).** Base `d0bafd6` (PR #67),
 branch `codex/retain-map-selection`; contract atop NEXT_REQUIREMENTS.
 Lead owns requirements/board/log. Developer owns `climate/web/app.py`,
@@ -94,10 +110,10 @@ older full records remain in Git. No application or cache changes.
 
 ## Latest application integration
 
-MAP-006 merged in PR #67, main `d0bafd6`: separated popup label/value rows;
-seven Node tests passed, review cleared. Earlier full MAP-005 check: 162 Python
-tests (8 skips), seven Node tests. Automated live browser verification remains
-unavailable. MAP-007 is verified and awaiting Lead publication.
+MAP-007 merged in PR #68, main `f95d638`: retained ordered comparison months
+and variable in the editor; 45 focused Python and eight Node tests passed,
+review cleared. Earlier full MAP-005 check: 162 Python tests (8 skips), seven
+Node tests. Automated live browser verification remains unavailable.
 
 ## Prior work and open limitations
 

@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-008 | readable map metrics | done
+- Result: Maps headings, ARIA names and selector text use clear unit-bearing labels while submitted values and JS metric keys stay internal. Selector and precipitation map context explain precipitation as a monthly average daily rate. NOAA guidance/status name the saved sampling grid; README and References document the labels and rate.
+- Check: Jinja parse/render smoke for all four labels, raw selector/API key preservation and status wording passed; `git diff --check` passed. No suite/browser run; QA owns focused route/content and Node regressions.
+- Next: QA verifies rendered copy and edit round trips; no known developer blockers.
+
 ## 2026-09-30 | MAP-007 | retain map selection | done
 - Result: Change selection URL preserves ordered months and variable. Route validates explicit values before edit mode, skips availability for normal map renders, and keeps invalid/incomplete inputs at 400. Selector fields render selected rows server-side; existing add/remove behavior and limits remain, with no initial focus. README and References describe editing the comparison.
 - Check: mocked Flask route smoke passed URL order, prefilled values, generic discovery failure, 400 cases, bare selector, and explicit-map discovery bypass. Python AST, Maps/References Jinja parsing and `git diff --check` passed. No full tests, browser, live data or provider calls; QA owns regressions.

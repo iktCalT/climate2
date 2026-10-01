@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 002223e:docs/agents/lead-log.md`.
 
+## 2026-09-30 | MAP-008 | readable map metrics | done
+
+- Result: map headings, accessible names and selector labels show metric names
+  and units without changing internal values. Precipitation wording distinguishes
+  the daily rate from a monthly total; NOAA copy names the saved sampling grid.
+- Check: 47 focused Flask/content tests and eight Node tests passed. Updated
+  stale content assertions retain units/rate/not-total checks for both providers.
+  Review cleared. No data, scale or dependency changes. Browser disconnected.
+- Next: integrate `codex/readable-map-metrics`
+  (base `f95d638`). No live data or deployment operations assigned.
+
 ## 2026-09-30 | MAP-007 | retain comparison selection | done
 
 - Result: map edit links retain ordered months and variable in server-rendered
@@ -49,14 +60,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   automation for this loading-state fix remains unavailable.
 - Next: integrate `codex/map-scale-loading-sync` (base `89f4e15`); no live data
   changes, deployment or additional feature work assigned.
-
-## 2026-09-30 | MAP-004 | smooth estimated NOAA maps | done
-
-- Result: coordinated numeric bilinear raster/readouts from saved canonical
-  nodes, transparent gaps, neutral basemap, fixed manual scales and citations
-  on `codex/smooth-noaa-display` (base `5a557e0`). No stored-data changes.
-- Check: 160 Python tests (8 expected skips), six Node tests; after review's
-  invalid-JSON finding, NOAA finite guards and 48 targeted checks passed.
-  Review cleared. Actual-renderer synthetic gradient/gap visually inspected;
-  browser disconnected, so live appearance/deployment remains unverified.
-- Next: integrate this reviewed branch; no further implementation assigned.

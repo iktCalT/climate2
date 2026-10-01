@@ -1,5 +1,21 @@
 # Next requirements
 
+## Readable map metric labels and sampling context
+
+**Status:** Implemented 2026-09-30; MAP-008, educational map clarity.
+
+Maps exposes internal field keys in headings, accessible map names and the
+variable selector. Present “Mean temperature (°C)”, “Maximum temperature (°C)”,
+“Minimum temperature (°C)” and “Mean daily precipitation (mm/day)” instead,
+using one template-local mapping. Keep option values, API/query keys, selection
+order, validation, calculations and scales unchanged. Explicitly explain that
+precipitation is a monthly average daily rate, not a monthly total. Match the
+existing README distinction: the saved NOAA sampling grid is 2° × 4°, not a
+claim of NOAA's native resolution. Update map guidance/status, README and
+References; no new data claims, resources, dependencies or fetching. Validate
+all four visible labels/ARIA names and unchanged form values/edit round trips,
+plus provider-specific sampling guidance and existing Node map checks.
+
 ## Retain the comparison when changing selection
 
 **Status:** Implemented 2026-09-30; MAP-007, continuing comparison usability.
