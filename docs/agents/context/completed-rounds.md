@@ -1,10 +1,37 @@
 # Completed implementation rounds
 
-Index recorded 2026-09-30 from main `002223e` and agent handoffs. These are
+Index refreshed 2026-10-01 from main `ef5de20` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
-PostgreSQL integration tests; no production database was used for these suites.
+PostgreSQL integration tests in full runs; focused counts are listed separately.
+No production database was used for these suites. Results below are historical,
+not tests rerun during the documentation refresh.
+
+- **MAP-009, PR #70, `ef5de20`:** manual per-panel saved-data retry, guarded
+  against repeats, stale/aborted requests and removed panels. 48 focused Python
+  and eight Node tests; explicit abort/late-success follow-up; review cleared.
+- **MAP-008, PR #69, `0a5f5ef`:** readable metric labels/units, daily-rate and
+  saved-grid wording; raw keys unchanged. 47 focused Python and eight Node tests.
+- **MAP-007, PR #68, `f95d638`:** ordered months/metric survive map edit and
+  resubmission; server-rendered values and validation retained. 45 focused
+  Python and eight Node tests, including actual form round trip/removal.
+- **MAP-006, PR #67, `d0bafd6`:** separate block rows for popup labels/values;
+  safe text and numeric behavior unchanged. Seven Node tests; review cleared.
+- **PAGES-002, PR #66, `60d4a92`:** awareness purpose, illustrative preview,
+  coarse estimates and two-month trend caveat. 18 focused Python tests;
+  both provider renderings and existing credits preserved; review cleared.
+- **MAP-005, PR #65, `435129a`:** manual scales update initialized panels
+  during source loading; no automatic scale changes. Full 162 Python tests
+  (eight expected skips) and seven Node tests; review cleared.
+- **MAP-004, PR #64, `89f4e15`:** bounded bilinear NOAA display with labelled
+  estimates, null holes and consistent readouts. Full 160 Python tests (eight
+  skips), six Node tests; 48 focused Python checks after finite-JSON correction.
+  Synthetic raster inspected; user screenshot confirmed appearance, not live
+  interaction coverage. Review cleared; no provider download changes.
+- **COORD-004, PR #63, `5a557e0`:** compact board/Lead log and indexed context;
+  25 local links, eight merge revisions and scoped diff checks passed. No
+  application or cache changes.
 
 - **MAP-003, PR #62, `002223e`:** explicit map-to-history links and accessible
   coordinate form. 156 Python tests; three Node suites; review cleared.
@@ -34,5 +61,6 @@ for preserved audit limitations and [coordination history](coordination-history.
 for setup. Other agents retain ownership of their detailed logs.
 
 Recover pre-compaction task scopes and Lead evidence without transcript copies:
-`git show 002223e:docs/AGENT_TASKS.md` and
-`git show 002223e:docs/agents/lead-log.md`.
+`git show ef5de20:docs/AGENT_TASKS.md` and
+`git show ef5de20:docs/agents/lead-log.md` (latest compacted scopes);
+use revision `002223e` for earlier assignments.

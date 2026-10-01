@@ -54,6 +54,15 @@ private data, or global caches. No automatic cleanup job is introduced.
 
 ## Indexed context and local cache cleanup
 
+Maintenance round COORD-005 (2026-10-01): implemented refresh after PR #70.
+The board had accumulated completed assignments and stale publication handoffs.
+Lead condensed it, indexed PRs #63–70, refreshed the dated workspace snapshot,
+and reconciled the Lead log with verified merge revisions. Preserve test and
+browser limitations and Git-based recovery. Scope is these coordination
+documents only; no other agent logs, application code, caches or data. Validate
+local links, commit ancestry, scope, whitespace and secrets; no application
+test rerun or specialist implementation is needed for this documentation round.
+
 Maintenance round COORD-004 (2026-09-30): shorten the active task board and
 Lead-owned log, index concise completed-round records, and refresh stale workspace
 and provider context. Preserve unresolved caveats and revision-based recovery.
