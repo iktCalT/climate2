@@ -2,7 +2,18 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
-`git show 002223e:docs/agents/lead-log.md`.
+`git show ef5de20:docs/agents/lead-log.md`.
+
+## 2026-10-01 | COORD-005 | concise current handoffs | done
+
+- Result: archived completed board scopes into the existing completed-rounds
+  index; refreshed workspace snapshot and reconciled prior publication status.
+  Base `ef5de20`, branch `codex/refresh-agent-handoffs`. Other agents' logs,
+  application code, data, environments and caches untouched; no files deleted.
+- Check: five-file scope, 16 local links, 16 ancestor revisions and whitespace
+  passed. Board reduced from 1,066 to about 300 words. Prior application results
+  retained, not rerun for this docs-only round.
+- Next: no specialist or application assignment; publication status is in GitHub.
 
 ## 2026-09-30 | MAP-009 | manual cache request retry | done
 
@@ -13,7 +24,7 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 - Check: 48 focused Flask/content and eight Node tests passed. Production
   review cleared; explicit aborted-response control assertions also passed.
   Browser unavailable. Interrupted round resumed without duplicate agents.
-- Next: integrate `codex/map-cache-retry` (base `0a5f5ef`).
+- Integration: merged PR #70, main `ef5de20`; local main synchronized.
 
 ## 2026-09-30 | MAP-008 | readable map metrics | done
 
@@ -23,8 +34,8 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 - Check: 47 focused Flask/content tests and eight Node tests passed. Updated
   stale content assertions retain units/rate/not-total checks for both providers.
   Review cleared. No data, scale or dependency changes. Browser disconnected.
-- Next: integrate `codex/readable-map-metrics`
-  (base `f95d638`). No live data or deployment operations assigned.
+- Integration: merged PR #69, main `0a5f5ef`. No live data or deployment
+  operations assigned.
 
 ## 2026-09-30 | MAP-007 | retain comparison selection | done
 
@@ -34,7 +45,7 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 - Check: 45 focused Flask/content and eight Node tests passed. Production
   review cleared; QA added actual form resubmission and prefilled-row removal
   assertions after review exposed gaps. Browser unavailable; no live operations.
-- Next: integrate `codex/retain-map-selection` (base `d0bafd6`). Own oldest
+- Integration: merged PR #68, main `f95d638`. Own oldest
   completed log entries trimmed; prior evidence remains in Git/context index.
 
 ## 2026-09-30 | MAP-006 | separate popup text rows | done
@@ -45,16 +56,5 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 - Check: seven Node map tests and syntax/whitespace passed; new structural
   assertions catch the inline-row bug. Review cleared. Browser disconnected;
   no Python rerun or live data operations. Stalled QA startup was replaced.
-- Next: integrate `codex/map-popup-line-layout` (base `60d4a92`); no additional
-  implementation assigned.
-
-## 2026-09-30 | PAGES-002 | public awareness purpose | done
-
-- Result: Home, README and References now foreground environmental awareness,
-  explain saved-grid estimates and comparison limits, and label the decorative
-  preview as illustrative. Existing actions, credits and data caveats retained.
-- Check: both provider renders, eight content tests, ten NOAA-location tests and
-  whitespace passed; independent review cleared. Prior full regression reused
-  for this copy-only change. Browser disconnected; no live data operations.
-- Next: integrate `codex/environment-awareness-copy` (base `435129a`); no
-  additional implementation assigned.
+- Integration: merged PR #67, main `d0bafd6`; no additional implementation
+  assigned. PAGES-002 now indexed in completed rounds (PR #66, `60d4a92`).
