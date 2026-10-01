@@ -3,6 +3,7 @@ import os
 import unittest
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import parse_qs, urlencode, urlsplit
 from unittest.mock import patch
 
 import pandas as pd
@@ -58,6 +59,40 @@ class CoordinateFormParser(HTMLParser):
             self.labels[self.current_label] += data
         if getattr(self, "in_guidance", False):
             self.guidance.append(data)
+
+
+class MapSelectionParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.change_selection_href = None
+        self.month_inputs = []
+        self.data_type_options = []
+        self.map_headings = []
+        self._in_data_type = False
+        self._in_map_heading = False
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "a" and attrs.get("class") == "btn btn-success":
+            self.change_selection_href = attrs.get("href")
+        elif tag == "input" and attrs.get("name") == "month-picker":
+            self.month_inputs.append(attrs)
+        elif tag == "select" and attrs.get("id") == "data-type":
+            self._in_data_type = True
+        elif tag == "option" and self._in_data_type:
+            self.data_type_options.append(attrs)
+        elif tag == "h3" and attrs.get("id", "").startswith("map-heading-"):
+            self._in_map_heading = True
+
+    def handle_endtag(self, tag):
+        if tag == "select":
+            self._in_data_type = False
+        elif tag == "h3":
+            self._in_map_heading = False
+
+    def handle_data(self, data):
+        if self._in_map_heading and data.strip():
+            self.map_headings.append(data.strip())
 
 
 class LocationsRouteTests(unittest.TestCase):
@@ -228,7 +263,97 @@ class LocationsRouteTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"temp_mean for 2026-08", response.data)
-        self.assertIn(b'href="/maps?select=1"', response.data)
+        self.assertIn(b'href="/maps?select=1&amp;month-picker=2026-08&amp;data-type=temp_mean"', response.data)
+
+    def test_change_selection_round_trip_preserves_order_variable_and_unavailable_dates(self):
+        cases = (
+            (["1960-01"], "temp_mean"),
+            (["2026-08", "1960-01", "2001-06", "1951-01"], "precip"),
+        )
+        with patch("climate.web.app.latest_map_month", return_value="2026-08"):
+            for months, data_type in cases:
+                with self.subTest(months=months, data_type=data_type):
+                    map_response = self.client.get(
+                        "/maps?" + "&".join(f"month-picker={month}" for month in months)
+                        + f"&data-type={data_type}"
+                    )
+                    self.assertEqual(map_response.status_code, 200)
+                    calls_before_edit = self.availability.call_count
+                    map_parser = MapSelectionParser()
+                    map_parser.feed(map_response.get_data(as_text=True))
+                    self.assertIsNotNone(map_parser.change_selection_href)
+                    query = parse_qs(urlsplit(map_parser.change_selection_href).query)
+                    edit_response = self.client.get("/maps?" + urlsplit(map_parser.change_selection_href).query)
+                    self.assertEqual(self.availability.call_count, calls_before_edit + 1)
+
+                    self.assertEqual(edit_response.status_code, 200)
+                    edit_parser = MapSelectionParser()
+                    edit_parser.feed(edit_response.get_data(as_text=True))
+                    self.assertEqual([field["value"] for field in edit_parser.month_inputs], months)
+                    self.assertTrue(all("required" in field for field in edit_parser.month_inputs))
+                    selected = [option["value"] for option in edit_parser.data_type_options if "selected" in option]
+                    self.assertEqual(selected, [data_type])
+                    self.assertEqual(query.get("month-picker"), months)
+                    self.assertEqual(query.get("data-type"), [data_type])
+                    form_query = urlencode({
+                        "month-picker": [field["value"] for field in edit_parser.month_inputs],
+                        "data-type": selected[0],
+                    }, doseq=True)
+                    submitted_map = self.client.get("/maps?" + form_query)
+                    self.assertEqual(submitted_map.status_code, 200)
+                    submitted_parser = MapSelectionParser()
+                    submitted_parser.feed(submitted_map.get_data(as_text=True))
+                    self.assertEqual(submitted_parser.map_headings, months)
+                    expected_title = (f"{data_type} for {months[0]}" if len(months) == 1
+                                      else f"Comparing {data_type} across {len(months)} months")
+                    self.assertIn(expected_title.encode(), submitted_map.data)
+                    self.assertEqual(submitted_map.data.count(b'class="climate-map-panel"'), len(months))
+                    self.assertEqual(self.availability.call_count, calls_before_edit + 1,
+                                     "submitting explicit map values does not rediscover availability")
+        self.assertEqual(self.availability.call_count, len(cases), "only edit-mode discovery reads availability")
+
+    def test_bare_selector_is_empty_and_discovery_failure_keeps_edit_values(self):
+        empty = self.client.get("/maps?select=1")
+        self.assertEqual(empty.status_code, 200)
+        empty_parser = MapSelectionParser()
+        empty_parser.feed(empty.get_data(as_text=True))
+        self.assertEqual([field["value"] for field in empty_parser.month_inputs], [""])
+        self.assertFalse(any("selected" in option for option in empty_parser.data_type_options))
+
+        self.availability.side_effect = RuntimeError("private database diagnostics")
+        with self.assertLogs("climate.web.app", "ERROR"):
+            response = self.client.get(
+                "/maps?select=1&month-picker=1960-01&month-picker=2026-08&data-type=precip"
+            )
+        self.assertEqual(response.status_code, 200)
+        parser = MapSelectionParser()
+        parser.feed(response.get_data(as_text=True))
+        self.assertEqual([field["value"] for field in parser.month_inputs], ["1960-01", "2026-08"])
+        self.assertEqual([option["value"] for option in parser.data_type_options
+                          if "selected" in option], ["precip"])
+        self.assertIn(b"Saved dates could not be checked", response.data)
+        self.assertNotIn(b"private database diagnostics", response.data)
+
+    def test_edit_mode_rejects_invalid_explicit_selection_before_discovery(self):
+        latest = "2026-08"
+        cases = (
+            ("month-picker=1960-13&data-type=temp_mean", b"Invalid month"),
+            ("month-picker=1960-01", b"both required"),
+            ("month-picker=&data-type=temp_mean", b"both required"),
+            ("month-picker=1960-01&month-picker=1960-01&data-type=temp_mean", b"must be distinct"),
+            ("&".join(f"month-picker=1960-{month:02d}" for month in range(1, 6))
+             + "&data-type=temp_mean", b"at most four"),
+            ("month-picker=2026-09&data-type=temp_mean", b"Invalid month"),
+            ("month-picker=1960-01&data-type=not-a-variable", b"not supported"),
+        )
+        self.availability.side_effect = AssertionError("Invalid explicit selection reached discovery")
+        with patch("climate.web.app.latest_map_month", return_value=latest):
+            for query, message in cases:
+                with self.subTest(query=query):
+                    response = self.client.get("/maps?select=1&" + query)
+                    self.assertEqual(response.status_code, 400)
+                    self.assertIn(message, response.data)
+        self.availability.assert_not_called()
 
     def test_maps_compares_distinct_months_with_one_shared_scale(self):
         with patch("climate.web.app.latest_map_month", return_value="2026-08"):

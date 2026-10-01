@@ -305,14 +305,31 @@ def logout():
 
 @app.route("/maps")
 def maps():
-    months = [month for month in request.args.getlist("month-picker") if month]
+    supplied_months = request.args.getlist("month-picker")
+    months = [month for month in supplied_months if month]
     data_type = request.args.get("data-type")
     latest_month = latest_map_month()
     imgname = current_image_name()
     show_selector = request.args.get("select") == "1"
+    has_explicit_selection = "month-picker" in request.args or "data-type" in request.args
+
+    if has_explicit_selection:
+        if not supplied_months or any(not month for month in supplied_months) or not data_type:
+            return apology("Month and climate data type are both required", 400)
+        if len(months) > 4:
+            return apology("Compare at most four months at a time", 400)
+        if len(set(months)) != len(months):
+            return apology("Comparison months must be distinct", 400)
+        if any(
+            not is_valid_month(month, start=START, end=latest_month)
+            for month in months
+        ):
+            return apology("Invalid month", 400)
+        if data_type not in DATA_TYPES:
+            return apology(f"This data type ({data_type}) is not supported", 400)
 
     initial_saved_month = False
-    if not months and not data_type:
+    if show_selector or not has_explicit_selection:
         availability_error = None
         try:
             saved_months = saved_map_months(START, latest_month)
@@ -320,33 +337,28 @@ def maps():
             app.logger.exception("Saved map month discovery failed")
             saved_months = []
             availability_error = "Saved dates could not be checked. You can still enter a month manually."
-        stable_month = min(latest_month, default_map_month())
-        eligible = [row["month"] for row in saved_months
-                    if row["counts"][DEFAULT_MAP_DATA_TYPE] > 0 and row["month"] <= stable_month]
-        if show_selector or not eligible:
+        if show_selector and has_explicit_selection:
             return render_template(
                 "maps.html", imgname=imgname, data_types=DATA_TYPES,
                 start=START, end=latest_month, saved_months=saved_months,
-                availability_error=availability_error,
-                no_default=not eligible and not show_selector and not availability_error,
+                availability_error=availability_error, months=months,
+                data_type=data_type, selector_mode=True,
             )
-        months = [max(eligible)]
-        data_type = DEFAULT_MAP_DATA_TYPE
-        initial_saved_month = True
-    elif not months or not data_type:
-        return apology("Month and climate data type are both required", 400)
+        if not has_explicit_selection:
+            stable_month = min(latest_month, default_map_month())
+            eligible = [row["month"] for row in saved_months
+                        if row["counts"][DEFAULT_MAP_DATA_TYPE] > 0 and row["month"] <= stable_month]
+            if show_selector or not eligible:
+                return render_template(
+                    "maps.html", imgname=imgname, data_types=DATA_TYPES,
+                    start=START, end=latest_month, saved_months=saved_months,
+                    availability_error=availability_error,
+                    no_default=not eligible and not show_selector and not availability_error,
+                )
+            months = [max(eligible)]
+            data_type = DEFAULT_MAP_DATA_TYPE
+            initial_saved_month = True
 
-    if len(months) > 4:
-        return apology("Compare at most four months at a time", 400)
-    if len(set(months)) != len(months):
-        return apology("Comparison months must be distinct", 400)
-    if any(
-        not is_valid_month(month, start=START, end=latest_month)
-        for month in months
-    ):
-        return apology("Invalid month", 400)
-    if data_type not in DATA_TYPES:
-        return apology(f"This data type ({data_type}) is not supported", 400)
     return render_template(
         "maps.html",
         imgname=imgname,

@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-007 | retained map selection | done
+- Result: Route regressions submit actual parsed edit-form values and selected variable back to the ordinary map for one and four months, checking order, unavailable dates and no rediscovery; also cover precipitation, empty bare selector, generic discovery failure and pre-discovery 400 validation. Node executes the template's prefilled-row remove listener, add/renumber helpers, focus behavior, four-month cap and date-preserving suggestions.
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed (45 tests). `node --test tests/test_map*.mjs` passed (8 tests, 0 failures). No browser/live data.
+- Next: Reviewer; no QA blockers.
+
 ## 2026-09-30 | MAP-006 | popup row layout | done
 - Result: updated the month XSS assertion for nested `strong`; added DOM checks
   that month and baseline have separate strong-only rows, the value has its own

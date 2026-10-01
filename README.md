@@ -37,7 +37,9 @@ finite-value point counts for the chosen variable. Use a date as the first
 month or add it to a comparison; manual date entry remains available. Counts
 are global, not a claim of complete US/viewport coverage or verified accuracy.
 Changing the variable refreshes the saved-date list but never changes dates
-already entered. Availability uses one read-only, active-provider PostgreSQL
+already entered. Opening **Change selection** from a map carries its ordered
+months and variable into the editable form; submitting keeps the first month as
+the comparison baseline. Availability uses one read-only, active-provider PostgreSQL
 aggregation with a three-second statement timeout and a short lock timeout;
 if it fails, the selector explains the problem and keeps manual entry usable.
 The listing refreshes on a new page request, so imports and cleanup affect the

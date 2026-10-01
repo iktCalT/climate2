@@ -7,14 +7,14 @@
 {% endblock %}
 
 {% block main %}
-    {% if months and data_type %}
+    {% if months and data_type and not selector_mode %}
         <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
             {% if comparison %}
                 <h2 class="fs-4 mb-0">Comparing {{ data_type }} across {{ months | length }} months</h2>
             {% else %}
                 <h2 class="fs-4 mb-0">{{ data_type }} for {{ month }}</h2>
             {% endif %}
-            <a class="btn btn-success" href="/maps?select=1">Change selection</a>
+            <a class="btn btn-success" href="{{ url_for('maps', select='1', **{'month-picker': months, 'data-type': data_type}) }}">Change selection</a>
         </div>
         {% if comparison %}
             <p class="text-muted">
@@ -133,9 +133,21 @@
                     min="{{ start }}"
                     max="{{ end }}"
                     required
+                    value="{{ (months | default([]) | first) or '' }}"
                 >
             </div>
-            <div id="comparison-months" class="comparison-months"></div>
+            <div id="comparison-months" class="comparison-months">
+                {% for selected_month in (months | default([]))[1:] %}
+                    <div class="comparison-month-row">
+                        <div>
+                            <label for="month-picker-{{ loop.index }}">Compare month {{ loop.index + 1 }}</label>
+                            <input class="form-control" id="month-picker-{{ loop.index }}" name="month-picker"
+                                type="month" min="{{ start }}" max="{{ end }}" required value="{{ selected_month }}">
+                        </div>
+                        <button class="btn btn-outline-danger" type="button">Remove</button>
+                    </div>
+                {% endfor %}
+            </div>
             <button class="btn btn-climate-secondary mb-3" id="add-comparison-month" type="button">
                 Add comparison month
             </button>
@@ -148,7 +160,7 @@
                     required
                 >
                     {% for item in data_types %}
-                        <option value="{{ item }}">{{ item }}</option>
+                        <option value="{{ item }}"{% if item == data_type %} selected{% endif %}>{{ item }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -162,7 +174,7 @@
 {% endblock %}
 
 {% block script %}
-    {% if months and data_type %}
+    {% if months and data_type and not selector_mode %}
         <script type="module">
             import {
                 FullscreenControl,
@@ -642,6 +654,13 @@
                 renumberComparisonMonths();
                 input.focus();
             }
+            comparisonMonths.querySelectorAll(".comparison-month-row").forEach(row => {
+                row.querySelector("button").addEventListener("click", () => {
+                    row.remove();
+                    renumberComparisonMonths();
+                });
+            });
+            renumberComparisonMonths();
             addComparisonMonth.addEventListener("click", () => addMonth());
         </script>
     {% endif %}

@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-007 | retain map selection | done
+- Result: no production blocker on `codex/retain-map-selection`, base `d0bafd6`. Explicit selections validate before discovery/edit rendering; ordinary explicit maps skip availability reads. The edit URL retains ordered months and variable; required dates and selected variable render server-side. Existing and new rows support remove/renumber, with the four-month cap. No-JS GET submission preserves the map and baseline; discovery errors preserve entries and hide diagnostics. QA follow-up now asserts parsed-form submission returns the same ordered map and executes initialization/removal for a prefilled row, closing both coverage gaps.
+- Check: read-only route/template/test review; scoped `git diff --check d0bafd6` passed. QA reports 45 focused Flask/content tests and eight Node selector/map tests passed; not rerun. No browser, live database, or network checks.
+- Next: Lead publication/integration; no review findings.
+
 ## 2026-09-30 | MAP-006 | popup row layout | done
 - Result: no actionable finding on `codex/map-popup-line-layout`, base `60d4a92`. `line()` creates a separate block row per entry, nests `strong` for emphasized text, and uses `textContent` for all strings. Popup values and comparison numbers retain their prior calculations, units, and provenance. README/References give the requested readability guidance. QA structural assertions cover month, baseline, value, difference rows, and nested user text.
 - Check: read-only scoped diff and surrounding popup logic inspection; `git diff --check 60d4a92 -- static/map_selection.js README.md templates/references.html tests/test_map_selection.mjs` passed. QA reports all seven Node map tests passed; not rerun. No browser, live data, or network checks.

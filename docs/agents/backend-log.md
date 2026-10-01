@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-007 | retain map selection | done
+- Result: Change selection URL preserves ordered months and variable. Route validates explicit values before edit mode, skips availability for normal map renders, and keeps invalid/incomplete inputs at 400. Selector fields render selected rows server-side; existing add/remove behavior and limits remain, with no initial focus. README and References describe editing the comparison.
+- Check: mocked Flask route smoke passed URL order, prefilled values, generic discovery failure, 400 cases, bare selector, and explicit-map discovery bypass. Python AST, Maps/References Jinja parsing and `git diff --check` passed. No full tests, browser, live data or provider calls; QA owns regressions.
+- Next: QA updates/runs route and selector regressions, then Reviewer.
+
 ## 2026-09-30 | MAP-006 | popup row layout | done
 - Result: `line()` now appends one block `div` per popup row, nesting `strong` for emphasized text and retaining `textContent`. README and References describe readable label/value rows. No data, arithmetic, links, scale or requests changed.
 - Check: JS syntax, direct DOM-shape smoke, References Jinja parse and `git diff --check` passed. Existing Node test stops at its old direct-child text assertion (line 213); QA owns updating the fixture/assertion and adding structural regressions. No full suite, live DB, browser or commit.
