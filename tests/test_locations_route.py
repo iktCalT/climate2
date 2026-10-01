@@ -25,6 +25,13 @@ from climate.services.map_data import (
     viewport_geojson,
 )
 
+MAP_METRIC_LABELS = {
+    "temp_mean": "Mean temperature (°C)",
+    "temp_max": "Maximum temperature (°C)",
+    "temp_min": "Minimum temperature (°C)",
+    "precip": "Mean daily precipitation (mm/day)",
+}
+
 
 class CoordinateFormParser(HTMLParser):
     def __init__(self):
@@ -67,9 +74,14 @@ class MapSelectionParser(HTMLParser):
         self.change_selection_href = None
         self.month_inputs = []
         self.data_type_options = []
+        self.data_type_labels = {}
         self.map_headings = []
+        self.page_headings = []
+        self.map_aria_labels = []
         self._in_data_type = False
+        self._in_data_type_option = None
         self._in_map_heading = False
+        self._in_page_heading = False
 
     def handle_starttag(self, tag, attrs):
         attrs = dict(attrs)
@@ -81,18 +93,32 @@ class MapSelectionParser(HTMLParser):
             self._in_data_type = True
         elif tag == "option" and self._in_data_type:
             self.data_type_options.append(attrs)
+            self._in_data_type_option = attrs.get("value")
+            self.data_type_labels[self._in_data_type_option] = ""
         elif tag == "h3" and attrs.get("id", "").startswith("map-heading-"):
             self._in_map_heading = True
+        elif tag == "h2" and "fs-4" in attrs.get("class", "").split():
+            self._in_page_heading = True
+        elif tag == "div" and attrs.get("class") == "climate-map":
+            self.map_aria_labels.append(attrs.get("aria-label"))
 
     def handle_endtag(self, tag):
         if tag == "select":
             self._in_data_type = False
+        elif tag == "option":
+            self._in_data_type_option = None
         elif tag == "h3":
             self._in_map_heading = False
+        elif tag == "h2":
+            self._in_page_heading = False
 
     def handle_data(self, data):
         if self._in_map_heading and data.strip():
             self.map_headings.append(data.strip())
+        if self._in_page_heading and data.strip():
+            self.page_headings.append(data.strip())
+        if self._in_data_type_option and data.strip():
+            self.data_type_labels[self._in_data_type_option] += data.strip()
 
 
 class LocationsRouteTests(unittest.TestCase):
@@ -197,10 +223,16 @@ class LocationsRouteTests(unittest.TestCase):
     def test_map_api_returns_viewport_geojson(self):
         payload = {"type": "FeatureCollection", "features": [], "metadata": {"step": 4, "fetched": 0, "missing": 0}}
         with patch("climate.web.app.viewport_geojson", return_value=payload) as viewport:
-            response = self.client.get("/api/map-data?month=1950-01&climate_type=temp_mean&south=-10&west=-10&north=10&east=10&zoom=2&fetch_missing=true")
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json["type"], "FeatureCollection")
-        self.assertIs(viewport.call_args.kwargs["fetch_missing"], False)
+            for climate_type in MAP_METRIC_LABELS:
+                with self.subTest(climate_type=climate_type):
+                    response = self.client.get(
+                        "/api/map-data?month=1950-01&climate_type="
+                        f"{climate_type}&south=-10&west=-10&north=10&east=10&zoom=2&fetch_missing=true"
+                    )
+                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response.json["type"], "FeatureCollection")
+                    self.assertEqual(viewport.call_args.args[:2], ("1950-01", climate_type))
+                    self.assertIs(viewport.call_args.kwargs["fetch_missing"], False)
 
     def test_empty_location_shows_no_stale_chart_and_no_download(self):
         history = pd.DataFrame(float("nan"), index=pd.date_range("2022-01-01", periods=3, freq="MS"),
@@ -262,14 +294,77 @@ class LocationsRouteTests(unittest.TestCase):
                 response = self.client.get("/maps")
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"temp_mean for 2026-08", response.data)
+        self.assertIn(b"Mean temperature (\xc2\xb0C) for 2026-08", response.data)
         self.assertIn(b'href="/maps?select=1&amp;month-picker=2026-08&amp;data-type=temp_mean"', response.data)
 
+    def test_readable_metric_labels_keep_internal_keys_and_form_values(self):
+        months = ("1960-01", "2001-06")
+        with patch("climate.web.app.latest_map_month", return_value="2026-08"):
+            for metric_key, label in MAP_METRIC_LABELS.items():
+                with self.subTest(metric=metric_key):
+                    single = self.client.get(
+                        f"/maps?month-picker={months[0]}&data-type={metric_key}"
+                    )
+                    self.assertEqual(single.status_code, 200)
+                    single_parser = MapSelectionParser()
+                    single_parser.feed(single.get_data(as_text=True))
+                    self.assertEqual(single_parser.page_headings, [f"{label} for {months[0]}"])
+                    self.assertEqual(single_parser.map_aria_labels,
+                                     [f"{label} map for {months[0]}"])
+                    self.assertIn(f'const climateType = "{metric_key}";'.encode(), single.data)
+
+                    comparison = self.client.get(
+                        f"/maps?month-picker={months[0]}&month-picker={months[1]}&data-type={metric_key}"
+                    )
+                    self.assertEqual(comparison.status_code, 200)
+                    comparison_parser = MapSelectionParser()
+                    comparison_parser.feed(comparison.get_data(as_text=True))
+                    self.assertEqual(comparison_parser.page_headings,
+                                     [f"Comparing {label} across 2 months"])
+                    self.assertEqual(comparison_parser.map_aria_labels,
+                                     [f"{label} map for {month}" for month in months])
+
+                    selector = self.client.get(
+                        f"/maps?select=1&month-picker={months[0]}&data-type={metric_key}"
+                    )
+                    self.assertEqual(selector.status_code, 200)
+                    selector_parser = MapSelectionParser()
+                    selector_parser.feed(selector.get_data(as_text=True))
+                    self.assertEqual(
+                        [option["value"] for option in selector_parser.data_type_options],
+                        list(MAP_METRIC_LABELS),
+                    )
+                    self.assertEqual(selector_parser.data_type_labels, MAP_METRIC_LABELS)
+                    self.assertEqual(selector_parser.data_type_labels[metric_key], label)
+                    selected = [option["value"] for option in selector_parser.data_type_options
+                                if "selected" in option]
+                    self.assertEqual(selected, [metric_key])
+
+    def test_precipitation_and_provider_guidance_stays_distinct(self):
+        with patch("climate.web.app.latest_map_month", return_value="2026-08"):
+            for provider in ("noaa_core", "open_meteo_cmip6"):
+                with self.subTest(provider=provider), patch.dict(app.config, CLIMATE_PROVIDER=provider):
+                    selector = self.client.get("/maps?select=1")
+                    self.assertEqual(selector.status_code, 200)
+                    self.assertIn(b"Precipitation is shown as mean daily rate (mm/day)", selector.data)
+                    self.assertIn(b"not as a monthly total", selector.data)
+
+                    precip = self.client.get("/maps?month-picker=1960-01&data-type=precip")
+                    self.assertEqual(precip.status_code, 200)
+                    self.assertIn(b"Precipitation is a monthly average daily rate (mm/day)", precip.data)
+                    self.assertIn(b"not a monthly total", precip.data)
+                    if provider == "noaa_core":
+                        self.assertIn(b"saved NOAA sampling grid is spaced 2\xc2\xb0 latitude \xc3\x97 4\xc2\xb0 longitude", precip.data)
+                        self.assertIn(b"adds no source resolution or accuracy", precip.data)
+                        self.assertNotIn(b"Open-Meteo CMIP6 model output", precip.data)
+                    else:
+                        self.assertIn(b"these maps use Open-Meteo CMIP6 model output", precip.data)
+                        self.assertNotIn(b"saved NOAA sampling grid", precip.data)
+
     def test_change_selection_round_trip_preserves_order_variable_and_unavailable_dates(self):
-        cases = (
-            (["1960-01"], "temp_mean"),
-            (["2026-08", "1960-01", "2001-06", "1951-01"], "precip"),
-        )
+        cases = tuple((["1960-01"], metric) for metric in MAP_METRIC_LABELS)
+        cases += tuple((["2026-08", "1960-01", "2001-06", "1951-01"], metric)
+                       for metric in MAP_METRIC_LABELS)
         with patch("climate.web.app.latest_map_month", return_value="2026-08"):
             for months, data_type in cases:
                 with self.subTest(months=months, data_type=data_type):
@@ -304,8 +399,9 @@ class LocationsRouteTests(unittest.TestCase):
                     submitted_parser = MapSelectionParser()
                     submitted_parser.feed(submitted_map.get_data(as_text=True))
                     self.assertEqual(submitted_parser.map_headings, months)
-                    expected_title = (f"{data_type} for {months[0]}" if len(months) == 1
-                                      else f"Comparing {data_type} across {len(months)} months")
+                    label = MAP_METRIC_LABELS[data_type]
+                    expected_title = (f"{label} for {months[0]}" if len(months) == 1
+                                      else f"Comparing {label} across {len(months)} months")
                     self.assertIn(expected_title.encode(), submitted_map.data)
                     self.assertEqual(submitted_map.data.count(b'class="climate-map-panel"'), len(months))
                     self.assertEqual(self.availability.call_count, calls_before_edit + 1,
@@ -362,7 +458,7 @@ class LocationsRouteTests(unittest.TestCase):
             )
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Comparing temp_mean across 2 months", response.data)
+        self.assertIn(b"Comparing Mean temperature (\xc2\xb0C) across 2 months", response.data)
         self.assertIn(b'id="climate-map-0"', response.data)
         self.assertIn(b'id="climate-map-1"', response.data)
         self.assertIn(b"syncViewports", response.data)
@@ -377,7 +473,7 @@ class LocationsRouteTests(unittest.TestCase):
         ]
         with patch("climate.web.app.default_map_month", return_value="2026-09"):
             response = self.client.get("/maps")
-        self.assertIn(b"temp_mean for 2026-08", response.data)
+        self.assertIn(b"Mean temperature (\xc2\xb0C) for 2026-08", response.data)
         self.assertIn(b"newest saved mean-temperature", response.data)
 
     def test_default_map_respects_stable_date_bound(self):
@@ -387,7 +483,7 @@ class LocationsRouteTests(unittest.TestCase):
         ]
         with patch("climate.web.app.default_map_month", return_value="2026-08"):
             response = self.client.get("/maps")
-        self.assertIn(b"temp_mean for 2026-08", response.data)
+        self.assertIn(b"Mean temperature (\xc2\xb0C) for 2026-08", response.data)
 
     def test_empty_saved_cache_opens_selector_instead_of_empty_default(self):
         self.availability.return_value = []
@@ -410,7 +506,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.availability.side_effect = AssertionError("Discovery should not run")
         response = self.client.get("/maps?month-picker=1960-01&data-type=precip")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"precip for 1960-01", response.data)
+        self.assertIn(b"Mean daily precipitation (mm/day) for 1960-01", response.data)
         self.availability.assert_not_called()
 
     def test_selector_shows_saved_month_controls_and_keeps_manual_dates(self):

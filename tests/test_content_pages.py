@@ -176,7 +176,9 @@ class ContentPageTests(unittest.TestCase):
                 self.assertIn("awareness of broad climate patterns, not high-precision reporting", references)
                 self.assertIn("two months cannot establish a long-term climate trend", references)
                 self.assertIn("Visitors do not trigger provider downloads", references)
-                self.assertIn("mean daily mm/day, not a monthly total", references)
+                self.assertIn("mean daily precipitation in mm/day", references)
+                self.assertIn("monthly average daily rate", references)
+                self.assertIn("not a monthly total", references)
                 reference_links = PageStructure()
                 reference_links.feed(references)
                 self.assertEqual(
@@ -195,7 +197,9 @@ class ContentPageTests(unittest.TestCase):
             "Active public source",
             "noaa_core",
             "not direct station observations",
-            "mean daily mm/day, not a monthly total",
+            "mean daily precipitation in mm/day",
+            "monthly average daily rate",
+            "not a monthly total",
             "Visitors do not trigger provider downloads",
             "January 1950 through the current month",
             "Location history starts in January 1951",

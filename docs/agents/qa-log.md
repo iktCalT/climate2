@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-008 | readable map metric labels | done
+- Result: Added rendered route coverage for all four readable labels in single/comparison headings, map ARIA names and selector captions. Kept raw option values, API `climate_type` keys, JS keys and one/four-month edit round trips asserted. Added provider-specific NOAA/CMIP6 and precipitation-rate copy checks; updated the Node status assertion to saved-grid wording. Updated References assertions for metric units, monthly average daily rate and the non-total caveat in both provider branches.
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed (47). `node --test tests/test_map*.mjs` passed (8, prior run; JS unchanged). No live database or browser.
+- Next: Reviewer; no QA blockers.
+
 ## 2026-09-30 | MAP-007 | retained map selection | done
 - Result: Route regressions submit actual parsed edit-form values and selected variable back to the ordinary map for one and four months, checking order, unavailable dates and no rediscovery; also cover precipitation, empty bare selector, generic discovery failure and pre-discovery 400 validation. Node executes the template's prefilled-row remove listener, add/renumber helpers, focus behavior, four-month cap and date-preserving suggestions.
 - Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed (45 tests). `node --test tests/test_map*.mjs` passed (8 tests, 0 failures). No browser/live data.

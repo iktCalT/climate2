@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-008 | readable map metrics | done
+- Result: no actionable production or test finding on `codex/readable-map-metrics`, base `f95d638`. The template-local mapping supplies unit-bearing headings, map accessible names and selector labels; form values, query/API keys and JS metric keys remain the existing identifiers. Precipitation is consistently described as a monthly average daily rate, not a monthly total. NOAA wording identifies the saved 2° × 4° sampling grid without calling it native NOAA resolution; CMIP6 guidance and existing references/credits remain intact.
+- Check: reviewed scoped diff and surrounding route/template behavior; `git diff --check f95d638` passed. QA reports 47 focused Flask/content tests and eight Node map tests passed; not rerun. No browser or live-data checks.
+- Next: Lead integrates and updates MAP-008 status in `NEXT_REQUIREMENTS.md`; no review findings.
+
 ## 2026-09-30 | MAP-007 | retain map selection | done
 - Result: no production blocker on `codex/retain-map-selection`, base `d0bafd6`. Explicit selections validate before discovery/edit rendering; ordinary explicit maps skip availability reads. The edit URL retains ordered months and variable; required dates and selected variable render server-side. Existing and new rows support remove/renumber, with the four-month cap. No-JS GET submission preserves the map and baseline; discovery errors preserve entries and hide diagnostics. QA follow-up now asserts parsed-form submission returns the same ordered map and executes initialization/removal for a prefilled row, closing both coverage gaps.
 - Check: read-only route/template/test review; scoped `git diff --check d0bafd6` passed. QA reports 45 focused Flask/content tests and eight Node selector/map tests passed; not rerun. No browser, live database, or network checks.

@@ -114,7 +114,7 @@ deferred[2].resolve({ok: true, json: async () => payload});
 await flushAsync();
 assert.equal(events.filter(event => event === "accepted").length, 1);
 assert.equal(panel.interpolation, payload.interpolation);
-assert.match(panel.status.textContent, /Smooth display — interpolated estimate.*2° × 4° source spacing/);
+assert.match(panel.status.textContent, /Smooth display — interpolated estimate.*Saved sampling grid: 2° latitude × 4° longitude/);
 const firstSource = sources.get("climate-raster");
 assert.equal(firstSource.animate, false);
 assert.equal(firstSource.type, "canvas");
