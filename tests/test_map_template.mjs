@@ -267,6 +267,7 @@ const {presetScale, createCustomScale, customScaleFromScale, colorExpression} = 
     moduleScript.indexOf("Object.values(SCALE_PRESETS"));
 const lifecycleSource = moduleScript.slice(moduleScript.indexOf("panels.forEach((panel) => {", moduleScript.indexOf("function invalidateViewport")));
 const resetRetrySource = moduleScript.slice(moduleScript.indexOf("function resetRetry"), moduleScript.indexOf("function syncViewports"));
+const readinessSource = moduleScript.slice(moduleScript.indexOf("function livePanels()"), moduleScript.indexOf("coordinateForm.addEventListener(\"submit\""));
 
 for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "NOAA" : "CMIP6"} actual scale handler synchronizes initialized panels while sources load`, () => {
     function element() {
@@ -307,6 +308,8 @@ for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "
     for (const panel of panels) panel.map.isStyleLoaded = () => {fullLoadedChecks += 1; return false;};
     const ui = Object.fromEntries(["presetPicker", "customFields", "minimumInput", "maximumInput", "lowColorInput",
         "middleColorInput", "highColorInput", "scaleError", "scaleSummary", "scaleLegend"].map(key => [key, element()]));
+    const showCoordinateButton = {disabled: true};
+    const coordinateStatus = {textContent: "Waiting for all map panels to initialize…"};
     const saved = [];
     const firstRenders = [];
     let requests = 0;
@@ -316,14 +319,18 @@ for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "
         const {panels, useInterpolatedNoaa, document, family, customScaleFromScale, colorExpression,
             saveScale, createInterpolatedRaster, NavigationControl, FullscreenControl, selection,
             startViewportLoad, invalidateViewport, syncViewports, retrySavedData, fetch,
+            showCoordinateButton, coordinateStatus,
             presetPicker, customFields, minimumInput, maximumInput, lowColorInput, middleColorInput,
             highColorInput, scaleError, scaleSummary, scaleLegend} = env;
+        let coordinateReadiness = false;
         let activeScale = env.initialScale;
         ${scaleFunctions}
         ${resetRetrySource}
+        ${readinessSource}
         ${lifecycleSource}
         return {setActiveScale, redrawNoaaRaster, clearNoaaRaster, currentScale: () => activeScale};`);
     const harness = build({...ui, panels, useInterpolatedNoaa, family: "temperature", document: {createElement: element},
+        showCoordinateButton, coordinateStatus,
         initialScale: presetScale("temperature"), customScaleFromScale, colorExpression,
         saveScale: (family, scale) => saved.push({family, scale}),
         createInterpolatedRaster: ({scale}) => ({canvas: {scale}, coordinates: []}),
@@ -334,6 +341,7 @@ for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "
         fetch: () => {requests += 1; throw new Error("unexpected fetch");},
     });
     removed.handlers.remove();
+    assert.equal(showCoordinateButton.disabled, true, "one uninitialized live panel keeps coordinate submission disabled");
     assert.equal(removed.styleReady, false);
     assert.equal(removed.interpolation, null);
     assert.equal(removed.rasterBounds, null);
@@ -367,6 +375,8 @@ for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "
     assert.equal(ui.maximumInput.value, choices.at(-1).max);
     preload.handlers.load();
     assert.equal(preload.styleReady, true);
+    assert.equal(showCoordinateButton.disabled, false, "actual lifecycle binding enables submission once all live panels initialize");
+    assert.equal(coordinateStatus.textContent, "Enter coordinates to show a location on the maps.");
     assert.deepEqual(firstRenders, [colorExpression(choices.at(-1))], "initial load uses latest pre-load choice");
     harness.redrawNoaaRaster(preload);
     if (useInterpolatedNoaa) assert.equal(preload.sources.get("climate-raster").canvas.scale, choices.at(-1));

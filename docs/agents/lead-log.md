@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show ef5de20:docs/agents/lead-log.md`.
 
+## 2026-10-01 | MAP-010 | keyboard map coordinate selection | done
+
+- Result: typed coordinates center synchronized maps and open linked readouts;
+  clear closes them without movement or fetching. Readiness, bounds and removed
+  panels are guarded; dates, metric and manual scale stay unchanged. README and
+  References updated. Branch `codex/map-coordinate-selection`, base `69b6a04`.
+- Check: 50 focused Flask/content and 13 Node tests passed; review cleared.
+  Lead corrected readiness status and required same-center synchronization
+  evidence. Initially undefined readiness is intentional, not a defect. No live
+  browser, database, provider or deployment operations.
+- Next: publication status in GitHub; no additional specialist task assigned.
+
 ## 2026-10-01 | COORD-005 | concise current handoffs | done
 
 - Result: archived completed board scopes into the existing completed-rounds
@@ -47,14 +59,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   assertions after review exposed gaps. Browser unavailable; no live operations.
 - Integration: merged PR #68, main `f95d638`. Own oldest
   completed log entries trimmed; prior evidence remains in Git/context index.
-
-## 2026-09-30 | MAP-006 | separate popup text rows | done
-
-- Result: bold popup entries now sit inside separate block rows, fixing the
-  screenshot's joined date/Baseline and difference label/value. Text safety,
-  calculations, shared selections, links and fetching remain unchanged.
-- Check: seven Node map tests and syntax/whitespace passed; new structural
-  assertions catch the inline-row bug. Review cleared. Browser disconnected;
-  no Python rerun or live data operations. Stalled QA startup was replaced.
-- Integration: merged PR #67, main `d0bafd6`; no additional implementation
-  assigned. PAGES-002 now indexed in completed rounds (PR #66, `60d4a92`).

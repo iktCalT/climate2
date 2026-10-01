@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | MAP-010 | keyboard coordinate selection | done
+- Result: no actionable correctness or security finding in the working-tree diff on `codex/map-coordinate-selection`, base `69b6a04`. The native form validates finite bounded values before map/selection changes, rechecks all-live-panel readiness, centers via the existing move synchronization path, and selects through the established popup model. Explicit same-center sync covers divergent peers; removed maps are skipped. Clear only clears popup state. Zoom, bearing, pitch and scale are preserved. README and References explain the behavior; no third-party resources were added. `coordinateReadiness` starts undefined intentionally so its first update initializes the status; this is not a defect.
+- Check: read-only diff, surrounding movement/selection lifecycle and focused regression assertions reviewed. QA reports 50 focused Flask/content tests and 13 Node tests passed; not rerun. No browser, live database, provider, or network access.
+- Next: Lead integration; no actionable findings. Browser verification remains unavailable.
+
 ## 2026-09-30 | MAP-009 | manual saved-data retry | done
 - Result: no production blocker in the per-panel retry flow. Only current non-aborted failures expose retry; explicit clicks require a live initialized panel, disable repeat clicks, cancel that panel's debounce, and reuse the generation-guarded saved-data request. Success, empty coverage, invalid bounds, movement and removal hide/reset the control. Stale/removed work cannot publish status or clear a newer controller. Month/location/view/scale and other panels are not changed by retry. No API/provider fetch path was added.
 - Check: inspected scoped diff and lifecycle/test assertions; scoped `git diff --check` passed. QA added actual `invalidateViewport` → `AbortError` rejection and late-success-after-abort assertions, including unchanged loading status, no acceptance, and hidden/disabled retry. QA reports 48 focused Flask tests and eight Node tests passed after that addition; not rerun here. No browser, database, or provider operations.

@@ -311,6 +311,26 @@ class LocationsRouteTests(unittest.TestCase):
             self.assertIn(f'type="button" aria-label="Retry saved data for {month}"'.encode(), response.data)
             self.assertIn(f'aria-describedby="map-status-{index}" hidden>Retry saved data</button>'.encode(), response.data)
 
+    def test_coordinate_form_renders_native_bounds_status_and_only_on_open_maps(self):
+        with patch("climate.web.app.latest_map_month", return_value="2026-08"):
+            maps = self.client.get("/maps?month-picker=2026-08&data-type=temp_mean")
+            selector = self.client.get("/maps?select=1")
+
+        self.assertEqual(maps.status_code, 200)
+        self.assertIn(b'<form id="map-coordinate-form" class="data-note text-start" novalidate>', maps.data)
+        self.assertIn('<label for="map-coordinate-latitude">Latitude (\u221285 to 85)</label>'.encode(), maps.data)
+        self.assertIn(b'<input class="form-control" id="map-coordinate-latitude" name="latitude" type="number" step="any" min="-85" max="85" required>', maps.data)
+        self.assertIn('<label for="map-coordinate-longitude" class="mt-2">Longitude (\u2212180 to 180)</label>'.encode(), maps.data)
+        self.assertIn(b'<input class="form-control" id="map-coordinate-longitude" name="longitude" type="number" step="any" min="-180" max="180" required>', maps.data)
+        self.assertIn(b'<button id="show-map-coordinate" class="btn btn-climate-primary" type="submit" disabled>Show location on maps</button>', maps.data)
+        self.assertIn(b'<button id="clear-map-coordinate" class="btn btn-outline-secondary" type="button">Clear location</button>', maps.data)
+        self.assertIn(b'<p id="map-coordinate-status" role="status" aria-live="polite"', maps.data)
+        self.assertIn("Negative latitude means south; negative longitude means west. Missing climate data remains missing.".encode(), maps.data)
+
+        self.assertEqual(selector.status_code, 200)
+        self.assertNotIn(b'id="map-coordinate-form"', selector.data,
+                         "coordinate entry stays off the month selector")
+
     def test_readable_metric_labels_keep_internal_keys_and_form_values(self):
         months = ("1960-01", "2001-06")
         with patch("climate.web.app.latest_map_month", return_value="2026-08"):
