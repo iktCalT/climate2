@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | HISTORY-002 | editable Location coordinates | done
+- Result: no actionable correctness, security, provenance or UX finding on `codex/edit-location-coordinates`, base `a6491c1`. One native GET form precedes covered/empty results; validated requested floats preserve decimal precision and signed zero independently of NOAA sampling. Bounds, labels, guidance, explicit submission, Clear, coverage and provider copy satisfy the contract. README/References document editing; no external resource added.
+- Check: reviewed template, surrounding validation/history route, paired documentation and actual parsed-form regression assertions. QA reports 57 focused route/content tests passed; not rerun. No Git, browser, network, database, provider or production/test edits.
+- Next: Lead integration; browser verification remains unavailable.
+
 ## 2026-10-01 | HISTORY-001 | seasonal coverage readouts | done
 - Result: no actionable correctness or security finding on `codex/seasonal-coverage-readouts`, base `eab3e85`. Counts use the same non-null values as unchanged means; December remains assigned to the following winter year. Contiguous transformed-year seasons retain NaN/zero gaps with connection disabled; empty histories stay empty. Metric units, default/menu behavior, version-only cache invalidation, coverage guidance and paired Plotly citations satisfy the contract.
 - Check: scoped diff, surrounding chart/cache/history code and focused test assertions reviewed; `git diff --check` passed. QA reports 59 focused chart/route/content tests passed; not rerun. No browser, network, live database or provider operations.

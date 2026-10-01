@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | HISTORY-002 | editable Location coordinates | done
+- Result: one native GET coordinate form now precedes entry/result content, including empty coverage. Results prefill validated requested lat/lon without extra rounding; zero and negative decimals remain intact. Labels, bounds, required flags and guidance retained; result heading/button explain explicit submission. Clear links to blank entry. Provider provenance, coverage and seasonal guidance remain. README/References document editing; no new external resources.
+- Check: Jinja compilation and six offline Flask entry/covered/empty renders across both providers passed, including precise decimal/zero prefills, form uniqueness/order and Clear URL; both References branches passed. `git diff --check` passed. No backend/test edits, live DB/network, browser, chart writes or Git mutations.
+- Next: QA owns mocked route resubmission/validation and content regressions; branch `codex/edit-location-coordinates`, base `a6491c1`.
+
 ## 2026-10-01 | HISTORY-001 | seasonal chart coverage | done
 - Result: seasonal aggregation preserves monthly means and winter assignment while adding per-metric non-null counts and explicit zero-count NaN seasons across the complete observed year span; empty histories stay empty. Hovers show x/3 months and °C or mm/day; precipitation axis now uses mm/day, chart version is v7, and Locations/README/References explain fixed Northern Hemisphere groups and coverage limits. Added official Plotly hover/customdata citations in both public references.
 - Check: Python AST and Locations/References Jinja parses passed; in-memory chart smoke passed winter assignment, zero-count NaN, 16 traces, hover metadata, disabled gap connection, and precipitation axis. Follow-up sparse 1951–2026 and empty-history smokes passed. `git diff --check` passed. No live data/provider, persistent generated cache, browser or full test operations.
