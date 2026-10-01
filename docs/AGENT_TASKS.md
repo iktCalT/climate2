@@ -8,6 +8,24 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**MAP-010 — keyboard coordinate selection (complete).** Base `69b6a04`
+(PR #71), branch `codex/map-coordinate-selection`; contract atop requirements.
+Lead owns requirements/board/log. Developer owns `templates/maps.html`, optional
+new `static/map_coordinates.js`, README, References and backend log (bounded
+frontend exception). QA owns coordinate/template Node tests,
+`tests/test_locations_route.py`, `tests/test_content_pages.py` and QA log.
+Reviewer read-only except own log. Sequential Luna/medium. Acceptance: validated
+typed coordinates center live initialized panels and reuse linked readouts;
+manual scales and existing lifecycle remain intact. No providers, DB, new
+dependencies or unrelated edits. Focused offline Node/Flask batch, then review.
+
+QA passed 50 focused Flask/content and 13 Node map tests; review cleared.
+Lead's readiness-message correction and same-center test gap were resolved.
+Browser unavailable; no live data or deployment operations. Publication status
+is recorded in GitHub; no further specialist task is assigned.
+
+## Latest coordination round
+
 **COORD-005 — refresh concise handoffs (Lead, documentation complete).** Base `ef5de20`
 (PR #70), branch `codex/refresh-agent-handoffs`.
 
@@ -43,4 +61,4 @@ NOAA is the startup public provider; deployment/restart has not been verified.
 Automated browser verification remains unavailable in the latest handoff.
 See [data/map context](agents/context/data-and-maps.md) for dated coverage and
 unresolved CMIP6 caveats, and [workspace](agents/context/workspace.md) before
-starting a new branch. No next application task has been assigned.
+starting a new branch. COORD-005 merged in PR #71 (`69b6a04`).

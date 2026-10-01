@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | MAP-010 | typed map coordinates | done
+- Result: Added actual-template submit/clear and load/remove lifecycle coverage for invalid finite/range inputs, decimal endpoints, readiness transitions/rechecks, removed/all-removed panels, one/four-panel synchronization (including an already-centered source), retained view properties, and clear-without-pan/fetch. Rendered route tests check native labels/bounds/live status and selector absence; content tests check README/References wording. Updated scale lifecycle harness to bind the readiness helper. No production edits.
+- Check: focused Flask route/content batch passed 50 tests; `node --test tests/test_map*.mjs` passed 13; scoped `git diff --check` passed. No live DB/provider access or browser connection.
+- Next: Lead to review. Note: current `templates/maps.html` declares `let coordinateReadiness;`, while the backend handoff describes initialization to `false`; no exercised behavior defect, but reconcile before integration.
+
 ## 2026-09-30 | MAP-009 | manual saved-data retry | done
 - Result: Node harness executes extracted viewport/load/retry functions and the template's actual click binding. Covers failure → single-panel retry → success, repeated click/failure, empty and invalid bounds, stale responses/controller finally, explicit AbortError after invalidation, late success after abort, movement debounce cancellation, removed/uninitialized panels, and native rendered per-month button/status semantics. References rendering asserts retry/cache-only caveats. No production edits.
 - Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed (48; unchanged for follow-up). `node --test tests/test_map*.mjs` passed (8), rerun after abort cases. Scoped `git diff --check` passed. No live DB/provider operations or browser connection.

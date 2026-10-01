@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-01 | MAP-010 | keyboard coordinate selection | done
+- Result: Open Maps now has labelled decimal latitude/longitude inputs, explicit submit and clear controls, range validation with a live status, and readiness gating across live panels. Valid submits recenter through one panel's existing synchronized movement lifecycle and open linked readouts; clear only closes readouts. Removed panels are skipped during synchronization. Readiness transitions now update the status and button through one shared helper while preserving messages when readiness is unchanged. README and References document the interaction and bounds.
+- Check: `node --test tests/test_map_template.mjs` (2 passed before the readiness-helper correction); `node --test tests/test_map_selector.mjs` (1 passed); focused Maps Flask render and `git diff --check` passed after correction. QA will update the template harness for the shared helper. No live data or browser check; browser unavailable.
+- Next: QA owns coordinate form binding, bounds, invalid input, readiness/removal, one/four-panel, and view/scale regressions.
+
 ## 2026-09-30 | MAP-009 | per-panel saved-data retry | done
 - Result: Maps exposes an accessible month-labelled retry button only after a current request failure. Explicit retry cancels pending movement debounce and reuses the panel's generation-guarded cache request; movement, success/empty, invalid bounds and removal hide/reset it. README and References document error-only saved-cache behavior.
 - Check: extracted viewport lifecycle functions compiled through Node; `git diff --check` passed. No focused behavior suite/browser run; QA owns the retry lifecycle matrix.

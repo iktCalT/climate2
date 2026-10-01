@@ -1,5 +1,35 @@
 # Next requirements
 
+## Keyboard-accessible map coordinate selection
+
+**Status:** Implemented and reviewed 2026-10-01; MAP-010, bounded linked-readout usability.
+
+Map readouts currently require a pointer click. Add an explicitly labelled
+latitude/longitude form on open Maps pages with native decimal number inputs,
+a “Show location on maps” submit button and a “Clear location” button. Latitude
+is limited to −85 through 85 (the supported map viewport), longitude to −180
+through 180. Explain south/west negative signs and that missing data remains
+missing. Reject blank, nonfinite and out-of-range values without changing maps
+or selection; retain entered text and give an accessible message. No navigation
+or page reload on submission. Do not expose this form in the month selector.
+
+A valid explicit submission centers synchronized maps at the coordinates using
+the existing movement/load lifecycle and opens the existing linked readouts.
+Keep zoom, bearing, pitch, dates, metric and shared manual scale unchanged.
+Selection before map initialization must not construct premature popups or cause
+style errors: disable submission until every live panel is initialized, retain
+input and recheck readiness at submission. Removed panels must not receive map
+operations. Clear closes all readouts without panning or fetching. Existing map
+clicks and closing popups retain their current behavior. Form inputs represent
+typed coordinates, not an automatically synchronized selected-location state.
+
+Use existing dependencies and sampling logic; no geocoder, new data endpoint,
+provider downloads, persistence or new external resources. Update README and
+References. Validate actual submit/clear bindings, numeric boundaries and
+invalid inputs, readiness/removal, one/four panels, shared selection and
+unchanged scale/view properties with focused mocked Node and rendered Flask
+tests. No live data operations; disclose unavailable browser verification.
+
 ## Retry a failed saved-map request manually
 
 **Status:** Implemented 2026-09-30; MAP-009, bounded map error recovery.

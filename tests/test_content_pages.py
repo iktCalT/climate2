@@ -1,6 +1,7 @@
 import html
 from html.parser import HTMLParser
 import os
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 
@@ -247,6 +248,23 @@ class ContentPageTests(unittest.TestCase):
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
+
+    def test_coordinate_selection_guidance_matches_readme_and_references(self):
+        readme = " ".join(Path(__file__).resolve().parents[1].joinpath("README.md").read_text().split())
+        self.assertIn(
+            "On open Maps pages, valid typed coordinates recenter all panels and open linked readouts; clearing the selection does not pan or fetch data.",
+            readme,
+        )
+        for provider in ("noaa_core", "open_meteo_cmip6"):
+            references = self.get_page("/references", provider)
+            for expected in (
+                "enter latitude from −85 to 85 and longitude from −180 to 180 to center ready panels and open linked readouts",
+                "negative values mean south and west",
+                "Invalid input leaves the maps unchanged",
+                "Clear location closes readouts without panning or fetching",
+            ):
+                with self.subTest(provider=provider, expected=expected):
+                    self.assertIn(expected, references)
 
     def test_footer_attribution_follows_the_active_climate_provider(self):
         original_provider = app.config["CLIMATE_PROVIDER"]
