@@ -8,6 +8,20 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**MAP-007 — retain map selection (complete).** Base `d0bafd6` (PR #67),
+branch `codex/retain-map-selection`; contract atop NEXT_REQUIREMENTS.
+Lead owns requirements/board/log. Developer owns `climate/web/app.py`,
+`templates/maps.html`, README, References and backend log (bounded frontend
+exception). QA owns `tests/test_locations_route.py`, selector Node regression
+tests and QA log. Reviewer is read-only except own log. Sequential Luna/medium.
+Acceptance: validated ordered months/variable survive map → edit → map;
+server-rendered fields, unchanged limits, error privacy and cache-only behavior.
+Focused Flask/Node checks after implementation; no live DB/downloads, scale
+changes, dependencies, label redesign or unrelated work.
+Implementation and 45 focused Flask/content plus eight Node tests passed.
+Production review cleared; QA closed the review's form-submission and existing
+row-removal coverage gaps. Browser unavailable; no live data operations.
+
 **MAP-006 — popup line layout (complete).** Base `60d4a92` (PR #66), branch
 `codex/map-popup-line-layout`; contract atop NEXT_REQUIREMENTS. Lead owns
 requirements/board/log. Developer owns `static/map_selection.js`, README,
@@ -80,10 +94,10 @@ older full records remain in Git. No application or cache changes.
 
 ## Latest application integration
 
-PAGES-002 merged in PR #66, main `60d4a92`: public environmental-awareness copy,
-provider-correct readouts and comparison caveats. Eighteen focused tests passed;
-review cleared. Earlier full MAP-005 check: 162 Python tests (8 skips), seven
-Node tests. Automated live browser verification remains unavailable.
+MAP-006 merged in PR #67, main `d0bafd6`: separated popup label/value rows;
+seven Node tests passed, review cleared. Earlier full MAP-005 check: 162 Python
+tests (8 skips), seven Node tests. Automated live browser verification remains
+unavailable. MAP-007 is verified and awaiting Lead publication.
 
 ## Prior work and open limitations
 

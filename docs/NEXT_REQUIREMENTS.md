@@ -1,5 +1,24 @@
 # Next requirements
 
+## Retain the comparison when changing selection
+
+**Status:** Implemented 2026-09-30; MAP-007, continuing comparison usability.
+
+“Change selection” currently discards all chosen months and the variable. Carry
+the validated ordered months and variable into the selector URL and prefill its
+editable fields. Preserve the first month as the baseline, including dates with
+no saved coverage; availability suggestions must not replace entered values.
+Render prefilled fields server-side so submitting without JavaScript preserves
+the comparison. Existing add/remove controls must work with prefilled rows and
+the four-month limit. A bare `select=1` still opens an empty selector; explicit
+invalid dates, variables, duplicate/excessive months or incomplete selections
+remain HTTP 400, even in edit mode. Discovery failures keep the prefilled form
+usable and reveal no diagnostics. Ordinary explicit map requests still skip
+availability discovery. Do not change scales, data values, provider calls or
+stored state. No dependencies or new external resources; document the workflow
+in README and References. Validate URL round trips, form order/selection,
+failure paths and selector controls with offline Flask/Node checks.
+
 ## Separate popup labels and values into readable rows
 
 **Status:** Implemented and reviewed 2026-09-30; MAP-006 follows the user's comparison screenshot.

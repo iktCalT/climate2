@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 002223e:docs/agents/lead-log.md`.
 
+## 2026-09-30 | MAP-007 | retain comparison selection | done
+
+- Result: map edit links retain ordered months and variable in server-rendered
+  fields; validation, baseline order and generic discovery failures preserved.
+  No data, scale or dependency changes. README/References describe editing.
+- Check: 45 focused Flask/content and eight Node tests passed. Production
+  review cleared; QA added actual form resubmission and prefilled-row removal
+  assertions after review exposed gaps. Browser unavailable; no live operations.
+- Next: integrate `codex/retain-map-selection` (base `d0bafd6`). Own oldest
+  completed log entries trimmed; prior evidence remains in Git/context index.
+
 ## 2026-09-30 | MAP-006 | separate popup text rows | done
 
 - Result: bold popup entries now sit inside separate block rows, fixing the
@@ -49,20 +60,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   Review cleared. Actual-renderer synthetic gradient/gap visually inspected;
   browser disconnected, so live appearance/deployment remains unverified.
 - Next: integrate this reviewed branch; no further implementation assigned.
-
-## 2026-09-30 | COORD-004 | compact shared context | done
-
-- Result: active board reduced to current ownership/status; completed rounds
-  indexed with revisions. Workspace and provider notes refreshed, audit caveats
-  retained, own log trimmed to five entries. Other agents' logs untouched.
-- Check: 25 local links, eight merge revisions, whitespace and scope verified.
-  No application tests needed: runtime files, databases and caches unchanged.
-- Next: use selective context lookup; no new implementation task assigned.
-
-## 2026-09-29 | MAP-003 | map-to-history navigation | done
-
-- Result: PR #62, `002223e`; selected-coordinate history links, sampling caveat,
-  responsive labelled coordinate form without fixed decimal step.
-- Check: 156 Python tests (8 PostgreSQL skips), three Node suites passed;
-  review cleared. Browser disconnected; no live database/provider/account work.
-- Next: no code work pending; explicit link clicks use cache-only Locations.
