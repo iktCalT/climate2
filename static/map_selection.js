@@ -26,9 +26,15 @@ function containingCell(features, longitude, latitude) {
 }
 
 function line(document, parent, content, strong = false) {
-    const element = document.createElement(strong ? "strong" : "div");
-    element.textContent = content;
-    parent.append(element);
+    const row = document.createElement("div");
+    if (strong) {
+        const emphasis = document.createElement("strong");
+        emphasis.textContent = content;
+        row.append(emphasis);
+    } else {
+        row.textContent = content;
+    }
+    parent.append(row);
 }
 
 function displayValue(value) {

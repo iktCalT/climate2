@@ -8,6 +8,17 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**MAP-006 — popup line layout (complete).** Base `60d4a92` (PR #66), branch
+`codex/map-popup-line-layout`; contract atop NEXT_REQUIREMENTS. Lead owns
+requirements/board/log. Developer owns `static/map_selection.js`, README,
+References and backend log (small frontend exception). QA owns
+`tests/test_map_selection.mjs` and QA log; Reviewer read-only/own log.
+Sequential specialists; Luna/medium QA replaces a Sol worker stalled at startup.
+Focused DOM and Node map regressions; reuse
+previous Python checks. No numeric, data, scale, CSS or unrelated feature work.
+Seven Node map tests passed, including structural row checks; review cleared.
+Browser disconnected. No data operations or application restart.
+
 **PAGES-002 — public environmental-awareness purpose (complete).** Base `435129a`
 (PR #65), branch `codex/environment-awareness-copy`; contract atop NEXT_REQUIREMENTS.
 Lead owns requirements/board/log. Developer owns README, `templates/index.html`,
@@ -69,10 +80,10 @@ older full records remain in Git. No application or cache changes.
 
 ## Latest application integration
 
-MAP-005 merged in PR #65, main `435129a`: manual scales stay synchronized during
-source loading; environmental-awareness purpose recorded. QA: 162 Python tests
-(8 skips), seven Node tests. Review cleared. User screenshot confirmed the
-earlier smooth-map appearance; automated live interaction remains unavailable.
+PAGES-002 merged in PR #66, main `60d4a92`: public environmental-awareness copy,
+provider-correct readouts and comparison caveats. Eighteen focused tests passed;
+review cleared. Earlier full MAP-005 check: 162 Python tests (8 skips), seven
+Node tests. Automated live browser verification remains unavailable.
 
 ## Prior work and open limitations
 

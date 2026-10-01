@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-006 | popup row layout | done
+- Result: no actionable finding on `codex/map-popup-line-layout`, base `60d4a92`. `line()` creates a separate block row per entry, nests `strong` for emphasized text, and uses `textContent` for all strings. Popup values and comparison numbers retain their prior calculations, units, and provenance. README/References give the requested readability guidance. QA structural assertions cover month, baseline, value, difference rows, and nested user text.
+- Check: read-only scoped diff and surrounding popup logic inspection; `git diff --check 60d4a92 -- static/map_selection.js README.md templates/references.html tests/test_map_selection.mjs` passed. QA reports all seven Node map tests passed; not rerun. No browser, live data, or network checks.
+- Next: Lead integrates; no actionable findings.
+
 ## 2026-09-30 | PAGES-002 | environmental-awareness copy | done
 - Result: no actionable finding on `codex/environment-awareness-copy`, base `435129a`. The three-page diff frames exploration as awareness, labels the preview illustrative, distinguishes NOAA interpolated estimates from CMIP6 cell readouts, and limits two-month interpretation. Saved sampling is not called NOAA's native grid; units, coverage caveats, actions, provider branches and existing credit URLs remain.
 - Check: read-only scoped diff, surrounding copy and focused test inspection; `git diff --check 435129a` passed. QA reports eight content and ten NOAA-location tests passed with database reads guarded; not rerun. Prior MAP-005 full regression evidence reused. No browser or live data check.

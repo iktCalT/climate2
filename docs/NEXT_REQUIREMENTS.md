@@ -1,5 +1,19 @@
 # Next requirements
 
+## Separate popup labels and values into readable rows
+
+**Status:** Implemented and reviewed 2026-09-30; MAP-006 follows the user's comparison screenshot.
+
+The readout helper creates bold entries as adjacent inline `strong` elements,
+joining the date to “Baseline” and the difference label to its numeric value.
+Wrap each line in a block container while retaining nested semantic emphasis and
+safe `textContent`. Keep values, units, provenance, differences, history links,
+selection lifecycle, scale behavior and network activity unchanged. No new CSS,
+dependencies or external resources. Describe the readable layout in README and
+References. Add DOM-structure regressions: the existing fake text collector
+inserts newlines itself and cannot detect this bug. Run focused Node map tests;
+browser if connected, otherwise disclose that limitation.
+
 ## Public environmental-awareness purpose
 
 **Status:** Implemented and reviewed 2026-09-30; PAGES-002 follows the user's confirmed purpose

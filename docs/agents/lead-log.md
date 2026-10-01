@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 002223e:docs/agents/lead-log.md`.
 
+## 2026-09-30 | MAP-006 | separate popup text rows | done
+
+- Result: bold popup entries now sit inside separate block rows, fixing the
+  screenshot's joined date/Baseline and difference label/value. Text safety,
+  calculations, shared selections, links and fetching remain unchanged.
+- Check: seven Node map tests and syntax/whitespace passed; new structural
+  assertions catch the inline-row bug. Review cleared. Browser disconnected;
+  no Python rerun or live data operations. Stalled QA startup was replaced.
+- Next: integrate `codex/map-popup-line-layout` (base `60d4a92`); no additional
+  implementation assigned.
+
 ## 2026-09-30 | PAGES-002 | public awareness purpose | done
 
 - Result: Home, README and References now foreground environmental awareness,
