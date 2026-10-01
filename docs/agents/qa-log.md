@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-009 | manual saved-data retry | done
+- Result: Node harness executes extracted viewport/load/retry functions and the template's actual click binding. Covers failure → single-panel retry → success, repeated click/failure, empty and invalid bounds, stale responses/controller finally, explicit AbortError after invalidation, late success after abort, movement debounce cancellation, removed/uninitialized panels, and native rendered per-month button/status semantics. References rendering asserts retry/cache-only caveats. No production edits.
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed (48; unchanged for follow-up). `node --test tests/test_map*.mjs` passed (8), rerun after abort cases. Scoped `git diff --check` passed. No live DB/provider operations or browser connection.
+- Next: Reviewer; no QA blockers.
+
 ## 2026-09-30 | MAP-008 | readable map metric labels | done
 - Result: Added rendered route coverage for all four readable labels in single/comparison headings, map ARIA names and selector captions. Kept raw option values, API `climate_type` keys, JS keys and one/four-month edit round trips asserted. Added provider-specific NOAA/CMIP6 and precipitation-rate copy checks; updated the Node status assertion to saved-grid wording. Updated References assertions for metric units, monthly average daily rate and the non-total caveat in both provider branches.
 - Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed (47). `node --test tests/test_map*.mjs` passed (8, prior run; JS unchanged). No live database or browser.

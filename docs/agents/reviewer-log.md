@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-009 | manual saved-data retry | done
+- Result: no production blocker in the per-panel retry flow. Only current non-aborted failures expose retry; explicit clicks require a live initialized panel, disable repeat clicks, cancel that panel's debounce, and reuse the generation-guarded saved-data request. Success, empty coverage, invalid bounds, movement and removal hide/reset the control. Stale/removed work cannot publish status or clear a newer controller. Month/location/view/scale and other panels are not changed by retry. No API/provider fetch path was added.
+- Check: inspected scoped diff and lifecycle/test assertions; scoped `git diff --check` passed. QA added actual `invalidateViewport` → `AbortError` rejection and late-success-after-abort assertions, including unchanged loading status, no acceptance, and hidden/disabled retry. QA reports 48 focused Flask tests and eight Node tests passed after that addition; not rerun here. No browser, database, or provider operations.
+- Next: Lead may integrate; no findings remain. Browser verification remains unavailable.
+
 ## 2026-09-30 | MAP-008 | readable map metrics | done
 - Result: no actionable production or test finding on `codex/readable-map-metrics`, base `f95d638`. The template-local mapping supplies unit-bearing headings, map accessible names and selector labels; form values, query/API keys and JS metric keys remain the existing identifiers. Precipitation is consistently described as a monthly average daily rate, not a monthly total. NOAA wording identifies the saved 2° × 4° sampling grid without calling it native NOAA resolution; CMIP6 guidance and existing references/credits remain intact.
 - Check: reviewed scoped diff and surrounding route/template behavior; `git diff --check f95d638` passed. QA reports 47 focused Flask/content tests and eight Node map tests passed; not rerun. No browser or live-data checks.

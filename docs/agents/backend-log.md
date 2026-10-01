@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-09-30 | MAP-009 | per-panel saved-data retry | done
+- Result: Maps exposes an accessible month-labelled retry button only after a current request failure. Explicit retry cancels pending movement debounce and reuses the panel's generation-guarded cache request; movement, success/empty, invalid bounds and removal hide/reset it. README and References document error-only saved-cache behavior.
+- Check: extracted viewport lifecycle functions compiled through Node; `git diff --check` passed. No focused behavior suite/browser run; QA owns the retry lifecycle matrix.
+- Next: QA verifies retry success/failure, panel isolation, debounce, bounds, stale/aborted responses and removal.
+
 ## 2026-09-30 | MAP-008 | readable map metrics | done
 - Result: Maps headings, ARIA names and selector text use clear unit-bearing labels while submitted values and JS metric keys stay internal. Selector and precipitation map context explain precipitation as a monthly average daily rate. NOAA guidance/status name the saved sampling grid; README and References document the labels and rate.
 - Check: Jinja parse/render smoke for all four labels, raw selector/API key preservation and status wording passed; `git diff --check` passed. No suite/browser run; QA owns focused route/content and Node regressions.

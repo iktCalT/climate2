@@ -1,5 +1,25 @@
 # Next requirements
 
+## Retry a failed saved-map request manually
+
+**Status:** Implemented 2026-09-30; MAP-009, bounded map error recovery.
+
+A failed viewport request currently has no direct recovery control. Add a native
+per-panel “Retry saved data” button, associated with that panel's status and
+month. Show it only for a current non-aborted request failure. One explicit
+click retries only that panel's current saved-data viewport request, keeping
+months, metric, view, selected location and manual scale unchanged. No provider
+downloads, automatic retries, polling or new dependencies/resources. Distinguish
+errors from valid empty coverage: empty responses and out-of-world bounds do not
+offer retry. Disable repeated clicks while a retry is running; hide/reset the
+control on success, viewport invalidation and map removal. Ignore stale and
+aborted responses, and never revive a removed/uninitialized panel. Cancel a
+pending movement debounce when starting a manual retry to avoid duplicate reads.
+Reuse existing loading/readout and generation protections. Document behavior
+and cache-only limits in README/References. Test actual failure → click → success,
+repeated clicks, repeated failure, empty/bounds results, stale responses, removal,
+pending debounce and panel isolation with mocked requests; no live data access.
+
 ## Readable map metric labels and sampling context
 
 **Status:** Implemented 2026-09-30; MAP-008, educational map clarity.

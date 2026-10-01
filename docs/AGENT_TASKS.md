@@ -8,6 +8,20 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**MAP-009 — manual saved-data retry (complete).** Base `0a5f5ef` (PR #69),
+branch `codex/map-cache-retry`; contract atop NEXT_REQUIREMENTS. Lead owns
+requirements/board/log. Developer owns `templates/maps.html`, README,
+References and backend log (bounded frontend exception). QA owns
+`tests/test_map_template.mjs`, `tests/test_locations_route.py`,
+`tests/test_content_pages.py` and QA log. Reviewer is read-only except own log.
+Sequential Luna/medium; explicit error-only retry of one panel, no provider
+downloads/polling/dependencies/scale changes. Acceptance and failure/lifecycle
+matrix in requirements. Focused mocked Node + rendered Flask tests, no live
+database or provider operations; browser only if connected.
+All 48 focused Flask/content and eight Node tests passed. Production review
+cleared; direct AbortError and late aborted-response assertions close the QA
+evidence gap. Browser unavailable; awaiting Lead publication.
+
 **MAP-008 — readable map metrics (complete).** Base `f95d638` (PR #68),
 branch `codex/readable-map-metrics`; contract atop NEXT_REQUIREMENTS.
 Lead owns requirements/board/log. Developer owns `templates/maps.html`, README,
@@ -110,10 +124,10 @@ older full records remain in Git. No application or cache changes.
 
 ## Latest application integration
 
-MAP-007 merged in PR #68, main `f95d638`: retained ordered comparison months
-and variable in the editor; 45 focused Python and eight Node tests passed,
-review cleared. Earlier full MAP-005 check: 162 Python tests (8 skips), seven
-Node tests. Automated live browser verification remains unavailable.
+MAP-008 merged in PR #69, main `0a5f5ef`: readable metric labels and units;
+47 focused Python and eight Node tests passed, review cleared. Earlier full
+MAP-005 check: 162 Python tests (8 skips), seven Node tests. Automated live
+browser verification remains unavailable.
 
 ## Prior work and open limitations
 

@@ -297,6 +297,20 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"Mean temperature (\xc2\xb0C) for 2026-08", response.data)
         self.assertIn(b'href="/maps?select=1&amp;month-picker=2026-08&amp;data-type=temp_mean"', response.data)
 
+    def test_rendered_retry_controls_are_month_labelled_native_buttons(self):
+        months = ("1960-01", "2001-06", "2026-08")
+        with patch("climate.web.app.latest_map_month", return_value="2026-08"):
+            response = self.client.get("/maps?" + "&".join(f"month-picker={month}" for month in months)
+                                       + "&data-type=temp_mean")
+
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        self.assertEqual(page.count('class="btn btn-outline-secondary btn-sm mb-2"'), len(months))
+        for index, month in enumerate(months):
+            self.assertIn(f'<button id="map-retry-{index}"'.encode(), response.data)
+            self.assertIn(f'type="button" aria-label="Retry saved data for {month}"'.encode(), response.data)
+            self.assertIn(f'aria-describedby="map-status-{index}" hidden>Retry saved data</button>'.encode(), response.data)
+
     def test_readable_metric_labels_keep_internal_keys_and_form_values(self):
         months = ("1960-01", "2001-06")
         with patch("climate.web.app.latest_map_month", return_value="2026-08"):

@@ -7,6 +7,8 @@ const moduleScript = template.match(/<script type="module">([\s\S]*?)<\/script>/
 assert.ok(moduleScript, "map page has its module script");
 
 assert.match(template, /\/static\/map_selection\.js/);
+assert.match(template, /<button id="map-retry-\{\{ loop\.index0 \}\}"[\s\S]*?type="button"[\s\S]*?aria-label="Retry saved data for \{\{ panel_month \}\}"[\s\S]*?aria-describedby="map-status-\{\{ loop\.index0 \}\}" hidden>Retry saved data<\/button>/,
+    "each month has a native, initially hidden retry button associated with its status");
 assert.match(moduleScript, /const selection = createMapSelection\(\{\s*panels, Popup, document, unit: activeScale\.unit,\s*sample: useInterpolatedNoaa \? sampleGrid : undefined,/);
 assert.match(moduleScript, /panel\.map\.on\("click", event => selection\.select\(event\.lngLat\)\)/);
 assert.doesNotMatch(moduleScript.match(/panel\.map\.on\("click"[\s\S]*?\n\s*\}\);/)?.[0] || "", /fetch\(/,
@@ -38,11 +40,12 @@ assert.doesNotMatch(moduleScript, /selection\.[\s\S]{0,100}setPaintProperty/,
 
 // Execute the template's real async viewport functions with deferred fake fetches.
 const functionsSource = moduleScript.slice(
-    moduleScript.indexOf("async function loadData"),
+    moduleScript.indexOf("function resetRetry"),
     moduleScript.indexOf("panels.forEach((panel) => {", moduleScript.indexOf("async function loadData")),
 );
 const deferred = [];
 const events = [];
+let canceledTimer;
 const sources = new Map([["climate", {setData: () => events.push("source-updated")}]]);
 const layers = new Map([["border", {}], ["label", {}]]);
 let activeScale = {stops: [[0, "#000000"], [12, "#ffffff"]]};
@@ -59,15 +62,16 @@ const fakeSelection = {
     fail: () => events.push("failed"),
 };
 const makeFunctions = new Function(
-    "selection", "climateType", "fetch", "AbortController", "URLSearchParams", "formatStep",
+    "selection", "climateType", "fetch", "AbortController", "URLSearchParams", "formatStep", "clearTimeout",
     "useInterpolatedNoaa", "clearNoaaRaster", "redrawNoaaRaster",
-    `${functionsSource}\nreturn {startViewportLoad, invalidateViewport};`,
+    `${functionsSource}\nreturn {startViewportLoad, invalidateViewport, retrySavedData, loadData};`,
 );
 const functions = makeFunctions(fakeSelection, "temp_mean", () => new Promise((resolve, reject) => {
     deferred.push({resolve, reject});
-}), AbortController, URLSearchParams, value => String(value), true, clearNoaaRaster, redrawNoaaRaster);
+}), AbortController, URLSearchParams, value => String(value), timer => {canceledTimer = timer; timers?.delete(timer);},
+true, clearNoaaRaster, redrawNoaaRaster);
 const panel = {
-    month: "1990-01", status: {textContent: ""}, moveTimer: undefined,
+    month: "1990-01", status: {textContent: ""}, retryButton: {hidden: true, disabled: true}, moveTimer: undefined,
     viewportGeneration: 0, viewportDirty: false,
     styleReady: true,
     overlayLayers: ["border", "label"],
@@ -91,6 +95,9 @@ const flushAsync = async () => {
 functions.startViewportLoad(panel);
 assert.equal(deferred.length, 1);
 functions.invalidateViewport(panel);
+assert.equal(panel.requestController.signal.aborted, true);
+assert.equal(panel.retryButton.hidden, true);
+assert.equal(panel.retryButton.disabled, true);
 assert.equal(events.filter(event => event === "loading").length, 2,
     "selection becomes loading synchronously on invalidation, before the delayed reload");
 deferred[0].resolve({ok: true, json: async () => ({
@@ -99,13 +106,22 @@ deferred[0].resolve({ok: true, json: async () => ({
 })});
 await flushAsync();
 assert.equal(events.includes("accepted"), false, "an obsolete success cannot update selection data");
+assert.match(panel.status.textContent, /Loading viewport data/,
+    "a response resolving after abort cannot alter the current status");
+assert.equal(panel.retryButton.hidden, true, "an aborted request cannot reveal retry");
+assert.equal(panel.retryButton.disabled, true);
 
 functions.startViewportLoad(panel);
 assert.equal(deferred.length, 2);
 functions.invalidateViewport(panel);
-deferred[1].reject(new Error("stale fake failure"));
+assert.equal(panel.requestController.signal.aborted, true);
+deferred[1].reject(new DOMException("request canceled", "AbortError"));
 await flushAsync();
 assert.equal(events.includes("failed"), false, "an obsolete failure cannot replace loading state");
+assert.match(panel.status.textContent, /Loading viewport data/,
+    "an AbortError after invalidation leaves the current status alone");
+assert.equal(panel.retryButton.hidden, true, "an AbortError does not offer retry");
+assert.equal(panel.retryButton.disabled, true);
 
 const payload = {features: [], interpolation: {latitudes: [0, 2], longitudes: [0, 4], values: [[0, 4], [8, 12]]},
     metadata: {provider: "noaa_core"}};
@@ -143,6 +159,103 @@ await flushAsync();
 assert.equal(sources.has("climate-raster"), false);
 assert.equal(panel.interpolation, null);
 assert.match(panel.status.textContent, /No saved source nodes/);
+
+// Exercise the actual extracted load/retry functions with a one-panel failure → retry → success flow.
+panel.map.getBounds = () => ({getSouth: () => -1, getWest: () => -1, getNorth: () => 1, getEast: () => 1});
+functions.startViewportLoad(panel);
+deferred[5].reject(new Error("temporary outage"));
+await flushAsync();
+assert.equal(panel.retryButton.hidden, false, "current request failures reveal the retry control");
+assert.equal(panel.retryButton.disabled, false);
+assert.match(panel.status.textContent, /Map data unavailable: temporary outage/);
+const originalMonth = panel.month;
+const originalBounds = panel.map.getBounds();
+const otherPanel = {month: "1991-02", removed: false, styleReady: true,
+    retryButton: {hidden: false, disabled: false, addEventListener(_event, callback) {this.click = callback;}},
+    viewportGeneration: 8};
+let clickRetry;
+panel.retryButton.addEventListener = (_name, callback) => { clickRetry = callback; };
+const actualClickBinding = moduleScript.slice(moduleScript.indexOf("panel.retryButton.addEventListener"),
+    moduleScript.indexOf('panel.map.on("load"', moduleScript.indexOf("panel.retryButton.addEventListener")));
+new Function("panels", "retrySavedData", `panels.forEach((panel) => { ${actualClickBinding} });`)(
+    [panel, otherPanel], functions.retrySavedData);
+assert.equal(typeof clickRetry, "function", "the template's actual native click listener is installed");
+assert.equal(typeof otherPanel.retryButton.click, "function", "the other real panel has its own bound retry listener");
+const timers = new Map();
+let nextTimer = 122;
+const moveendBinding = moduleScript.slice(moduleScript.indexOf('panel.map.on("moveend"'),
+    moduleScript.indexOf('panel.map.on("remove"'));
+panel.map.on = (event, callback) => {panel.map.moveend = event === "moveend" ? callback : panel.map.moveend;};
+new Function("panel", "setTimeout", "clearTimeout", "startViewportLoad", moveendBinding)(
+    panel,
+    callback => {nextTimer += 1; timers.set(nextTimer, callback); return nextTimer;},
+    timer => timers.delete(timer), functions.startViewportLoad,
+);
+panel.map.moveend();
+assert.equal(timers.size, 1, "moveend schedules one debounced request");
+panel.moveTimer = [...timers.keys()][0];
+clickRetry();
+assert.equal(canceledTimer, 123, "manual retry cancels a pending movement debounce");
+assert.equal(panel.moveTimer, undefined);
+assert.equal(timers.size, 0, "the pending movement callback is removed when retry starts");
+assert.equal(panel.retryButton.disabled, true, "retry disables rapid repeated clicks");
+assert.equal(deferred.length, 7);
+clickRetry();
+assert.equal(deferred.length, 7, "a second click while retrying does not issue another request");
+assert.equal(panel.month, originalMonth);
+assert.deepEqual([panel.map.getBounds().getSouth(), panel.map.getBounds().getWest(),
+    panel.map.getBounds().getNorth(), panel.map.getBounds().getEast()],
+    [originalBounds.getSouth(), originalBounds.getWest(), originalBounds.getNorth(), originalBounds.getEast()]);
+deferred[6].resolve({ok: true, json: async () => payload});
+await flushAsync();
+assert.equal(panel.retryButton.hidden, true, "success hides the retry control");
+assert.equal(panel.retryButton.disabled, true);
+assert.equal(events.filter(event => event === "accepted").length, 3);
+
+functions.startViewportLoad(panel);
+deferred[7].reject(new Error("still offline"));
+await flushAsync();
+assert.equal(panel.retryButton.hidden, false, "a later failure makes retry available again");
+assert.equal(panel.retryButton.disabled, false);
+
+// Empty coverage is a successful response and invalid bounds return before fetch; neither offers retry.
+functions.retrySavedData(panel);
+deferred[8].resolve({ok: true, json: async () => ({features: [], metadata: {provider: "test", tiles: 0,
+    rows: 0, columns: 0, latitude_step: 1, longitude_step: 1, direct: 0, reused_nearby: 0, missing: 0}})});
+await flushAsync();
+assert.equal(panel.retryButton.hidden, true, "valid empty coverage does not offer retry");
+panel.map.getBounds = () => ({getSouth: () => 89, getWest: () => -1, getNorth: () => 90, getEast: () => 1});
+functions.startViewportLoad(panel);
+assert.equal(deferred.length, 9, "invalid bounds do not issue a request");
+assert.equal(panel.retryButton.hidden, true, "invalid bounds do not offer retry");
+assert.match(panel.status.textContent, /Move the map back/);
+assert.deepEqual({month: otherPanel.month, hidden: otherPanel.retryButton.hidden,
+    disabled: otherPanel.retryButton.disabled, generation: otherPanel.viewportGeneration},
+    {month: "1991-02", hidden: false, disabled: false, generation: 8},
+    "retry leaves every other comparison panel untouched");
+panel.map.getBounds = () => ({getSouth: () => -1, getWest: () => -1, getNorth: () => 1, getEast: () => 1});
+functions.startViewportLoad(panel);
+const obsoleteController = panel.requestController;
+functions.startViewportLoad(panel);
+const currentController = panel.requestController;
+deferred[9].reject(new Error("obsolete failure"));
+await flushAsync();
+assert.equal(panel.requestController, currentController, "an obsolete finally block cannot clear the active request");
+assert.match(panel.status.textContent, /Loading viewport data/,
+    "an obsolete failure cannot replace the current loading state");
+deferred[10].resolve({ok: true, json: async () => payload});
+await flushAsync();
+assert.equal(panel.requestController, undefined);
+assert.notEqual(obsoleteController, currentController);
+for (const unavailable of [
+    {removed: true, styleReady: false, retryButton: {hidden: false, disabled: false}},
+    {removed: false, styleReady: false, retryButton: {hidden: false, disabled: false}},
+]) {
+    const generation = unavailable.viewportGeneration;
+    functions.retrySavedData(unavailable);
+    functions.startViewportLoad(unavailable);
+    assert.equal(unavailable.viewportGeneration, generation, "removed or uninitialized panels refuse retry/load");
+}
 assert.match(moduleScript, /"fill-opacity": useInterpolatedNoaa \? 0 : \[\s*"case",/);
 assert.match(moduleScript, /setPaintProperty\(layer\.id, "fill-color", "#e8e8e8"\)/);
 assert.match(moduleScript, /setPaintProperty\(layer\.id, "fill-opacity", 1\)/);
@@ -150,9 +263,10 @@ assert.match(moduleScript, /setPaintProperty\(layer\.id, "fill-opacity", 1\)/);
 const scaleSource = await readFile(new URL("../static/map_scales.js", import.meta.url), "utf8");
 const {presetScale, createCustomScale, customScaleFromScale, colorExpression} = await import(
     `data:text/javascript;base64,${Buffer.from(scaleSource).toString("base64")}`);
-const scaleFunctions = moduleScript.slice(moduleScript.indexOf("function clearNoaaRaster"),
+    const scaleFunctions = moduleScript.slice(moduleScript.indexOf("function clearNoaaRaster"),
     moduleScript.indexOf("Object.values(SCALE_PRESETS"));
 const lifecycleSource = moduleScript.slice(moduleScript.indexOf("panels.forEach((panel) => {", moduleScript.indexOf("function invalidateViewport")));
+const resetRetrySource = moduleScript.slice(moduleScript.indexOf("function resetRetry"), moduleScript.indexOf("function syncViewports"));
 
 for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "NOAA" : "CMIP6"} actual scale handler synchronizes initialized panels while sources load`, () => {
     function element() {
@@ -164,7 +278,9 @@ for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "
         const layers = new Map(styleReady ? [["climate-cells", {paint: {}}]] : []);
         const handlers = {};
         const mutations = [];
-        return {styleReady, interpolation: withData ? payload.interpolation : null,
+        return {styleReady, retryButton: {hidden: true, disabled: true,
+                addEventListener: (event, callback) => {handlers[`retry-${event}`] = callback;}},
+            interpolation: withData ? payload.interpolation : null,
             rasterBounds: withData ? {west: 0, east: 4, south: 0, north: 2} : null,
             overlayLayers: [], viewportGeneration: 0, sources, layers, handlers, mutations,
             map: {
@@ -199,11 +315,12 @@ for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "
     const build = new Function("env", `
         const {panels, useInterpolatedNoaa, document, family, customScaleFromScale, colorExpression,
             saveScale, createInterpolatedRaster, NavigationControl, FullscreenControl, selection,
-            startViewportLoad, invalidateViewport, syncViewports, fetch,
+            startViewportLoad, invalidateViewport, syncViewports, retrySavedData, fetch,
             presetPicker, customFields, minimumInput, maximumInput, lowColorInput, middleColorInput,
             highColorInput, scaleError, scaleSummary, scaleLegend} = env;
         let activeScale = env.initialScale;
         ${scaleFunctions}
+        ${resetRetrySource}
         ${lifecycleSource}
         return {setActiveScale, redrawNoaaRaster, clearNoaaRaster, currentScale: () => activeScale};`);
     const harness = build({...ui, panels, useInterpolatedNoaa, family: "temperature", document: {createElement: element},
@@ -213,7 +330,8 @@ for (const useInterpolatedNoaa of [true, false]) test(`${useInterpolatedNoaa ? "
         NavigationControl: class {}, FullscreenControl: class {},
         selection: {removePanel: panel => {assert.equal(panel, removed);}, select: () => {}},
         startViewportLoad: panel => firstRenders.push(panel.layers.get("climate-cells").paint["fill-color"]),
-        invalidateViewport: () => {}, syncViewports: () => {}, fetch: () => {requests += 1; throw new Error("unexpected fetch");},
+        invalidateViewport: () => {}, syncViewports: () => {}, retrySavedData: () => {},
+        fetch: () => {requests += 1; throw new Error("unexpected fetch");},
     });
     removed.handlers.remove();
     assert.equal(removed.styleReady, false);

@@ -98,6 +98,9 @@
                     <p id="map-status-{{ loop.index0 }}" class="map-panel-status text-muted" aria-live="polite">
                         Loading viewport data…
                     </p>
+                    <button id="map-retry-{{ loop.index0 }}" class="btn btn-outline-secondary btn-sm mb-2"
+                        type="button" aria-label="Retry saved data for {{ panel_month }}"
+                        aria-describedby="map-status-{{ loop.index0 }}" hidden>Retry saved data</button>
                     <div
                         id="climate-map-{{ loop.index0 }}"
                         class="climate-map"
@@ -222,6 +225,7 @@
             const panels = months.map((panelMonth, index) => ({
                 month: panelMonth,
                 status: document.getElementById(`map-status-${index}`),
+                retryButton: document.getElementById(`map-retry-${index}`),
                 map: new Map({
                     container: `climate-map-${index}`,
                     style: "https://demotiles.maplibre.org/style.json",
@@ -235,6 +239,7 @@
                 viewportGeneration: 0,
                 viewportDirty: false,
                 styleReady: false,
+                removed: false,
                 interpolation: null,
                 rasterBounds: null,
                 overlayLayers: [],
@@ -374,6 +379,11 @@
                 return value.toFixed(4);
             }
 
+            function resetRetry(panel) {
+                panel.retryButton.hidden = true;
+                panel.retryButton.disabled = true;
+            }
+
             function syncViewports(sourcePanel) {
                 if (synchronizingViewports || panels.length === 1) {
                     return;
@@ -400,6 +410,7 @@
                 const north = Math.min(85, bounds.getNorth());
                 const east = Math.min(180, bounds.getEast());
                 if (south >= north || west >= east) {
+                    resetRetry(panel);
                     clearNoaaRaster(panel);
                     panel.status.textContent = "Move the map back toward the visible world.";
                     selection.fail(panel);
@@ -467,21 +478,29 @@
                         `${metadata.missing} without cached coverage`,
                         data.features.length === 0 ? "No saved climate data for this view and month" : "",
                     ]).filter(Boolean).join(" · ");
+                    resetRetry(panel);
                 } catch (error) {
                     if (error.name !== "AbortError" && !controller.signal.aborted
-                        && generation === panel.viewportGeneration) {
+                        && generation === panel.viewportGeneration && !panel.removed) {
                         panel.status.textContent = `Map data unavailable: ${error.message}`;
                         clearNoaaRaster(panel);
                         selection.fail(panel);
+                        panel.retryButton.hidden = false;
                     }
                 } finally {
                     if (panel.requestController === controller) {
                         panel.requestController = undefined;
                     }
+                    if (generation === panel.viewportGeneration && !panel.removed
+                        && !panel.retryButton.hidden) {
+                        panel.retryButton.disabled = false;
+                    }
                 }
             }
 
-            function startViewportLoad(panel) {
+            function startViewportLoad(panel, manualRetry = false) {
+                if (panel.removed || !panel.styleReady) return;
+                if (!manualRetry) resetRetry(panel);
                 panel.requestController?.abort();
                 panel.viewportGeneration += 1;
                 panel.viewportDirty = false;
@@ -490,9 +509,19 @@
                 loadData(panel, panel.viewportGeneration);
             }
 
+            function retrySavedData(panel) {
+                if (panel.removed || !panel.styleReady || panel.retryButton.hidden
+                    || panel.retryButton.disabled) return;
+                clearTimeout(panel.moveTimer);
+                panel.moveTimer = undefined;
+                panel.retryButton.disabled = true;
+                startViewportLoad(panel, true);
+            }
+
             function invalidateViewport(panel) {
                 if (panel.viewportDirty) return;
                 panel.viewportDirty = true;
+                resetRetry(panel);
                 panel.requestController?.abort();
                 panel.viewportGeneration += 1;
                 panel.status.textContent = "Loading viewport data…";
@@ -501,6 +530,7 @@
             }
 
             panels.forEach((panel) => {
+                panel.retryButton.addEventListener("click", () => retrySavedData(panel));
                 panel.map.on("load", () => {
                     panel.map.setProjection({type: "mercator"});
                     if (useInterpolatedNoaa) {
@@ -553,6 +583,8 @@
                     panel.moveTimer = setTimeout(() => startViewportLoad(panel), 350);
                 });
                 panel.map.on("remove", () => {
+                    panel.removed = true;
+                    resetRetry(panel);
                     panel.styleReady = false;
                     panel.interpolation = null;
                     panel.rasterBounds = null;

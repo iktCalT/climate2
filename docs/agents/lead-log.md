@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 002223e:docs/agents/lead-log.md`.
 
+## 2026-09-30 | MAP-009 | manual cache request retry | done
+
+- Result: failed map panels offer an accessible manual retry of their saved
+  viewport data. Repeated clicks are guarded, pending movement timers canceled,
+  and success/empty/bounds/movement/removal reset the control. No downloads,
+  polling, data, scale or dependency changes; README/References updated.
+- Check: 48 focused Flask/content and eight Node tests passed. Production
+  review cleared; explicit aborted-response control assertions also passed.
+  Browser unavailable. Interrupted round resumed without duplicate agents.
+- Next: integrate `codex/map-cache-retry` (base `0a5f5ef`).
+
 ## 2026-09-30 | MAP-008 | readable map metrics | done
 
 - Result: map headings, accessible names and selector labels show metric names
@@ -47,16 +58,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   for this copy-only change. Browser disconnected; no live data operations.
 - Next: integrate `codex/environment-awareness-copy` (base `435129a`); no
   additional implementation assigned.
-
-## 2026-09-30 | MAP-005 | manual scale readiness and product purpose | done
-
-- Result: reproduced skipped redraws during source loading; explicit panel
-  readiness now keeps NOAA/CMIP6 colors aligned with manual choices without
-  requests or stale restoration. Recorded the user's environmental-awareness
-  purpose in PROJECT_DIRECTION, superseding finer acquisition as a priority.
-- Check: 162 Python tests (8 expected skips), seven Node tests, syntax and
-  whitespace passed. Review cleared; persisted handoff recovered after quota
-  interruption. User screenshot confirms MAP-004 smooth appearance; browser
-  automation for this loading-state fix remains unavailable.
-- Next: integrate `codex/map-scale-loading-sync` (base `89f4e15`); no live data
-  changes, deployment or additional feature work assigned.
