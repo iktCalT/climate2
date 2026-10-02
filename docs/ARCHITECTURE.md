@@ -16,7 +16,7 @@ climate/
 sql/                    schema.sql, user_schema.sql, admin_import.sql
 templates/              Jinja pages
 static/                 browser JS/CSS/images; ignored local data stays in place
-tests/                  unittest checks and the Node map-scale check
+tests/                  unittest checks and dependency-free Node map suites
 docs/                   requirements, operating guides, shared agent memory
 ```
 
@@ -78,12 +78,15 @@ and the fixed `REFACTOR.md` may mention old paths; use this guide for navigation
 ## Verification and agents
 
 ```sh
-DATABASE_URL= PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests
-node --test tests/test_map_scales.mjs
+DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 \
+  PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests
+node --test tests/test_map*.mjs
 ```
 
-The empty `DATABASE_URL` keeps the existing live PostgreSQL tests skipped even
-when other tests set a default. Do not enable integration flags against a live
+The empty `DATABASE_URL` and zero-valued opt-in flags keep PostgreSQL integration
+tests skipped even when other tests set a default. Node runs all map suites,
+including interpolation, selection, coordinates, scales and template lifecycle.
+Do not enable integration flags against a live
 climate database. Database-backed checks require an explicitly isolated test
 database; see [PostgreSQL operations](POSTGRESQL.md). No live import, cleanup,
 or migration is part of ordinary verification.

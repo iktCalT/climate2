@@ -2,7 +2,19 @@
 
 Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
-`git show ef5de20:docs/agents/lead-log.md`.
+`git show 5b17b0d:docs/agents/lead-log.md`.
+
+## 2026-10-02 | REGRESSION-001 | offline checkpoint recovery | done
+
+- Result: recovered relevant stashed commands/evidence without overwriting
+  newer work; QA corrected one stale precipitation-copy assertion, preserving
+  units and non-total caveat for both providers. No production change.
+- Check: original full Python batch: 182 total, 173 passes, eight expected
+  PostgreSQL skips, one failure; Node 13 passed. Corrected module: 10 passed.
+  Full batch not rerun. Browser/live integration unverified; inherited filesystem
+  sessions limit isolation. Independent review cleared the correction/evidence.
+- Next: publication status in GitHub for `codex/finish-offline-regression`, base `5b17b0d`.
+  Both named recovery stashes retained; completed scopes indexed, board shortened.
 
 ## 2026-10-02 | README-DEMO-001 | comparison screenshot | done
 
@@ -51,14 +63,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   evidence. Initially undefined readiness is intentional, not a defect. No live
   browser, database, provider or deployment operations.
 - Next: publication status in GitHub; no additional specialist task assigned.
-
-## 2026-10-01 | COORD-005 | concise current handoffs | done
-
-- Result: archived completed board scopes into the existing completed-rounds
-  index; refreshed workspace snapshot and reconciled prior publication status.
-  Base `ef5de20`, branch `codex/refresh-agent-handoffs`. Other agents' logs,
-  application code, data, environments and caches untouched; no files deleted.
-- Check: five-file scope, 16 local links, 16 ancestor revisions and whitespace
-  passed. Board reduced from 1,066 to about 300 words. Prior application results
-  retained, not rerun for this docs-only round.
-- Next: no specialist or application assignment; publication status is in GitHub.
