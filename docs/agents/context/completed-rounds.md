@@ -1,12 +1,27 @@
 # Completed implementation rounds
 
-Index refreshed 2026-10-01 from main `ef5de20` and agent handoffs. These are
+Index refreshed 2026-10-02 from main `5b17b0d` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
 PostgreSQL integration tests in full runs; focused counts are listed separately.
 No production database was used for these suites. Results below are historical,
 not tests rerun during the documentation refresh.
+
+- **README-DEMO-001, PR #75, `5b17b0d`:** owner-supplied NOAA comparison
+  screenshot with caption, alt text and provenance. Original PNG checked;
+  11 content tests passed. No runtime/data change.
+- **HISTORY-002, PR #74, `50af280`:** editable requested coordinates on
+  populated/empty Location results; Clear returns to blank entry. 57 focused
+  route/content tests passed; review cleared.
+- **HISTORY-001, PR #73, `a6491c1`:** seasonal contributing-month counts,
+  explicit missing-year gaps, units and chart version v7. Existing means and
+  winter assignment retained; 59 focused chart/route/content tests; review clear.
+- **MAP-010, PR #72, `eab3e85`:** typed coordinates center synchronized maps
+  and open linked readouts. Readiness/removal guards, unchanged manual scale;
+  50 focused Python and 13 Node tests; review cleared.
+- **COORD-005, PR #71, `69b6a04`:** shortened board, indexed completed work,
+  reconciled handoffs. Five-file scope, 16 local links and 16 revisions checked.
 
 - **MAP-009, PR #70, `ef5de20`:** manual per-panel saved-data retry, guarded
   against repeats, stale/aborted requests and removed panels. 48 focused Python
@@ -61,6 +76,6 @@ for preserved audit limitations and [coordination history](coordination-history.
 for setup. Other agents retain ownership of their detailed logs.
 
 Recover pre-compaction task scopes and Lead evidence without transcript copies:
-`git show ef5de20:docs/AGENT_TASKS.md` and
-`git show ef5de20:docs/agents/lead-log.md` (latest compacted scopes);
+`git show 5b17b0d:docs/AGENT_TASKS.md` and
+`git show 5b17b0d:docs/agents/lead-log.md` (latest compacted scopes);
 use revision `002223e` for earlier assignments.

@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | REGRESSION-001 | NOAA precipitation copy assertion | done
+- Result: Replaced the stale combined assertion with separate checks for “mean daily precipitation in mm/day” and “monthly average daily rate, not a monthly total” in both provider iterations. Historical checkpoint batch: 173 Python passes, eight skips, one stale-copy failure; Node 13 passed. That batch is distinct from this correction.
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_noaa_location_readiness` passed (10 tests). No live database, network, browser, or unrelated tests.
+- Next: Lead to integrate; no QA blocker.
+
 ## 2026-10-01 | HISTORY-002 | editable Location coordinates | done
 - Result: extended the existing HTML parser to verify one native GET form, contained inputs/submit/Clear link, labels, bounds, required flags, unique IDs and blank entry. Both providers' covered/empty results preserve requested decimal and signed-zero values while reads use provider sampling. Parsed fields are edited and resubmitted to the route; Clear returns blank without history reads. Invalid/nonfinite/range inputs remain 400; incomplete requests retain blank-entry behavior. README/References editing guidance and existing provenance/coverage checks pass. Only assigned tests and this log changed on `codex/edit-location-coordinates` (base `a6491c1`).
 - Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_locations_route tests.test_content_pages` passed 57 tests. No live DB/providers, browser, Node/chart/full-suite rerun or Git operations.

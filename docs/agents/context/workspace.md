@@ -1,6 +1,6 @@
 # Workspace and verification context
 
-Snapshot 2026-10-01, main `ef5de20` (PR #70). Recheck Git before acting.
+Snapshot 2026-10-02, main `5b17b0d` (PR #75). Recheck Git before acting.
 
 - Main is checked out in another climate2 worktree; do not switch this checkout
   to main or touch unrelated repositories. Verify the same climate2 origin and
@@ -12,14 +12,18 @@ Snapshot 2026-10-01, main `ef5de20` (PR #70). Recheck Git before acting.
   unittest and dependency-free Node tests. No framework/tool migration implied
   by role skill names. Canonical paths/commands are in
   [architecture](../../ARCHITECTURE.md).
-- Latest application check: MAP-009, 48 focused Flask/content and eight Node
-  tests passed. Last full batch: MAP-005, 162 Python tests (eight expected
-  isolated-database skips) and seven Node tests. These are recorded past runs.
-  No connected built-in browser in the last check; no application restart or
-  deployment was verified. No live data operations accompanied these rounds.
+- REGRESSION-001 full batch at `50af280`: Python 182 total, 173 passed, eight
+  expected PostgreSQL skips, one stale precipitation-copy assertion; Node 13
+  passed. Correction on `codex/finish-offline-regression` passed the 10 affected
+  Python tests on 2026-10-02; the full suite was not rerun after correction.
+  Provider/climate reads were mocked; inherited filesystem sessions remain an
+  isolation limitation. No connected browser, live data or deployment check.
+- The named stash `climate2 REGRESSION-001 checkpoint before README demo request`
+  preserves the original documentation checkpoint. Commands/evidence have been
+  selectively reconciled; retain for recovery, not blind reapplication.
 - Temporary scripts can disappear between sessions. Recreate only necessary
   safe helpers; never treat a missing temporary tool as a reason to skip secret
   checks. Preserve databases, environments, session files and recovery data.
 
 Source: local Git worktree/status/stash inspection; [completed rounds](completed-rounds.md).
-Full older notes: `git show ef5de20:docs/agents/context/workspace.md`.
+Full older notes: `git show 5b17b0d:docs/agents/context/workspace.md`.

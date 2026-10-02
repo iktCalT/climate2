@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | REGRESSION-001 | stale precipitation copy assertion | done
+- Result: no actionable finding in the resumed checkpoint at `5b17b0d`. The test separately asserts mean daily precipitation in mm/day and monthly average daily rate/not a monthly total inside each NOAA/CMIP6 iteration; `templates/references.html` contains both claims in both provider branches. No existing assertion was removed. README demo remains in the base; both named recovery stashes remain present.
+- Check: reviewed working diff, surrounding provider loop/template copy, task evidence and `git diff --check` (clean). QA reports the corrected module passed 10 tests; not rerun. The prior 182-test batch had one stale-copy failure, eight expected PostgreSQL skips and 173 passes; Node 13 passed. This is not a fresh full-suite pass.
+- Next: Lead may integrate. No browser, live database/provider, network or deployment check; inherited filesystem-session isolation limitation remains disclosed.
+
 ## 2026-10-01 | HISTORY-002 | editable Location coordinates | done
 - Result: no actionable correctness, security, provenance or UX finding on `codex/edit-location-coordinates`, base `a6491c1`. One native GET form precedes covered/empty results; validated requested floats preserve decimal precision and signed zero independently of NOAA sampling. Bounds, labels, guidance, explicit submission, Clear, coverage and provider copy satisfy the contract. README/References document editing; no external resource added.
 - Check: reviewed template, surrounding validation/history route, paired documentation and actual parsed-form regression assertions. QA reports 57 focused route/content tests passed; not rerun. No Git, browser, network, database, provider or production/test edits.
