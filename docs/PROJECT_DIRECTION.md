@@ -125,6 +125,15 @@ Do not duplicate QA's completed runs during review without a specific concern.
 
 ## Publication and provenance
 
+README-DEMO-001 (2026-10-02), implemented: publish the project owner's supplied
+comparison screenshot as a repository-local README demo. Preserve visible
+source attribution, add descriptive alt text and a caption identifying August
+2026 versus August 1950 as an illustrative saved-data comparison, not proof of
+a trend. Credit screenshot provenance and NOAA/MapLibre in README and website
+References. Do not imply the screenshot records current database coverage or
+exact-location observations. No generated substitute, image editing, runtime
+behavior changes or unrelated assets. Inspect image metadata before publication.
+
 - The refactor is an **AI-assisted derivative** made with **OpenAI Codex
   (GPT-5)**.
 - The original project, [iktCalT/climate](https://github.com/iktCalT/climate),

@@ -8,6 +8,28 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current assignment
 
+**README-DEMO-001 — user-supplied comparison screenshot (complete).**
+Base `50af280` (PR #74), branch `codex/readme-demo-image`. Lead documentation
+scope: README, new `docs/images/noaa-comparison-2026-1950.png`, website
+References attribution, PROJECT_DIRECTION, this board and own log. No specialist
+implementation task. Validate PNG/provenance/privacy, relative image link,
+caption/alt text, References rendering, whitespace and publication secret scan.
+No application behavior, dependencies, data or other assets changed.
+
+Verified original PNG bytes, visual content, valid chunks/CRC and absence of
+text/EXIF metadata; relative link and caption checked. All 11 content tests and
+whitespace checks passed. Publication status is recorded in GitHub.
+
+REGRESSION-001 is deferred for this explicit user request. Its three uncommitted
+documentation files are preserved in the named stash
+`climate2 REGRESSION-001 checkpoint before README demo request` on
+`codex/offline-regression-checkpoint`. Full batch: 173 Python passes, eight skips,
+one stale precipitation-copy assertion; Node 13 passed. Assertion correction is
+not implemented: QA hit a usage limit. Recover selectively; do not blindly apply
+its older task board over newer assignments. Keep the separate pre-layout stash.
+
+## Previous application assignments
+
 **HISTORY-002 — editable location coordinates (complete).** Base `a6491c1`
 (PR #73), branch `codex/edit-location-coordinates`; contract atop requirements.
 Lead owns board/requirements/log. Developer owns `templates/locations.html`,
@@ -22,8 +44,6 @@ backend, DB, provider, dependency or unrelated edits.
 QA passed 57 focused route/content tests; review cleared. Browser unavailable.
 No live data or deployment operations. Publication status is recorded in GitHub;
 no further specialist task assigned.
-
-## Previous application assignments
 
 **HISTORY-001 — seasonal coverage readouts (complete).** Base `eab3e85`
 (PR #72), branch `codex/seasonal-coverage-readouts`; contract atop requirements.
