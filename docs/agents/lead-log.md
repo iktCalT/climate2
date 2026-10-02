@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show ef5de20:docs/agents/lead-log.md`.
 
+## 2026-10-02 | README-DEMO-001 | comparison screenshot | done
+
+- Result: user-provided NOAA August 2026/1950 comparison added near README top
+  as an unchanged local PNG, with alt text, caveats and source credits. Website
+  References records provenance. Branch `codex/readme-demo-image`, base `50af280`.
+- Check: PNG 2878×1432, 2,372,661 bytes, valid CRCs and no text/EXIF metadata;
+  visually inspected, original bytes preserved. Relative link/anchor and 11
+  content tests passed. No runtime/data changes.
+- Next: REGRESSION-001 remains deferred in its named stash (see board); one
+  stale precipitation-copy assertion still needs correction after QA quota
+  failure. No lost edits; separate pre-layout recovery stash retained.
+
 ## 2026-10-01 | HISTORY-002 | editable location coordinates | done
 
 - Result: one native GET coordinate form stays above history and empty results,
@@ -50,14 +62,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   passed. Board reduced from 1,066 to about 300 words. Prior application results
   retained, not rerun for this docs-only round.
 - Next: no specialist or application assignment; publication status is in GitHub.
-
-## 2026-09-30 | MAP-009 | manual cache request retry | done
-
-- Result: failed map panels offer an accessible manual retry of their saved
-  viewport data. Repeated clicks are guarded, pending movement timers canceled,
-  and success/empty/bounds/movement/removal reset the control. No downloads,
-  polling, data, scale or dependency changes; README/References updated.
-- Check: 48 focused Flask/content and eight Node tests passed. Production
-  review cleared; explicit aborted-response control assertions also passed.
-  Browser unavailable. Interrupted round resumed without duplicate agents.
-- Integration: merged PR #70, main `ef5de20`; local main synchronized.

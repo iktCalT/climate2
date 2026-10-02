@@ -5,6 +5,22 @@
 
 Climate is a Flask website for exploring historical climate data and encouraging awareness of environmental protection. Its maps and location histories invite exploration of broad patterns, not high-precision reports. Public browsing reads saved values from a local PostgreSQL cache without contacting climate providers. The active public dataset is NOAA CORe reanalysis; Open-Meteo CMIP6 rows remain stored separately for comparison.
 
+## Demo
+
+![Two synchronized NOAA CORe maps comparing August 2026 on the left with August 1950 on the right, using a smooth blue-to-red climate display.](docs/images/noaa-comparison-2026-1950.png)
+
+*Side-by-side exploration of saved NOAA CORe data: August 2026 and August 1950.
+Both panels use the same manually selected color scale. Smooth colors are
+interpolated estimates from the saved 2° × 4° grid, not extra source detail.
+This static example is not a live coverage report or evidence of a long-term trend.*
+
+Screenshot supplied by the project owner (October 2026), showing the climate2
+interface. Data: [NOAA CORe](https://psl.noaa.gov/data/coreinfo.html).
+Map rendering: [MapLibre GL JS](https://maplibre.org/maplibre-gl-js/docs/)
+with the [MapLibre demo basemap](https://github.com/maplibre/demotiles).
+The original visible source credits are retained; see [external-source attribution](#external-sources-and-attribution)
+for source and licence details.
+
 ## Current features
 
 NOAA Location history samples the imported 2° ×
