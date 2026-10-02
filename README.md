@@ -23,6 +23,20 @@ for source and licence details.
 
 ## Current features
 
+Hosted registration is temporarily closed because the owner has no time to
+manage accounts. The registration page has no signup form and the server rejects
+registration submissions. Existing administrator login remains available.
+An optional device-local profile stores a nickname and ownership credential only
+after explicit storage consent; no email or password is required. When enabled
+by the operator, visitors can publish a pin with one public comment, read comments
+by clicking pins, and delete their own pins. Administrators can remove any pin.
+The default allowance is 10 active pins per browser identity (configurable, e.g.
+3 later), with network rate limits. Clearing storage can bypass identity quotas
+and loses deletion credentials; it does not remove public posts. Clustering is
+deferred. This is not a secure hosted account or a maintenance-free moderation
+system. Community APIs fail closed until explicitly enabled with private
+configuration; see [community setup and privacy](docs/COMMUNITY.md).
+
 NOAA Location history samples the imported 2° ×
 4° NOAA grid by rounding to the closest latitude and circular longitude, with
 ties toward the smaller coordinate. Dateline aliases use −180°; sampled poles
@@ -35,13 +49,16 @@ migration use an explicit source identity independent of the public-read selecto
 The comparison command always compares NOAA against CMIP6. Changing the public
 selector never relabels or rewrites either source.
 
-Home provides a short guide to maps, location history and linked comparisons.
+Home, Maps and Locations use compact controls and short summaries, with
+expandable help for comparison, sampling and seasonal details. Source/coverage
+warnings and the manual shared map scale remain visible. References retains its
+full documentation and layout.
 References separates current data limitations from historical import checkpoints
 and retains the source/software credits. Selectable months do not guarantee local
 coverage: temperatures are °C, and precipitation is mean daily mm/day, not a
 monthly total.
 
-- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Labels read “Mean temperature (°C),” “Maximum temperature (°C),” “Minimum temperature (°C),” and “Mean daily precipitation (mm/day)”; each precipitation value is a monthly average daily rate, not a monthly total. Opening Maps shows the newest saved active-provider mean-temperature month, no later than the stable-date limit (previous month during the first six UTC hours of a new month, current month otherwise), and starts over the contiguous United States. Explicitly selected dates are never replaced. If no suitable saved month exists, the date selector opens instead. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. NOAA's active public map uses a smooth raster of bilinearly interpolated numeric values from the saved 2° × 4° sampling grid; these are labelled interpolated estimates, add no source resolution or accuracy, and leave missing samples transparent. CMIP6 keeps its existing tile display: its global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells, with zoom subdivision stopping at 0.5-degree latitude by 1-degree longitude cells. Maps stop at city-scale zoom level 10. Public viewport requests never fetch missing climate cells; nothing is queued for download.
+- **Maps:** a flat, fullscreen-capable MapLibre map for mean, maximum, or minimum temperature and precipitation from January 1950 through the current month. Labels read “Mean temperature (°C),” “Maximum temperature (°C),” “Minimum temperature (°C),” and “Mean daily precipitation (mm/day)”; each precipitation value is a monthly average daily rate, not a monthly total. Opening Maps shows the newest saved active-provider mean-temperature month, no later than the stable-date limit (previous month during the first six UTC hours of a new month, current month otherwise), and starts with a flat world overview (within the supported ±85° latitude bounds). Explicitly selected dates are never replaced. If no suitable saved month exists, the date selector opens instead. Users can compare two through four distinct months side by side; moving any panel synchronizes every viewport, and all panels share one visible, manually selected preset or custom scale and legend. The scale stays fixed through panning, zooming, loading, date changes, and page reloads until changed manually. NOAA's active public map uses a smooth raster of bilinearly interpolated numeric values from the saved 2° × 4° sampling grid; these are labelled interpolated estimates, add no source resolution or accuracy, and leave missing samples transparent. CMIP6 keeps its existing tile display: its global overview fits within a 91-by-91 grid using 2-degree latitude by 4-degree longitude cells, with zoom subdivision stopping at 0.5-degree latitude by 1-degree longitude cells. Maps stop at city-scale zoom level 10. Public viewport requests never fetch missing climate cells; nothing is queued for download.
 - **Maps retry:** a failed viewport request offers **Retry saved data** for that month and panel. It repeats the saved-cache read only after an explicit click; empty coverage and out-of-world views do not offer retry.
 - **Map coordinates:** on an open Maps page, enter decimal latitude (−85 to 85) and longitude (−180 to 180) to center every ready panel and open the linked readouts. Negative latitude means south and negative longitude means west. Invalid coordinates leave the maps unchanged; missing saved values remain missing. Clear location closes readouts without moving the maps or requesting data.
 - **Locations:** displays four seasonal history lines at a time for one latitude/longitude from January 1951 through the current month. Mean temperature is selected by default, with minimum temperature, maximum temperature, and precipitation available from the chart menu. The coordinate form accepts decimals without a 0.01° step restriction; negative latitude means south and negative longitude means west. Valid map selections link here using their selected coordinates, though history's own provider sampling rule may differ from a map display estimate. Only saved active-provider monthly values are read; gaps stay missing, with a clear empty state. Fixed Northern Hemisphere calendar groups are March–May, June–August, September–November, and December–February; winter is labelled by January's year, and these season names may not match local seasons everywhere. Each point shows its contributing stored months out of three; this describes coverage, not measurement accuracy. Precipitation is a monthly average daily rate in mm/day. Rendered chart URLs are keyed to current data content and chart version so imports, cleanup, and chart updates are reflected on the next page request.

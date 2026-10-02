@@ -2,6 +2,17 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | COMMUNITY-001 / UI-001 | bounded paths and portable References checks | done
+- Result: removed permanent Git-history dependency; rendered References rejects concise/community wrappers, added CSS block stays scoped, native details retained. Baseline byte equality remains earlier one-off evidence. Compact path test forbids recursive traversal and rejects public symlink aliases, hardlinks, directories and FIFOs; account case aliases checked when filesystem supports them.
+- Check: offline `tests.test_content_pages tests.test_community`: 22 passed; whitespace clean. Initial fixture expectation corrected to resolved temporary path (`/var` alias). No production changes, full batch or Node repetition.
+- Next: Reviewer verifies bounded path fix. Earlier batch and focused security evidence remain as recorded below; no live/browser/deployment verification.
+
+## 2026-10-02 | UI-001 / DEPLOY-001 / COMMUNITY-001 | focused contracts and offline regression | done
+- Result: new isolated SQLite service/API tests and five Node browser-module cases; semantic copy assertions preserve source, units, caveats, forms and readouts. Registration rejects writes; world bounds and References byte equality to `7342c9e`, append-only/scoped CSS verified.
+- Check: offline Python discovery (empty DATABASE_URL, both PostgreSQL opt-ins zero): 192 total, 182 passed, eight expected skips, two errors. Node map/community: 18 passed. Diff whitespace clean.
+- Post-fix: independently reran `tests.test_community` with the same offline flags: nine passed. Strict UTF-8 validation precedes SQLite access; administrator removal skips public throttles while owner removal retains them. Both formerly failing regressions pass. Full batch was not repeated.
+- Next: Reviewer. No live data/network/browser checks; inherited filesystem sessions and existing account connection warnings remain limitations. Actual browser behavior, proxy IP trust and deployment remain unverified.
+
 ## 2026-10-02 | REGRESSION-001 | NOAA precipitation copy assertion | done
 - Result: Replaced the stale combined assertion with separate checks for “mean daily precipitation in mm/day” and “monthly average daily rate, not a monthly total” in both provider iterations. Historical checkpoint batch: 173 Python passes, eight skips, one stale-copy failure; Node 13 passed. That batch is distinct from this correction.
 - Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_noaa_location_readiness` passed (10 tests). No live database, network, browser, or unrelated tests.

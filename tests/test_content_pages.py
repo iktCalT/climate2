@@ -1,6 +1,7 @@
 import html
 from html.parser import HTMLParser
 import os
+import re
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -117,20 +118,38 @@ class ContentPageTests(unittest.TestCase):
     def test_home_explains_current_sources_coverage_and_units(self):
         page = self.get_page("/")
         for expected in (
-            "NOAA CORe is the active public reanalysis series",
-            "Open-Meteo CMIP6 model output remains a separate cached source",
-            "Public browsing reads the existing cache",
+            "NOAA CORe reanalysis",
+            "Cache only",
+            "Missing values are never downloaded while browsing",
             "1950 → current month",
-            "Selectable map dates; coverage varies by place and variable",
+            "Map dates; coverage varies by place and variable",
             "from 1951 through the current month",
-            "Gaps stay visible",
-            "°C and mm/day",
-            "not monthly rainfall totals",
+            "Missing coverage stays visible",
+            "°C · mm/day",
+            "not a monthly total",
             "not direct observations at an exact location",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
         self.assertNotIn("1950–1954 and 2022–2026", page)
+
+    def test_concise_help_and_references_style_isolation(self):
+        root = Path(__file__).resolve().parents[1]
+        for provider in ("noaa_core", "open_meteo_cmip6"):
+            references = self.get_page("/references", provider)
+            self.assertNotRegex(references, r'class="[^"]*(?:concise-page|community-)')
+            self.assertNotIn('id="community-controls"', references)
+        css = (root / "static/styles.css").read_text()
+        marker = "/* Concise public pages; References and shared layout keep their existing rules. */"
+        self.assertIn(marker, css)
+        added = re.sub(r"/\*.*?\*/", "", css.split(marker, 1)[1], flags=re.S)
+        for selector in re.findall(r"([^{}]+)\{", added):
+            if selector.strip().startswith("@media"):
+                continue
+            for item in selector.split(","):
+                self.assertTrue(item.strip().startswith((".concise-page", ".community-")), item)
+        for path, help_class in (("/", "home-guide"), ("/locations", "location-help")):
+            self.assertIn(f'<details class="{help_class}">', self.get_page(path))
 
     def test_home_actions_and_comparison_guidance(self):
         page = self.get_page("/")
@@ -141,13 +160,13 @@ class ContentPageTests(unittest.TestCase):
         self.assertEqual(structure.headings.count("h1"), 1)
         self.assertTrue(set(structure.labelled_by) <= structure.ids)
         for expected in (
-            "two to four different months",
-            "Click a location in any panel",
-            "each month's value and provenance",
-            "NOAA readouts are interpolated estimates from the saved 2° × 4° grid",
-            "Missing values stay marked",
-            "shared scale presets or enter a custom range",
-            "The scale stays fixed until you change it",
+            "two to four months",
+            "Click a location",
+            "each month's value and source",
+            "NOAA map readouts are interpolated estimates from the saved 2° × 4° grid",
+            "Missing coverage stays visible",
+            "manual color scale",
+            "stays fixed until you change it",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
@@ -156,15 +175,15 @@ class ContentPageTests(unittest.TestCase):
         for provider, source, readout, excluded_readout in (
             (
                 "noaa_core",
-                "NOAA CORe reanalysis grid data",
-                "NOAA readouts are interpolated estimates from the saved 2° × 4° grid; smoothing adds no source detail or accuracy.",
-                "CMIP6 readouts show their containing-cell value",
+                "NOAA CORe reanalysis data",
+                "NOAA map readouts are interpolated estimates from the saved 2° × 4° grid.",
+                "CMIP6 map readouts use the saved containing-cell value",
             ),
             (
                 "open_meteo_cmip6",
                 "Open-Meteo CMIP6 model data",
-                "CMIP6 readouts show their containing-cell value and saved-data provenance.",
-                "NOAA readouts are interpolated estimates",
+                "CMIP6 map readouts use the saved containing-cell value",
+                "NOAA map readouts are interpolated estimates",
             ),
         ):
             with self.subTest(provider=provider):
@@ -175,7 +194,7 @@ class ContentPageTests(unittest.TestCase):
                 self.assertIn("Illustrative pattern · not live climate data", home)
                 self.assertIn(readout, home)
                 self.assertNotIn(excluded_readout, home)
-                self.assertIn("Two months show a comparison, not proof of a long-term climate trend.", home)
+                self.assertIn("Two months do not establish a long-term trend.", home)
                 self.assertIn("awareness of broad climate patterns, not high-precision reporting", references)
                 self.assertIn("two months cannot establish a long-term climate trend", references)
                 self.assertIn("Visitors do not trigger provider downloads", references)

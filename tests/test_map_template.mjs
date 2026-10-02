@@ -10,7 +10,7 @@ assert.match(template, /\/static\/map_selection\.js/);
 assert.match(template, /<button id="map-retry-\{\{ loop\.index0 \}\}"[\s\S]*?type="button"[\s\S]*?aria-label="Retry saved data for \{\{ panel_month \}\}"[\s\S]*?aria-describedby="map-status-\{\{ loop\.index0 \}\}" hidden>Retry saved data<\/button>/,
     "each month has a native, initially hidden retry button associated with its status");
 assert.match(moduleScript, /const selection = createMapSelection\(\{\s*panels, Popup, document, unit: activeScale\.unit,\s*sample: useInterpolatedNoaa \? sampleGrid : undefined,/);
-assert.match(moduleScript, /panel\.map\.on\("click", event => selection\.select\(event\.lngLat\)\)/);
+assert.match(moduleScript, /panel\.map\.on\("click", event => \{\s*if \(!communityPins\.handleMapClick\(event\)\) selection\.select\(event\.lngLat\);\s*\}\)/);
 assert.doesNotMatch(moduleScript.match(/panel\.map\.on\("click"[\s\S]*?\n\s*\}\);/)?.[0] || "", /fetch\(/,
     "click handling only updates the selected location; it does not request data");
 

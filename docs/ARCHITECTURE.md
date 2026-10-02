@@ -9,6 +9,7 @@ app.py                  Flask entry point; implementation below
 climate/
   web/                  app.py routes; helpers.py charts, auth, validation
   services/             map_data.py, admin_import.py, admin_cleanup.py
+                        community.py: bounded public pins in private SQLite
   providers/            open_meteo.py, noaa_core.py
   data/                 db.py, cache_availability.py, months.py
   cli/                  explicit setup, ingest, comparison, account commands
@@ -81,6 +82,7 @@ and the fixed `REFACTOR.md` may mention old paths; use this guide for navigation
 DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 \
   PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests
 node --test tests/test_map*.mjs
+node --test tests/test_community*.mjs
 ```
 
 The empty `DATABASE_URL` and zero-valued opt-in flags keep PostgreSQL integration

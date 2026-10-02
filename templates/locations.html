@@ -1,81 +1,68 @@
 {% extends "layout.html" %}
 
-{% block title %}
-    Locations
-{% endblock %}
+{% block title %}Locations{% endblock %}
 
 {% block main %}
+<div class="concise-page concise-locations">
+    <h1 class="locations-title">{% if lat is defined %}Location history{% else %}Explore a location{% endif %}</h1>
+    <p class="locations-intro">Saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 model{% endif %} values from 1951 through the current month. Public browsing reads the cache only; missing values are not downloaded.</p>
+    <p class="small text-muted">{% if climate_provider == "noaa_core" %}A coarse grid sample, not an observation at the exact requested location.{% else %}Model output, not an observation at the exact requested location; inherited ocean temperatures remain suspect.{% endif %} Temperature is °C; precipitation is a monthly average daily rate (mm/day), not a monthly total.</p>
 
-    <form action="/locations" method="get" class="mx-auto mb-4" style="width:100%;max-width:640px">
-        <div class="mb-3 row">
-            {% if lat is defined %}
-                <h5>Edit requested coordinates</h5>
-                <p class="text-muted">Submit coordinates to show saved history for another location. The displayed result stays the same until you submit.</p>
-            {% else %}
-                <h5>Explore a location from 1951 through the current month</h5>
-                <p class="text-muted">Enter coordinates to chart saved {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 modelled{% endif %} mean, maximum, and minimum temperature with precipitation.
-                    Only the active provider's PostgreSQL cache is read. Seasonal groups are fixed to Northern Hemisphere
-                    calendar months (March–May, June–August, September–November, and December–February, labelled by
-                    January's year); season names may not match local seasons everywhere. Chart points report contributing
-                    stored months out of three, which describes coverage, not measurement accuracy. Missing months stay unavailable;
-                    administrators manage data imports separately.</p>
-                {% if climate_provider == "noaa_core" %}
-                    <p class="text-muted">History rounds latitude and longitude separately to one fixed 2° × 4° NOAA grid point for every month. The result shows its coordinates and approximate distance from your request.</p>
-                {% endif %}
-            {% endif %}
-            <div class="form-group col-sm-6">
-                <label for="latitude" class="col-form-label d-block ms-auto w-100">Latitude (°N):</label>
-                <input id="latitude" autocomplete="off" class="form-control ms-auto w-100" name="latitude"
+    <form action="/locations" method="get" class="location-coordinate-form">
+        {% if lat is defined %}
+            <p class="text-muted">Edit coordinates and submit to load another result. The current result stays until then.</p>
+        {% endif %}
+        <div class="location-coordinate-fields">
+            <div class="form-group">
+                <label for="latitude" class="form-label">Latitude (°N)</label>
+                <input id="latitude" autocomplete="off" class="form-control" name="latitude"
                     type="number" step="any" min="-90" max="90" required aria-describedby="coordinate-guidance"
                     value="{{ lat if lat is defined else '' }}">
             </div>
-            <div class="form-group col-sm-6">
-                <label for="longitude" class="col-form-label d-block me-auto w-100">Longitude (°E):</label>
-                <input id="longitude" autocomplete="off" class="form-control me-auto w-100" name="longitude"
+            <div class="form-group">
+                <label for="longitude" class="form-label">Longitude (°E)</label>
+                <input id="longitude" autocomplete="off" class="form-control" name="longitude"
                     type="number" step="any" min="-180" max="180" required aria-describedby="coordinate-guidance"
                     value="{{ lon if lon is defined else '' }}">
             </div>
-            <p id="coordinate-guidance" class="form-text">Negative latitude is south; negative longitude is west. Decimal coordinates are accepted without a 0.01° step restriction.</p>
         </div>
-        <button class="btn btn-success" type="submit">{% if lat is defined %}Update location{% else %}Generate{% endif %}</button>
-        {% if lat is defined %}
-            <a class="btn btn-outline-success" href="/locations">Clear</a>
-        {% endif %}
+        <p id="coordinate-guidance" class="form-text">Negative latitude is south; negative longitude is west.</p>
+        <div class="location-form-actions">
+            <button class="btn btn-success" type="submit">{% if lat is defined %}Update location{% else %}Show history{% endif %}</button>
+            {% if lat is defined %}<a class="btn btn-outline-success" href="/locations">Clear</a>{% endif %}
+        </div>
     </form>
 
     {% if lat is defined %}
-        <div class="row">
-            <div class="col"></div>
-            <div class="col">
-                <p class="text-center fs-3">Latitude: {{ lat }}°N</p>
-                <p class="text-center fs-3">Longitude: {{ lon }}°E</p>
+        <section class="location-result" aria-label="Location result">
+            <div class="location-result-heading">
+                <h2>{{ lat }}°N, {{ lon }}°E</h2>
                 {% if noaa_sample %}
-                    <p class="text-center">NOAA CORe reanalysis: requested {{ lat }}°N, {{ lon }}°E;
-                        sampled 2° × 4° grid point {{ noaa_sample.latitude }}°N, {{ noaa_sample.longitude }}°E
-                        (approximately {{ "%.1f"|format(noaa_sample.distance_km) }} km away).
-                        This is a coarse grid sample, not an observation at the exact requested location.</p>
+                    <p>NOAA CORe reanalysis sample: {{ noaa_sample.latitude }}°N, {{ noaa_sample.longitude }}°E (about {{ "%.1f"|format(noaa_sample.distance_km) }} km from your request).</p>
                 {% else %}
-                    <p class="text-center">Open-Meteo CMIP6 model output at the requested coordinates.</p>
+                    <p>Open-Meteo CMIP6 model output at the requested coordinates.</p>
                 {% endif %}
-                <p class="text-center text-muted small">Refreshing rechecks PostgreSQL. Browsing never downloads climate data.</p>
             </div>
-            <div class="col"></div>
-        </div>
-        <p role="status">{{ available_months }} of {{ total_months }} months have saved values;
-            {{ complete_months }} have all four fields. Missing data is not queued for download.</p>
+            <p class="location-coverage" role="status">{{ available_months }} of {{ total_months }} months have saved values; {{ complete_months }} have all four fields. Refresh rechecks PostgreSQL; missing values are not queued for download.</p>
+        </section>
         {% if filename %}
-        <p class="small text-muted">Season groups use Northern Hemisphere calendar months: spring is March–May,
-            summer June–August, fall September–November, and winter December–February, labelled by January's year.
-            Each point reports how many of its three stored monthly values contribute to the mean. Counts describe
-            stored-month coverage, not measurement accuracy. These season names may not match local seasons everywhere.
-            Gaps are not filled with newly downloaded data.</p>
-        <iframe title="Cached seasonal climate history" src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px"
-        class="my-3" style="border:none;"></iframe>
+            <iframe title="Cached seasonal climate history" src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px" class="my-3" style="border:none;"></iframe>
         {% else %}
-        <div class="alert alert-info" role="status">No saved climate data for {% if noaa_sample %}this NOAA grid sample{% else %}these exact coordinates{% endif %}.
-            Try another location or ask an administrator to import data for the active provider.
-            No external climate request was made.</div>
+            <div class="alert alert-info" role="status">No saved climate data for {% if noaa_sample %}this NOAA grid sample{% else %}these exact coordinates{% endif %}. Try another location or ask an administrator to import data for the active provider. No external climate request was made.</div>
         {% endif %}
     {% endif %}
-
+    <details class="location-help">
+        <summary>How sampling and seasonal coverage work</summary>
+        <div class="location-help-content">
+            {% if climate_provider == "noaa_core" %}
+                <p>Locations rounds latitude and longitude separately to one fixed 2° × 4° NOAA grid point for every month and reports its distance from your request.</p>
+            {% else %}
+                <p>Locations looks up saved Open-Meteo CMIP6 model history at the requested coordinates.</p>
+            {% endif %}
+            <p>Season groups use Northern Hemisphere calendar months: spring March–May, summer June–August, fall September–November and winter December–February, labelled by January's year. These names may not match local seasons everywhere.</p>
+            <p>Each chart point reports how many of its three stored monthly values contribute to the mean. Counts describe stored-month coverage, not measurement accuracy. Gaps are not filled with downloaded data.</p>
+            <p>Two months do not establish a long-term trend. <a href="/references">Data limitations and sources</a>.</p>
+        </div>
+    </details>
+</div>
 {% endblock %}

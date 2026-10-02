@@ -2,6 +2,16 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | COMMUNITY-001 / UI-001 | targeted fix verification | done
+- Result: no remaining review blocker. `community.settings()` now uses resolved paths, ancestor inode checks, fixed protected paths and regular-file/single-link metadata; it no longer traverses static. The content test checks rendered References isolation and scoped added CSS without historical Git objects. Lead clarified the named native disclosure for optional typed coordinates is intentional and within the UI contract; the earlier third finding is closed as a design question, not a defect.
+- Check: inspected targeted service/test/docs changes and `git diff --check` (clean). QA reports 22 focused Python tests passed after fixes; not rerun. No browser, live database or deployment check.
+- Next: Lead integration. Earlier broad offline batch and targeted correction evidence remain separately recorded.
+
+## 2026-10-02 | UI-001 / DEPLOY-001 / COMMUNITY-001 | independent review | done
+- Result: two actionable findings and one design question on base `7342c9e`: enabled `community.settings()` rescans all static files on every API request and Maps/Register render (`community.py:55`), so growing chart caches make public traffic do unbounded filesystem work; the new content test requires `git show 7342c9e` and byte-identical References/CSS (`test_content_pages.py:139–143`), failing shallow/source checkouts and freezing later edits. The optional typed-coordinate form was placed inside a named disclosure; Lead subsequently confirmed this is intentional and allowed by the UI contract. The two defects are closed in the targeted verification entry above.
+- Check: read-only route/service/JS/template/test diff review, `git diff 7342c9e --check` clean; References template hash matches base. QA reports 182 Python passes/eight skips/two pre-fix errors, corrected community module nine passes, Node 18 passes; not rerun. No browser, live database or deployment check.
+- Next: see targeted fix verification above. No confirmed auth, XSS or quota bypass in reviewed paths.
+
 ## 2026-10-02 | REGRESSION-001 | stale precipitation copy assertion | done
 - Result: no actionable finding in the resumed checkpoint at `5b17b0d`. The test separately asserts mean daily precipitation in mm/day and monthly average daily rate/not a monthly total inside each NOAA/CMIP6 iteration; `templates/references.html` contains both claims in both provider branches. No existing assertion was removed. README demo remains in the base; both named recovery stashes remain present.
 - Check: reviewed working diff, surrounding provider loop/template copy, task evidence and `git diff --check` (clean). QA reports the corrected module passed 10 tests; not rerun. The prior 182-test batch had one stale-copy failure, eight expected PostgreSQL skips and 173 passes; Node 13 passed. This is not a fresh full-suite pass.

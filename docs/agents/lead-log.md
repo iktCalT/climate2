@@ -4,6 +4,20 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-02 | UI-001 / DEPLOY-001 / COMMUNITY-001 | public launch features | done
+
+- Result: concise public pages; hosted registration blocked; world camera;
+  opt-in device profile/public pin service behind deployment enable/secret.
+  Owner chose immediate comments with limits/admin removal; clustering deferred.
+  References body/styles unchanged. Sequential Sol continued after Luna quota.
+- Check: full offline Python 192: 182 passed, eight PostgreSQL skips, two
+  defects. Admin throttle/Unicode corrections independently pass nine community
+  tests. Node 18 passed; final path/test-portability corrections pass 22 focused
+  tests and independent review. No browser/deployment verification.
+- Next: publication. Private storage,
+  existing admin provisioning, proxy limits and moderation documented in
+  [community guide](../COMMUNITY.md). Recovery stashes untouched.
+
 ## 2026-10-02 | REGRESSION-001 | offline checkpoint recovery | done
 
 - Result: recovered relevant stashed commands/evidence without overwriting
@@ -51,15 +65,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   partial tests. No live data or browser; no map/dependency changes.
 - Next: publication status in GitHub for `codex/seasonal-coverage-readouts`,
   base `eab3e85`; no further specialist task assigned.
-
-## 2026-10-01 | MAP-010 | keyboard map coordinate selection | done
-
-- Result: typed coordinates center synchronized maps and open linked readouts;
-  clear closes them without movement or fetching. Readiness, bounds and removed
-  panels are guarded; dates, metric and manual scale stay unchanged. README and
-  References updated. Branch `codex/map-coordinate-selection`, base `69b6a04`.
-- Check: 50 focused Flask/content and 13 Node tests passed; review cleared.
-  Lead corrected readiness status and required same-center synchronization
-  evidence. Initially undefined readiness is intentional, not a defect. No live
-  browser, database, provider or deployment operations.
-- Next: publication status in GitHub; no additional specialist task assigned.

@@ -1,6 +1,12 @@
 # Workspace and verification context
 
-Snapshot 2026-10-02, main `5b17b0d` (PR #75). Recheck Git before acting.
+Snapshot 2026-10-02, task base/main `7342c9e` (PR #76). Recheck Git before acting.
+
+- `codex/concise-public-pages` implements UI-001, DEPLOY-001, COMMUNITY-001:
+  concise pages, closed hosted registration, world camera, consent-only local
+  profiles and public pins. Community feature is disabled by default; see
+  [deployment configuration](../../COMMUNITY.md) and current board for review
+  status. No live database or deployment operations.
 
 - Main is checked out in another climate2 worktree; do not switch this checkout
   to main or touch unrelated repositories. Verify the same climate2 origin and

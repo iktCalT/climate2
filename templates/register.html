@@ -1,20 +1,23 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Register
+    Registration closed
 {% endblock %}
 
 {% block main %}
-    <form action="/register" method="post">
-        <div class="mb-3">
-            <input autocomplete="off" autofocus class="form-control mx-auto w-auto" name="username" placeholder="Username" type="text" required>
-        </div>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" name="password" placeholder="Password" type="password" required>
-        </div>
-        <div class="mb-3">
-            <input class="form-control mx-auto w-auto" name="confirmation" placeholder="Confirm Password" type="password" required>
-        </div>
-        <button class="btn btn-primary" type="submit">Register</button>
-    </form>
+    <h1>Registration is temporarily closed</h1>
+    <p>The owner currently has no time to manage new accounts. You can still explore public climate maps and location history.</p>
+    <p>Existing account holders can <a href="/login">log in</a>.</p>
+    <a class="btn btn-success" href="/maps">Explore Maps</a>
+    <div class="community-register" id="community-controls" data-enabled="{{ 'true' if community_enabled else 'false' }}">
+        {% include "community_profile.html" %}
+        {% if not community_enabled %}<p>Public community pins are currently disabled.</p>{% endif %}
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script type="module">
+        import {createCommunityPins} from "/static/community_pins.js";
+        createCommunityPins();
+    </script>
 {% endblock %}

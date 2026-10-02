@@ -201,14 +201,14 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         load.assert_called_once()
         draw.assert_not_called()
-        self.assertIn(b"Refreshing rechecks PostgreSQL", response.data)
+        self.assertIn(b"Refresh rechecks PostgreSQL", response.data)
 
     def test_location_form_describes_the_full_history_range(self):
         response = self.client.get("/locations")
 
         self.assertEqual(response.status_code, 200)
         self.assertIn(b"from 1951 through the current month", response.data)
-        self.assertIn(b"maximum, and minimum temperature", response.data)
+        self.assertIn("Temperature is °C; precipitation is a monthly average daily rate (mm/day), not a monthly total".encode(), response.data)
 
     def test_old_chart_version_is_redrawn_and_current_version_is_reused(self):
         history = pd.DataFrame(
@@ -264,7 +264,7 @@ class LocationsRouteTests(unittest.TestCase):
             "three stored monthly values contribute to the mean",
             "stored-month coverage, not measurement accuracy",
             "may not match local seasons everywhere",
-            "Gaps are not filled with newly downloaded data",
+            "Gaps are not filled with downloaded data",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
@@ -287,8 +287,8 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(len(parser.form_buttons), 1)
         self.assertEqual(parser.form_buttons[0]["type"], "submit")
         self.assertNotIn("onsubmit", parser.forms[0])
-        self.assertEqual(parser.labels["latitude"].strip(), "Latitude (°N):")
-        self.assertEqual(parser.labels["longitude"].strip(), "Longitude (°E):")
+        self.assertEqual(parser.labels["latitude"].strip(), "Latitude (°N)")
+        self.assertEqual(parser.labels["longitude"].strip(), "Longitude (°E)")
         for identifier, minimum, maximum in (("latitude", "-90", "90"), ("longitude", "-180", "180")):
             field = parser.inputs[identifier]
             self.assertEqual(field["type"], "number")
@@ -325,20 +325,20 @@ class LocationsRouteTests(unittest.TestCase):
                         requested = tuple(map(float, coordinates))
                         self.assert_coordinate_form(parser, tuple(map(repr, requested)))
                         self.assertEqual(parser.tags.count("form"), 1)
-                        self.assertLess(page.index("</form>"), page.index("Latitude:"))
-                        self.assertIn("Edit requested coordinates", page)
+                        self.assertLess(page.index("</form>"), page.index('class="location-result"'))
+                        self.assertIn("Edit coordinates and submit", page)
                         self.assertIn("Update location", page)
-                        self.assertIn("displayed result stays the same until you submit", page)
+                        self.assertIn("The current result stays until then", page)
                         self.assertEqual(parser.form_links, [{"class": "btn btn-outline-success", "href": "/locations"}])
                         if provider == "noaa_core":
                             sample = sample_noaa_location(*requested)
                             self.assertEqual(load.call_args.kwargs["location"], (sample.latitude, sample.longitude))
-                            self.assertIn("sampled 2° × 4° grid point", page)
+                            self.assertIn("one fixed 2° × 4° NOAA grid point", page)
                             self.assertIn("not an observation at the exact requested location", page)
                         else:
                             self.assertEqual(load.call_args.kwargs["location"], requested)
                             self.assertIn("Open-Meteo CMIP6 model output at the requested coordinates", page)
-                            self.assertNotIn("sampled 2° × 4° grid point", page)
+                            self.assertNotIn("one fixed 2° × 4° NOAA grid point", page)
                         self.assertIs(load.call_args.kwargs["fetch_missing"], False)
                         self.assertIn("1 of 1 months" if covered else "0 of 1 months", page)
                         self.assertEqual("<iframe" in page, covered)
@@ -581,19 +581,19 @@ class LocationsRouteTests(unittest.TestCase):
                 with self.subTest(provider=provider), patch.dict(app.config, CLIMATE_PROVIDER=provider):
                     selector = self.client.get("/maps?select=1")
                     self.assertEqual(selector.status_code, 200)
-                    self.assertIn(b"Precipitation is shown as mean daily rate (mm/day)", selector.data)
-                    self.assertIn(b"not as a monthly total", selector.data)
+                    self.assertIn(b"Precipitation is a monthly mean daily rate (mm/day)", selector.data)
+                    self.assertIn(b"not a monthly total", selector.data)
 
                     precip = self.client.get("/maps?month-picker=1960-01&data-type=precip")
                     self.assertEqual(precip.status_code, 200)
-                    self.assertIn(b"Precipitation is a monthly average daily rate (mm/day)", precip.data)
+                    self.assertIn(b"Precipitation is a monthly mean daily rate (mm/day)", precip.data)
                     self.assertIn(b"not a monthly total", precip.data)
                     if provider == "noaa_core":
-                        self.assertIn(b"saved NOAA sampling grid is spaced 2\xc2\xb0 latitude \xc3\x97 4\xc2\xb0 longitude", precip.data)
-                        self.assertIn(b"adds no source resolution or accuracy", precip.data)
+                        self.assertIn("interpolated estimates from the saved 2° × 4° grid".encode(), precip.data)
+                        self.assertIn(b"adds no source detail or accuracy", precip.data)
                         self.assertNotIn(b"Open-Meteo CMIP6 model output", precip.data)
                     else:
-                        self.assertIn(b"these maps use Open-Meteo CMIP6 model output", precip.data)
+                        self.assertIn(b"These maps use Open-Meteo CMIP6 model output", precip.data)
                         self.assertNotIn(b"saved NOAA sampling grid", precip.data)
 
     def test_change_selection_round_trip_preserves_order_variable_and_unavailable_dates(self):
@@ -993,8 +993,8 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertIn(b"requestController?.abort()", response.data)
         self.assertIn(b"Math.max(-180, bounds.getWest())", response.data)
         self.assertIn(b"renderWorldCopies: false", response.data)
-        self.assertIn(b"center: [-98.5, 39.5]", response.data)
-        self.assertIn(b"zoom: 3.25", response.data)
+        self.assertIn(b"bounds: [[-180, -85], [180, 85]]", response.data)
+        self.assertNotIn(b"center: [-98.5, 39.5]", response.data)
         self.assertIn(b"maxZoom: 10", response.data)
         self.assertIn(b'panel.map.setProjection({type: "mercator"})', response.data)
         self.assertIn(b"FullscreenControl", response.data)

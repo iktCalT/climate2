@@ -59,18 +59,23 @@ class AdminRoleTests(unittest.TestCase):
         with self.client.session_transaction() as flask_session:
             flask_session["user_id"] = user_id
 
-    def test_registration_creates_a_normal_user_even_with_an_old_true_default(self):
+    def test_registration_is_closed_without_creating_account_or_profile(self):
         response = self.client.post(
             "/register",
             data={"username": "member", "password": "password", "confirmation": "password"},
         )
 
         with closing(sqlite3.connect(self.user_database_path)) as con:
-            is_admin = con.execute(
-                "SELECT is_admin FROM users WHERE username = ?", ("member",)
-            ).fetchone()[0]
-        self.assertEqual(response.status_code, 200)
-        self.assertFalse(is_admin)
+            self.assertEqual(con.execute("SELECT COUNT(*) FROM users").fetchone()[0], 0)
+            self.assertEqual(con.execute("SELECT COUNT(*) FROM profiles").fetchone()[0], 0)
+        self.assertEqual(response.status_code, 403)
+        page = self.client.get("/register")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b"Registration is temporarily closed", page.data)
+        self.assertIn(b"no time to manage new accounts", page.data)
+        self.assertNotIn(b'name="password"', page.data)
+        self.assertNotIn(b'name="username"', page.data)
+        self.assertIn(b'href="/login"', page.data)
 
     def test_cleanup_requires_current_admin_and_csrf(self):
         with patch("climate.web.app.cleanup_preview") as preview, patch("climate.web.app.cleanup_batch") as delete:

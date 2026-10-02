@@ -2,6 +2,26 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | COMMUNITY-001 | bounded storage-path validation | done
+- Result: removed recursive static traversal. Resolved paths and bounded ancestor identity checks reject static/symlink/case aliases. Existing stores must be regular files with exactly one hard link; all hard-linked stores are rejected. Known account/climate paths retain resolved-path and filesystem-identity protection. Metadata/configuration failures return the same generic disabled-storage error.
+- Check: all nine community tests passed with PostgreSQL flags disabled; AST and diff checks passed. Isolated smoke forbade `rglob`, verified safe missing/existing paths and rejected static paths, symlink aliases, actual case aliases, hard-linked files and directories. Existing legacy-path/SQLite ResourceWarnings persisted.
+- Next: QA owns path regression assertions; Reviewer verifies correction; Lead updates deployment documentation. No other production/test files changed.
+
+## 2026-10-02 | COMMUNITY-001 | QA moderation / Unicode corrections | done
+- Result: administrator deletion bypasses public network/posting throttles; owner deletion retains its rate checks. Route authentication, same-origin and CSRF requirements remain unchanged. Strict UTF-8 text validation rejects surrogate characters with CommunityError 400 before opening/creating the store. Only service and own log changed; QA assertions untouched.
+- Check: isolated `unittest discover -s tests -p test_community.py` passed all nine tests with PostgreSQL flags disabled; service AST and `git diff --check` passed. Existing legacy account-path warning and test SQLite ResourceWarnings appeared. No full-suite repetition, live database or deployment operations.
+- Next: QA verifies corrections, then Reviewer audits final implementation.
+
+## 2026-10-02 | COMMUNITY-001 | opt-in local profiles / public pins | done
+- Result: separate private SQLite service; disabled unless enable flag, secret and limits validate. Atomic quota/IP throttles, retained deletion events, bounded paged public reads, private own-pin list and owner/admin removal. Maps/Registration share consent-only local storage; explicit placement/publication, plain-text marker comments, abort/generation guards, manual retry/load-more. Administrator CSRF needs no local profile. Static aliases protected; no dependencies, resources or live deployment.
+- Check: Python/Jinja/Node syntax and diff checks passed. Temporary-store smokes cover quota races, retained cooldown, huge input bounds, public-field isolation, origin/body limits and admin-CSRF-only deletion. Storage smoke proves zero ordinary access, consent creation/forgetting and denied-storage handling.
+- Next: QA full regressions and browser-module coverage; Reviewer security audit. Browser/deployment unverified; inherited test filesystem sessions remain.
+
+## 2026-10-02 | UI-001 / DEPLOY-001 | concise pages, registration closure, world camera | done
+- Result: preserved concise Home/Maps/Locations draft; restored all-state sampling/season help, visible Location units/source caveats and scoped fullscreen height preservation. Registration GET explains temporary closure/owner capacity, POST returns 403 without account/profile writes; existing login/admin untouched. Shared nav names closure. Maps constructor fits ±180°/±85° bounds, preserving zoom constraints and synchronization. No References edits, resources or dependencies.
+- Check: five Jinja templates and Python AST valid; structural comparisons verified registration-only backend, nav-only layout, camera-only map-script, append-only CSS and untouched References. `git diff --check` passed. Full offline suites belong to QA; browser/live deployment unverified.
+- Next: QA owns rendered-state, registration/no-write and world-camera regressions; Lead coordinates follow-on COMMUNITY-001.
+
 ## 2026-10-01 | HISTORY-002 | editable Location coordinates | done
 - Result: one native GET coordinate form now precedes entry/result content, including empty coverage. Results prefill validated requested lat/lon without extra rounding; zero and negative decimals remain intact. Labels, bounds, required flags and guidance retained; result heading/button explain explicit submission. Clear links to blank entry. Provider provenance, coverage and seasonal guidance remain. README/References document editing; no new external resources.
 - Check: Jinja compilation and six offline Flask entry/covered/empty renders across both providers passed, including precise decimal/zero prefills, form uniqueness/order and Clear URL; both References branches passed. `git diff --check` passed. No backend/test edits, live DB/network, browser, chart writes or Git mutations.

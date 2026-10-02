@@ -1,0 +1,18 @@
+<details class="community-profile" id="community-profile">
+    <summary>Optional profile on this device</summary>
+    <p>This is not a secure or recoverable hosted account. A nickname and random ownership credential stay in this browser's local storage. Clearing storage loses them.</p>
+    <button id="community-profile-open" type="button" class="btn btn-outline-success">Use a local profile</button>
+    <form id="community-profile-form" hidden>
+        <label for="community-nickname">Nickname (1–40 characters)</label>
+        <input id="community-nickname" name="nickname" class="form-control" maxlength="40" required>
+        <label><input id="community-storage-consent" type="checkbox" required> I agree to store this nickname and ownership credential on this device.</label>
+        <button type="submit" class="btn btn-success">Save local profile</button>
+    </form>
+    <p id="community-profile-status" role="status" aria-live="polite">No local profile storage has been accessed.</p>
+    <p>Published pins remain public when you forget this device. Delete your pins first; losing the credential loses your ability to remove them yourself.</p>
+    <div id="community-own-pins" hidden>
+        <button id="community-own-refresh" type="button" class="btn btn-outline-success">Show my published pins</button>
+        <ul id="community-own-list"></ul>
+    </div>
+    <button id="community-profile-forget" type="button" class="btn btn-outline-secondary" hidden>Forget this device</button>
+</details>
