@@ -5,45 +5,52 @@ Lead owns this board. Read [roles](AGENT_ROLES.md),
 One specialist at a time: Developer → QA → Reviewer → Lead integration.
 Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequential-managed-team).
 
-## Current assignment
+## Current round
 
-**REGRESSION-001 — resumed offline checkpoint (complete).** Base
-`5b17b0d` (PR #75), branch `codex/finish-offline-regression`.
+**UI-001 / DEPLOY-001 / COMMUNITY-001 — reviewed; Lead integration.**
+Base `7342c9e` (PR #76), branch `codex/concise-public-pages`.
 
-- Lead: this board, architecture verification commands, workspace/completed
-  context and own log. Preserve indexed history and recovery references.
-- QA: only `tests/test_noaa_location_readiness.py` and own log. Correct stale
-  precipitation copy while retaining daily-rate mm/day and not-monthly-total
-  semantics for both providers. Rerun affected module; no full-suite repetition.
-- Reviewer: read-only evidence/diff review and own log. Sequential Luna/medium.
-- No product behavior, dependencies, live data, browser or deployment changes.
+- Lead: requirements, README/deployment guide, coordination and integration.
+- Developer's bounded frontend/backend exception: Home/Maps/Locations, registration
+  closure/nav label, world camera, community service/API/browser modules and
+  partials, scoped CSS, own log. No climate pipeline, References body/style,
+  dependencies, clustering or live deployment changes.
+- QA: content/routes/registration/world camera and isolated community Python/Node
+  tests, own log. Reviewer: read-only code/security review and own log.
+- Contracts: [concise UI](NEXT_REQUIREMENTS.md#concise-public-frontend) and
+  [community](NEXT_REQUIREMENTS.md#low-maintenance-public-deployment-and-community-pins).
+  Owner confirmed immediate publication with rate limits/admin removal.
+  Optional typed coordinates remain in a named native disclosure by design.
+- Feature disabled until explicit enable flag/secret/private storage. Hosted
+  registration is closed; existing administrator login remains. See
+  [community deployment and privacy](COMMUNITY.md), including initial admin
+  provisioning, proxy rate-limit limits and moderation responsibilities.
 
-Original batch at `50af280`: Python 182 total (173 passed, eight expected
-PostgreSQL skips, one stale copy assertion); Node 13 passed. After correction:
-10 affected Python tests passed on 2026-10-02. Do not describe this as a fresh
-all-green full run. Eight skips: four weather, three cleanup, one availability.
-Provider/climate reads were mocked; inherited filesystem sessions remain a test
-isolation limitation. No PostgreSQL integration or browser verification claimed.
+## Verification
 
-Independent review cleared the assertion correction and checkpoint evidence.
-No outstanding regression from this batch remains; publication status is in GitHub.
+Full offline Python batch: **192 total, 182 passed, eight expected PostgreSQL
+skips, two errors**. Fixed both: exhausted public posting quotas no longer block
+administrator deletion; invalid Unicode is rejected before storage. Independent
+post-fix community module: **nine passed**. Node: **18 passed** (13 map, five community).
 
-## Latest integration and prior work
+Review follow-ups replaced recursive static-tree scanning with bounded private
+path checks and removed permanent historical-Git test dependencies. Latest focused
+content/community run: **22 passed**. Full batch not repeated after corrections.
+Independent final review cleared the fixes; no reviewer blocker remains.
+References baseline byte-equality is recorded as one-time evidence; ongoing tests
+verify rendered/style isolation without freezing future unrelated changes.
 
-README-DEMO-001 merged in PR #75 (`5b17b0d`); 11 content tests passed.
-HISTORY-002 merged in PR #74 (`50af280`); 57 focused route/content tests passed.
-See [completed rounds](agents/context/completed-rounds.md) for earlier outcomes.
-Completed assignments are not active tasks; full prior scopes remain in
-`git show 5b17b0d:docs/AGENT_TASKS.md`.
+No browser connection, production database, provider fetch, deployment or live
+security/load verification. Inherited filesystem test sessions remain an isolation
+limitation. Sequential fallback models were used after usage-limit interruptions.
 
-## Recovery and limitations
+## Prior work and recovery
 
-The named stash `climate2 REGRESSION-001 checkpoint before README demo request`
-on `codex/offline-regression-checkpoint` retains the original three-file
-documentation checkpoint. Its useful commands/evidence are now reconciled into
-this branch; retain it as recovery, not an instruction to reapply older files.
-The separate `climate2 pre-layout working changes` stash remains untouched.
+REGRESSION-001 merged in PR #76 (`7342c9e`); corrected module 10 passed.
+See [completed rounds](agents/context/completed-rounds.md) for prior scopes/results.
+Old task scopes remain in `git show 7342c9e:docs/AGENT_TASKS.md`.
 
-NOAA is the startup public provider; no deployment/restart was verified.
-See [data/map context](agents/context/data-and-maps.md) for dated coverage and
-CMIP6 caveats, and [workspace](agents/context/workspace.md) before branching.
+Retain both recovery stashes: `climate2 REGRESSION-001 checkpoint before README demo request`
+and `climate2 pre-layout working changes`. Their existence is not an instruction
+to reapply older files. No user caches, environments or databases were cleaned.
+See [workspace](agents/context/workspace.md) before branching.

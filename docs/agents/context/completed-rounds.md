@@ -1,6 +1,6 @@
 # Completed implementation rounds
 
-Index refreshed 2026-10-02 from main `5b17b0d` and agent handoffs. These are
+Index refreshed 2026-10-02 from main `7342c9e` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
@@ -8,6 +8,10 @@ PostgreSQL integration tests in full runs; focused counts are listed separately.
 No production database was used for these suites. Results below are historical,
 not tests rerun during the documentation refresh.
 
+- **REGRESSION-001, PR #76, `7342c9e`:** corrected stale precipitation-copy
+  assertion; affected module 10 passed. Original full batch 182 total,
+  173 passed/eight skipped/one stale assertion; Node 13 passed. Full batch not
+  repeated after correction; no production change.
 - **README-DEMO-001, PR #75, `5b17b0d`:** owner-supplied NOAA comparison
   screenshot with caption, alt text and provenance. Original PNG checked;
   11 content tests passed. No runtime/data change.

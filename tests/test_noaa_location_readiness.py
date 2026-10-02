@@ -87,8 +87,8 @@ class PublicLocationTests(unittest.TestCase):
         self.assertEqual(chart.call_args.kwargs["sampled_location"], (0.0, 0.0))
         self.assertEqual(chart.call_args.kwargs["source_label"], "NOAA CORe reanalysis")
         page = html.unescape(response.get_data(as_text=True))
-        for phrase in ("requested 1.0°N, 2.0°E", "sampled 2° × 4° grid point 0.0°N, 0.0°E",
-                       "approximately", "coarse grid sample", "1 of 1 months"):
+        for phrase in ("1.0°N, 2.0°E", "NOAA CORe reanalysis sample: 0.0°N, 0.0°E",
+                       "km from your request", "coarse grid sample", "1 of 1 months"):
             self.assertIn(phrase, page)
 
     def test_cmip6_uses_exact_coordinates(self):
@@ -173,7 +173,7 @@ class ProviderCopyTests(unittest.TestCase):
                 self.assertIn("not silently mixed", pages["/references"])
                 self.assertIn(inactive, pages["/references"])
                 if provider == "noaa_core":
-                    self.assertIn("rounds latitude and longitude separately to one fixed 2° × 4° grid point", pages["/"])
+                    self.assertIn("rounds latitude and longitude separately to one fixed grid point", pages["/"])
                     self.assertIn("rounds latitude and longitude separately to one fixed 2° × 4° NOAA grid point", pages["/locations"])
                     self.assertIn("reanalysis", pages["/maps?select=1"])
                     self.assertIn("NOAA CORe</a>", pages["/"])

@@ -3,10 +3,11 @@
 Visitors and normal registered users can browse Maps and Locations. They cannot
 open or submit `/update`.
 
-New accounts are created with `is_admin = false`, even though older local user
-databases may have been created when the original project granted every account
-administrator access. Existing administrators are retained deliberately so the
-site owner does not lose access during this refactor.
+Hosted self-registration is temporarily closed because the owner has no time to
+manage accounts. `/register` explains the closure; POST requests are rejected
+with 403 without creating users or profiles. Existing accounts and administrator
+login are retained. Older local databases may have granted every account admin
+access: audit those roles before public deployment.
 
 To appoint or remove an administrator on your local machine, run one of:
 

@@ -572,3 +572,70 @@ table {
         width: 100% !important;
     }
 }
+
+/* Concise public pages; References and shared layout keep their existing rules. */
+.concise-page .climate-hero {
+    gap: 2rem;
+    grid-template-columns: minmax(0, 1.4fr) minmax(180px, 0.6fr);
+    margin-bottom: 1rem;
+    padding: clamp(1.25rem, 3vw, 2.25rem);
+}
+
+.concise-page .climate-hero h1 { font-size: clamp(2rem, 4vw, 3.5rem); }
+.concise-page .lead-copy { font-size: 1rem; line-height: 1.5; margin: 0.9rem 0 1.25rem; }
+.concise-page .home-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.concise-page .climate-grid-preview { max-width: 15rem; }
+.concise-page .home-facts { margin: 1rem 0; }
+.concise-page .home-facts div { padding: 0.8rem 1rem; }
+.concise-page .home-facts strong { font-size: 1rem; }
+.concise-page .home-facts span { font-size: 0.8rem; }
+.concise-page .home-source-note { line-height: 1.5; margin: 0.75rem 0; }
+.concise-page .home-guide { margin-top: 0.75rem; padding: 0.8rem 1rem; }
+.concise-page details { border: 1px solid rgba(24, 52, 44, 0.22); border-radius: 0.65rem; padding: 0.8rem 1rem; }
+.concise-page details > summary { cursor: pointer; font-weight: 700; }
+.concise-page details > summary:focus-visible { outline: 3px solid var(--climate-green); outline-offset: 4px; }
+.concise-page .home-guide-content { line-height: 1.55; padding-top: 0.65rem; }
+.concise-page .home-guide-content p { margin: 0.55rem 0; }
+.concise-page .map-core-note { background: rgba(255, 255, 255, 0.55); border-left: 4px solid var(--climate-coral); line-height: 1.5; margin: 0.5rem 0 0.85rem; padding: 0.65rem 0.85rem; }
+.concise-page .map-scale-panel { margin-bottom: 0.75rem; padding: 0.9rem 1rem; }
+.concise-page .map-scale-header { align-items: center; }
+.concise-page .map-scale-panel .map-scale-summary { margin-top: 0.6rem; }
+.concise-page .map-help { margin-top: 0.8rem; }
+.concise-page .map-help-content { line-height: 1.5; padding-top: 0.65rem; }
+.concise-page .map-help-content > p { margin: 0.5rem 0; }
+.concise-page .location-coordinate-form { margin: 0 auto 1rem; max-width: 42rem; }
+.concise-page .location-coordinate-fields { display: grid; gap: 0.75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.concise-page .location-form-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.concise-page .locations-title { font-size: clamp(1.75rem, 4vw, 2.5rem); margin-bottom: 0.25rem; }
+.concise-page .locations-intro { color: #526b63; line-height: 1.5; margin-bottom: 1rem; }
+.concise-page .location-result { align-items: center; background: rgba(255, 255, 255, 0.4); border-radius: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; justify-content: space-between; margin: 0.75rem 0; padding: 0.8rem 1rem; }
+.concise-page .location-result h2 { font-size: 1.2rem; margin-bottom: 0.2rem; }
+.concise-page .location-result p { margin-bottom: 0; }
+.concise-page .location-coverage { font-weight: 600; }
+.concise-page .location-help { margin: 0.75rem 0; }
+.concise-page .location-help-content { line-height: 1.5; padding-top: 0.65rem; }
+.concise-page .location-help-content p { margin: 0.5rem 0; }
+.concise-page.concise-maps .climate-map { height: min(66vh, 640px); min-height: 360px; }
+
+@media screen and (max-width: 800px) {
+    .concise-page .climate-hero { grid-template-columns: 1fr; }
+    .concise-page .climate-grid-preview { max-width: 11rem; }
+    .concise-page .location-coordinate-fields { grid-template-columns: 1fr; }
+    .concise-page .location-result { align-items: flex-start; flex-direction: column; }
+    .concise-page.concise-maps .climate-map { height: 460px; }
+}
+
+.concise-page.concise-maps .climate-map:fullscreen { height: 100vh; min-height: 0; }
+.concise-page.concise-maps .climate-map:-webkit-full-screen { height: 100vh; min-height: 0; }
+
+/* Community controls and comments only. */
+.community-register, .community-controls { margin-top: 1rem; text-align: left; }
+.community-register .community-profile, .community-controls .community-profile { margin: 0.8rem 0; }
+.community-register summary, .community-controls summary { cursor: pointer; font-weight: 700; }
+.community-register form, .community-controls form { display: grid; gap: 0.6rem; max-width: 42rem; }
+.community-register form[hidden], .community-controls form[hidden] { display: none; }
+.community-register button, .community-controls button { margin: 0.3rem 0; }
+.community-marker { background: white; border: 2px solid #18342c; border-radius: 50%; color: #18342c; cursor: pointer; height: 2rem; width: 2rem; }
+.community-marker:focus-visible { outline: 3px solid #b85232; outline-offset: 3px; }
+.community-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
+.community-popup { max-width: 18rem; }

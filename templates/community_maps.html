@@ -1,0 +1,23 @@
+<details class="community-controls" id="community-controls" data-enabled="{{ 'true' if community_enabled else 'false' }}"{% if community_admin_csrf %} data-admin-csrf="{{ community_admin_csrf }}"{% endif %}>
+    <summary>Community pins and comments</summary>
+    <p>Click a community pin to read its comment. Community posts are public contributions, not climate data. No clustering is used yet.</p>
+    {% if not community_enabled %}<p>Community pins are currently disabled. Publishing is unavailable.</p>{% endif %}
+    {% include "community_profile.html" %}
+    <form id="community-pin-form">
+        <label><input id="community-placement" type="checkbox"{% if not community_enabled %} disabled{% endif %}> Place a pin: use the coordinates below or click a map.</label>
+        <p>Ordinary map clicks still show climate readouts when placement mode is off. Publishing is a separate action.</p>
+        <label for="community-latitude">Pin latitude (−85 to 85)</label>
+        <input id="community-latitude" type="number" class="form-control" step="any" min="-85" max="85" required>
+        <label for="community-longitude">Pin longitude (−180 to 180)</label>
+        <input id="community-longitude" type="number" class="form-control" step="any" min="-180" max="180" required>
+        <label for="community-comment">Comment (1–500 characters)</label>
+        <textarea id="community-comment" class="form-control" maxlength="500" required></textarea>
+        <p>Publishing immediately shares your nickname, coordinates and comment with everyone. Avoid private information. Administrators can remove posts. Limit: {{ community_max_active }} active pins per device identity; resetting identities can bypass a per-person limit.</p>
+        <label><input id="community-public-consent" type="checkbox" required> I understand this pin and comment will be public.</label>
+        <button id="community-publish" class="btn btn-success" type="submit" disabled>Publish public pin</button>
+    </form>
+    <p id="community-pin-status" role="status" aria-live="polite"></p>
+    <p id="community-read-status" role="status" aria-live="polite"></p>
+    <button id="community-retry" class="btn btn-outline-success" type="button"{% if not community_enabled %} disabled{% endif %}>Refresh visible pins</button>
+    <button id="community-more" class="btn btn-outline-success" type="button" hidden>Load more visible pins</button>
+</details>

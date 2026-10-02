@@ -4,6 +4,7 @@ import sqlite3
 import secrets
 import hashlib
 import re
+import json
 
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -25,6 +26,7 @@ from climate.services.map_data import viewport_geojson
 from climate.services.admin_import import ImportBusy, import_status, start_import
 from climate.services.admin_cleanup import cleanup_preview, cleanup_batch
 from climate.data.cache_availability import saved_map_months
+from climate.services import community
 
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 DEFAULT_MAP_DATA_TYPE = "temp_mean"
@@ -57,6 +59,13 @@ app = Flask(
 )
 app.config["CLIMATE_PROVIDER"] = ACTIVE_CLIMATE_PROVIDER
 app.config["USER_DATABASE_PATH"] = str(resolve_user_database_path())
+for name, default in (
+    ("ENABLED", "0"), ("SECRET", ""),
+    ("DATABASE_PATH", str(Path(app.root_path).parents[1] / "instance/community.db")),
+    ("MAX_ACTIVE", "10"), ("HOURLY_LIMIT", "20"),
+    ("DAILY_LIMIT", "100"), ("COOLDOWN_SECONDS", "10"),
+):
+    app.config["COMMUNITY_" + name] = os.environ.get("COMMUNITY_" + name, default)
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -116,6 +125,24 @@ def inject_user_permissions():
     }
 
 
+@app.context_processor
+def inject_community_controls():
+    if request.endpoint not in ("maps", "register"):
+        return {}
+    try:
+        options = community.settings(app.config)
+        enabled, maximum = True, options["max_active"]
+    except community.CommunityError:
+        enabled, maximum = False, 10
+    csrf = None
+    if enabled and request.endpoint == "maps" and current_user_is_admin():
+        if "community_csrf" not in session:
+            session["community_csrf"] = secrets.token_hex(32)
+        csrf = session["community_csrf"]
+    return {"community_enabled": enabled, "community_max_active": maximum,
+            "community_admin_csrf": csrf}
+
+
 @app.after_request
 def after_request(response):
     """Ensure responses aren't cached"""
@@ -153,9 +180,11 @@ def protect_static_files():
     if any(_is_database_or_sidecar(name) for name in names):
         abort(404)
 
-    configured = Path(app.config["USER_DATABASE_PATH"])
     try:
-        configured_paths = {configured.absolute(), configured.resolve()}
+        configured_paths = set()
+        for configured in (app.config["USER_DATABASE_PATH"], app.config["COMMUNITY_DATABASE_PATH"]):
+            configured = Path(configured)
+            configured_paths.update((configured.absolute(), configured.resolve()))
     except (OSError, RuntimeError, ValueError):
         abort(404)
     protected = set()
@@ -404,6 +433,83 @@ def map_data():
         )
 
 
+def community_response(operation):
+    try:
+        return operation()
+    except community.CommunityError as error:
+        return jsonify(error=str(error)), error.status
+    except (sqlite3.Error, OSError, RuntimeError):
+        # Do not log credentials, addresses, public bodies or private paths.
+        return jsonify(error="Community storage is unavailable. Please retry later."), 503
+
+
+def community_json_write(admin=False):
+    community.settings(app.config)
+    if request.headers.get("Origin") != request.host_url.rstrip("/"):
+        raise community.CommunityError("Community changes require the same site origin.", 403)
+    if request.mimetype != "application/json":
+        raise community.CommunityError("Expected a JSON request.", 415)
+    if request.content_length is not None and request.content_length > 4096:
+        raise community.CommunityError("Community request is too large.", 413)
+    body = request.stream.read(4097)
+    if len(body) > 4096:
+        raise community.CommunityError("Community request is too large.", 413)
+    token = request.headers.get("X-Community-CSRF" if admin else "X-Community-Token")
+    community.token_hash(token)
+    try:
+        payload = json.loads(body)
+    except (ValueError, UnicodeError, RecursionError):
+        raise community.CommunityError("Expected a JSON object.") from None
+    if not isinstance(payload, dict):
+        raise community.CommunityError("Expected a JSON object.")
+    return token, payload
+
+
+@app.route("/api/community/pins", methods=["GET", "POST"])
+def community_pins_api():
+    def perform():
+        if request.method == "POST":
+            token, payload = community_json_write()
+            pin = community.publish(app.config, token, request.remote_addr, payload)
+            return jsonify(pin=pin), 201
+        try:
+            bounds = [float(request.args[name]) for name in ("south", "west", "north", "east")]
+            cursor = int(request.args.get("cursor", "0"))
+            limit = int(request.args.get("limit", "100"))
+        except (KeyError, ValueError, TypeError, OverflowError):
+            raise community.CommunityError("Invalid community viewport or page.") from None
+        return jsonify(community.list_pins(app.config, *bounds, cursor=cursor, limit=limit))
+    return community_response(perform)
+
+
+@app.route("/api/community/my-pins")
+def community_own_pins_api():
+    return community_response(lambda: jsonify(pins=community.own_pins(
+        app.config, request.headers.get("X-Community-Token"))))
+
+
+@app.route("/api/community/pins/<int:pin_id>", methods=["DELETE"])
+def community_delete_api(pin_id):
+    def perform():
+        token, _ = community_json_write()
+        community.delete_pin(app.config, pin_id, token, request.remote_addr)
+        return jsonify(deleted=pin_id)
+    return community_response(perform)
+
+
+@app.route("/api/community/admin/pins/<int:pin_id>", methods=["DELETE"])
+def community_admin_delete_api(pin_id):
+    def perform():
+        token, _ = community_json_write(admin=True)
+        expected = session.get("community_csrf")
+        csrf = request.headers.get("X-Community-CSRF", "")
+        if not current_user_is_admin() or not expected or not secrets.compare_digest(csrf.encode(), expected.encode()):
+            raise community.CommunityError("Administrator access and a current page token are required.", 403)
+        community.delete_pin(app.config, pin_id, token, request.remote_addr, admin=True)
+        return jsonify(deleted=pin_id)
+    return community_response(perform)
+
+
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
 def profile():
@@ -486,40 +592,8 @@ def references():
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
-    """Register user"""
-    if request.method == "POST":
-        username = request.form.get("username")
-        pwd = request.form.get("password")
-        re_pwd = request.form.get("confirmation")
-        if not username:
-            return apology("Username is required", 400)
-        if not pwd:
-            return apology("Password is required", 400)
-        if not re_pwd:
-            return apology("Please re-enter the password", 400)
-        if not re_pwd == pwd:
-            return apology("Re-entered password is inconsistent with password", 400)
-        if not is_valid_username(username):
-            return apology(
-                "Username must be 3-16 characters long and contain only alphanumeric, underscores, or hyphens",
-                400,
-            )
-        hash_pwd = generate_password_hash(pwd)
-
-        try:
-            with user_db() as con:
-                cursor = con.execute(
-                    "INSERT INTO users (username, hash_pwd, is_admin) VALUES (?, ?, ?)",
-                    (username, hash_pwd, False),
-                )
-                con.execute(
-                    "INSERT INTO profiles (user_id) VALUES (?)", (cursor.lastrowid,)
-                )
-        except sqlite3.IntegrityError:
-            return apology("Username already exists!", 400)
-        return render_template("/login.html", username=username)
-    else:
-        return render_template("/register.html")
+    """Explain the temporary closure without accepting account creation."""
+    return render_template("register.html"), 403 if request.method == "POST" else 200
 
 
 @app.route("/admin/data")

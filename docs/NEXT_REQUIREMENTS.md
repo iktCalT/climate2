@@ -1,5 +1,94 @@
 # Next requirements
 
+## Low-maintenance public deployment and community pins
+
+**Status:** Implemented and reviewed 2026-10-02. DEPLOY-001 closes registration and opens the
+map globally; COMMUNITY-001 publication policy confirmed by the owner below.
+
+Disable hosted self-registration on both frontend and backend. GET /register
+explains that registration is temporarily closed because the owner has no time
+to manage accounts; POST must fail without creating users or profiles. Keep
+existing administrator login/access intact. Initial maps show a flat whole-world
+overview rather than the US; manual navigation and synchronized views remain.
+
+Offer an optional browser-local profile only after an explicit user request and
+storage consent, with no registration cookie/storage prompt on ordinary visits.
+Explain that nickname/preferences stay on that device, are lost when storage is
+cleared, and are not a secure or recoverable hosted account. Do not store secrets
+or personal account data in Git. Public map pins/comments necessarily need shared
+server persistence, distinct from local profile storage, plus explicit notice
+that submitted nickname, coordinates and comment will be public.
+
+Initial configurable allowance: at most 10 active pins/comments per local identity;
+administrator may lower it (e.g. 3) later without silently deleting existing pins.
+Browser identity cannot guarantee a per-person cap: reset identities can bypass
+it. Require bounded validated plain-text input, safe text rendering, atomic quota
+checks, pagination/viewport bounds, abuse throttling, deletion/moderation controls,
+and protection against cross-site writes before public deployment. The owner
+confirmed immediate publication with rate limits and administrator removal.
+Each pin carries one comment, revealed by clicking it; future clusters reveal
+multiple constituent comments. Do not expose a write endpoint until these
+protections are implemented.
+
+Implementation contract: private ignored SQLite community store, separate from
+climate/account databases, with transactional identity quota and write throttles.
+Store only hashes of random browser ownership tokens and keyed IP digests for
+short-lived throttling, never raw tokens/IPs in persisted rows or logs. Require
+a deployment secret and an explicit enable flag; default disabled until configured.
+No trusting forwarded IP headers unless a future deployment explicitly configures
+trusted proxies. Default ten active pins per identity, bounded plain-text nickname
+and comment, bounded world coordinates and body size. Server stores published
+content; localStorage holds an opt-in nickname and random ownership credential.
+Forget-device removes local storage, not already public posts; provide own-pin
+deletion and explain loss of deletion credentials. Administrator deletion uses
+existing authentication plus CSRF. Public reads are viewport-filtered and bounded;
+load-more/limit notice prevents silently implying complete pin coverage.
+No cookie consent banner for ordinary climate browsing. Handle denied storage
+without publishing or silently creating an in-memory alternative identity.
+QA requirements: authenticated, CSRF-checked administrator removal must remain
+available when public posting rate limits are exhausted (especially shared proxy
+addresses). Reject invalid Unicode/surrogate text with a clean validation error
+before opening or creating the community database.
+Storage validation must use bounded path/identity checks, not recursively scan
+the static/chart-cache tree on each request. Reject public-directory aliases,
+protected databases and multiply-linked community files; document unsupported
+hard-linked store files. Reference-page baseline comparisons are one-time review
+evidence, not permanent tests requiring historical Git objects or freezing future
+unrelated styles/documentation.
+
+Dense-pin clustering is explicitly deferred; later enable it when density or
+rendering cost warrants it, expanding clusters on zoom. No clustering now.
+Do not equate automated tests with a production security/deployment approval.
+
+## Concise public frontend
+
+**Status:** Implemented and reviewed 2026-10-02; UI-001, requested presentation simplification.
+
+Home, Maps and Locations repeat guidance and place large explanation blocks
+before the primary tools. Shorten copy and spacing, remove duplicate Home
+sections, and use native keyboard-accessible details/summary for secondary
+instructions. Keep main actions, map scale/legend and concise source, missing
+coverage, interpolation and precipitation-unit caveats visible. Retain full
+sampling, seasonal and comparison guidance in expandable help. Preserve linked
+readouts, coordinate validation/editing, manual shared scales, provider-specific
+warnings, saved-month controls, errors and retry controls. No data/route or map
+JavaScript behavior changes. Keep environmental awareness and the warning that
+two months do not establish a long-term trend.
+
+Design clarification: optional typed map coordinates may sit in a named native
+disclosure ("Map controls and coordinate selection"); keyboard access is retained.
+The visible primary controls are date selection and the manual scale/legend, not
+every optional form. This is intentional progressive disclosure for concision.
+
+References is explicitly excluded: its template and existing CSS rules stay
+unchanged. The later registration-closure request permits only its shared
+navigation label to change; no References body/layout redesign. Add only
+page-scoped styles used by the three edited pages;
+no new external resources or dependencies. Account/admin pages remain unchanged.
+Validate rendered states for both providers, accessible forms and disclosures,
+References isolation, existing offline Python and Node tests. Browser visual
+verification only if connected; report that limitation honestly otherwise.
+
 ## Edit coordinates while viewing saved location history
 
 **Status:** Implemented and reviewed 2026-10-01; HISTORY-002, keep location exploration editable.

@@ -3,6 +3,7 @@
 {% block title %}Home{% endblock %}
 
 {% block main %}
+<div class="concise-page concise-home">
     {% if message %}
         <div class="alert alert-info alert-dismissible text-center fade show" role="alert">
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -14,16 +15,11 @@
         <div class="climate-hero-copy">
             <p class="eyebrow">Saved climate {% if climate_provider == "noaa_core" %}reanalysis{% else %}model{% endif %} data</p>
             <h1>Explore climate patterns by map or location.</h1>
-            <p class="lead-copy">
-                Explore saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis grid data{% else %}Open-Meteo CMIP6 model data{% endif %} and build awareness of environmental protection. Choose a date
-                on Maps or enter coordinates on Locations. Public browsing reads
-                the existing cache; dates you can select may have little or no
-                data where you look.
-            </p>
-            <div class="d-flex flex-wrap gap-3">
+            <p class="lead-copy">Use saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 model{% endif %} data to build awareness of environmental protection.</p>
+            <nav class="home-actions" aria-label="Explore climate data">
                 <a class="btn btn-climate-primary" href="/maps">Explore Maps</a>
                 <a class="btn btn-climate-secondary" href="/locations">Explore Locations</a>
-            </div>
+            </nav>
         </div>
         <div class="climate-grid-preview" aria-hidden="true">
             {% for tone in [1, 1, 2, 3, 4, 4, 1, 2, 2, 3, 4, 5, 2, 2, 3, 4, 5, 5, 2, 3, 4, 4, 5, 5] %}
@@ -34,56 +30,25 @@
     </section>
 
     <section class="home-facts" aria-label="Data at a glance">
-        <div><strong>1950 → current month</strong><span>Selectable map dates; coverage varies by place and variable</span></div>
-        <div><strong>°C and mm/day</strong><span>Temperature and mean daily precipitation, not monthly rainfall totals</span></div>
-        <div><strong>Saved data only</strong><span>Public browsing never fetches missing climate values</span></div>
+        <div><strong>1950 → current month</strong><span>Map dates; coverage varies by place and variable</span></div>
+        <div><strong>°C · mm/day</strong><span>Precipitation is a daily average, not a monthly total</span></div>
+        <div><strong>Cache only</strong><span>Missing values are never downloaded while browsing</span></div>
     </section>
 
-    <section class="feature-grid text-start">
-        <article class="feature-card">
-            <div class="feature-number">01</div>
-            <p class="eyebrow">Maps</p>
-            <h2>See patterns across a region</h2>
-            <p>Open the newest saved mean-temperature month or choose a date and variable.
-                Pan and zoom, then compare two through four months in synchronized panels.
-                Saved-month counts are global and do not promise coverage in your view.</p>
-            <a class="feature-link" href="/maps">Open Maps <span aria-hidden="true">→</span></a>
-        </article>
-        <article class="feature-card feature-card-dark">
-            <div class="history-preview" aria-hidden="true">
-                <svg viewBox="0 0 320 110" role="img">
-                    <path d="M8 82 C45 72, 54 38, 88 52 S140 94, 170 62 S220 22, 246 45 S282 78, 312 28" />
-                </svg>
-            </div>
-            <div class="feature-number">02</div>
-            <p class="eyebrow">Locations</p>
-            <h2>Follow one coordinate through time</h2>
-            <p>Enter latitude and longitude to see saved monthly values from 1951 through the current month. {% if climate_provider == "noaa_core" %}NOAA history rounds latitude and longitude separately to one fixed 2° × 4° grid point and shows its distance from your request. {% endif %}Gaps stay visible, and seasonal averages can be incomplete.</p>
-            <a class="feature-link" href="/locations">Open Locations <span aria-hidden="true">→</span></a>
-        </article>
-    </section>
+    <p class="home-source-note">{% if climate_provider == "noaa_core" %}NOAA CORe values are gridded, not direct observations at an exact location. Map smoothing interpolates the saved 2° × 4° grid and adds no source detail or accuracy.{% else %}Open-Meteo CMIP6 values are model output, not direct observations. Some inherited ocean temperatures remain suspect.{% endif %} Missing coverage stays visible. Two months do not establish a long-term trend. <a href="/references">Read data limits and sources</a>.</p>
 
-    <section class="home-guide text-start" aria-labelledby="comparison-guide-heading">
-        <p class="eyebrow">On Maps</p>
-        <h2 id="comparison-guide-heading">Compare the same place across months</h2>
-        <ol>
-            <li>Choose a variable and two to four different months on <a href="/maps?select=1">Maps</a>.</li>
-            <li>Click a location in any panel to see each month's value and provenance. {% if climate_provider == "noaa_core" %}NOAA readouts are interpolated estimates from the saved 2° × 4° grid; smoothing adds no source detail or accuracy.{% else %}CMIP6 readouts show their containing-cell value and saved-data provenance.{% endif %} Missing values stay marked.</li>
-            <li>Use the shared scale presets or enter a custom range to compare colors. The scale stays fixed until you change it; a narrower range shows detail, not greater accuracy.</li>
-        </ol>
-        <p>Two months show a comparison, not proof of a long-term climate trend.</p>
-    </section>
-
-    <section class="data-note text-start">
-        <div>
-            <p class="eyebrow">Before interpreting a map</p>
-            <h2>{% if climate_provider == "noaa_core" %}Reanalysis with incomplete coverage.{% else %}Model output with incomplete coverage.{% endif %}</h2>
+    <details class="home-guide">
+        <summary>How comparisons and location history work</summary>
+        <div class="home-guide-content">
+            <p>On <a href="/maps?select=1">Maps</a>, choose two to four months and a variable. Click a location to see each month's value and source; later months show signed differences from the first when both values exist.</p>
+            {% if climate_provider == "noaa_core" %}
+                <p>NOAA map readouts are interpolated estimates from the saved 2° × 4° grid. Locations rounds latitude and longitude separately to one fixed grid point and reports its distance from your request.</p>
+            {% else %}
+                <p>CMIP6 map readouts use the saved containing-cell value; Locations looks up saved history at the requested coordinates.</p>
+            {% endif %}
+            <p>Maps share a manual color scale that stays fixed until you change it. Narrower ranges show more contrast, not more accuracy.</p>
+            <p>Locations provides saved monthly history from 1951 through the current month.</p>
         </div>
-        {% if climate_provider == "noaa_core" %}
-            <p>NOAA CORe is the active public reanalysis series. Its gridded values are not direct observations at an exact location. Open-Meteo CMIP6 model output remains a separate cached source. Read the coverage and provenance notes before drawing conclusions.</p>
-        {% else %}
-            <p>Open-Meteo CMIP6 is the active public series. Its values are modelled climate, not direct observations for an exact date. NOAA CORe is a separate reanalysis import source and is inactive on the public site. Some inherited ocean temperatures remain suspect. Read the coverage and provenance notes before drawing conclusions.</p>
-        {% endif %}
-        <a class="btn btn-climate-secondary" href="/references">Read references</a>
-    </section>
+    </details>
+</div>
 {% endblock %}
