@@ -1,81 +1,65 @@
 # Agent task board
 
-Lead owns this board. Read [roles](AGENT_ROLES.md),
-[architecture](ARCHITECTURE.md) and [shared memory](agents/SKILL.md).
-One specialist at a time: Developer → QA → Reviewer → Lead integration.
-Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequential-managed-team).
+Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
+and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Current round
+## Current assignment
 
-**DEPLOY-002 — terminal-only administrator provisioning (reviewed; Lead integration).**
-Base `1ed0b65` (merged PR #77), branch `codex/private-admin-bootstrap`.
-Lead owns requirements, README/USER_ROLES/COMMUNITY documentation and own log.
-Developer owns only `climate/cli/manage_users.py` and own log; QA owns new
-`tests/test_admin_bootstrap.py` and own log; Reviewer is read-only except own log.
-Acceptance: [terminal provisioning](NEXT_REQUIREMENTS.md#terminal-only-administrator-provisioning).
-Sequential implementation → focused QA (plus existing admin-role tests) → review.
-No actual account creation, public UI/References changes, live stores or deployment.
-Developer syntax/private temporary-store checks passed, including duplicate,
-rollback, hidden-input failure and non-echoing rejection of extra CLI arguments.
-QA: 26 focused checks, 25 passed; one command-dispatch defect: a leading `--`
-could route parsed create-admin into role revocation. Developer correction must
-reject noncanonical provisioning without mutation; regression remains in QA.
-Dispatch correction independently passes all 26 tests. Reviewer found one private
-path gap: selected static symlink → private target was accepted after resolve.
-Reject selected public paths as well as resolved targets, retaining bounded
-alias checks; add isolated inside→outside regression before final review.
-Selected-path correction and formal symlink/parent-alias regressions now pass
-all 27 focused bootstrap/admin-role tests. No full-suite or Node repetition;
-those production paths are unchanged.
-Reviewer independently reran the 27 checks and cleared the fixes. No remaining
-confirmed blocker in this scope; operator provisioning is a separate live action.
+**REGRESSION-002 — combined deployment-feature checkpoint (reviewed; Lead integration).**
+Base `083ead5` (merged PR #78), branch `codex/deployment-regression-checkpoint`.
 
-## Previous round
+- QA: run the documented offline Python discovery and all map/community Node
+  suites once; inspect isolation before running, report exact counts/skips and
+  real regressions. Write only own log; no production/test edits unless Lead
+  assigns a reproduced failure separately. No live database, provider or account
+  operations. Existing tests use mocked/temporary data; do not enable PG opt-ins.
+- Lead: board, own log, workspace/completed-rounds context and verification
+  evidence. No feature implementation. Browser inventory is empty and native
+  connection failed; listed browser skill file unavailable. Do not claim visual
+  verification. Hosting target requested from owner, not assumed.
+- Reviewer: inspect checkpoint evidence/documentation read-only except own log;
+  do not repeat unchanged suites. Developer only if a confirmed fix is assigned.
+- Acceptance: fresh combined results covering UI/community and terminal-admin
+  rounds, accurate limitations, concise handoff. No app/References/dependency,
+  deployment configuration or permission changes.
 
-**UI-001 / DEPLOY-001 / COMMUNITY-001 — complete; merged PR #77 (`1ed0b65`).**
-Base `7342c9e` (PR #76), branch `codex/concise-public-pages`.
+## Verification result
 
-- Lead: requirements, README/deployment guide, coordination and integration.
-- Developer's bounded frontend/backend exception: Home/Maps/Locations, registration
-  closure/nav label, world camera, community service/API/browser modules and
-  partials, scoped CSS, own log. No climate pipeline, References body/style,
-  dependencies, clustering or live deployment changes.
-- QA: content/routes/registration/world camera and isolated community Python/Node
-  tests, own log. Reviewer: read-only code/security review and own log.
-- Contracts: [concise UI](NEXT_REQUIREMENTS.md#concise-public-frontend) and
-  [community](NEXT_REQUIREMENTS.md#low-maintenance-public-deployment-and-community-pins).
-  Owner confirmed immediate publication with rate limits/admin removal.
-  Optional typed coordinates remain in a named native disclosure by design.
-- Feature disabled until explicit enable flag/secret/private storage. Hosted
-  registration is closed; existing administrator login remains. See
-  [community deployment and privacy](COMMUNITY.md), including initial admin
-  provisioning, proxy rate-limit limits and moderation responsibilities.
+QA ran the documented offline batch once at `083ead5` on 2026-10-02:
+Python **204 total: 196 passed, eight expected PostgreSQL skips**, no failures;
+Node **18 passed**, none skipped or failed. The skips are three cleanup, one
+availability and four weather integration tests. See the newest
+[QA handoff](agents/qa-log.md) for exact commands and isolation limitations.
 
-## Verification
+No production or test changes were needed. Legacy account-path warnings,
+SQLite ResourceWarnings and expected mocked-failure logs appeared. Inherited
+filesystem sessions remain incompletely isolated. These results do not establish
+browser appearance, live PostgreSQL, proxy behavior or deployment readiness.
+Lead is finishing the documentation checkpoint on 2026-10-03 without rerunning
+unchanged suites.
+Independent evidence review is clear; no remaining checkpoint blocker.
 
-Full offline Python batch: **192 total, 182 passed, eight expected PostgreSQL
-skips, two errors**. Fixed both: exhausted public posting quotas no longer block
-administrator deletion; invalid Unicode is rejected before storage. Independent
-post-fix community module: **nine passed**. Node: **18 passed** (13 map, five community).
+## Completed features
 
-Review follow-ups replaced recursive static-tree scanning with bounded private
-path checks and removed permanent historical-Git test dependencies. Latest focused
-content/community run: **22 passed**. Full batch not repeated after corrections.
-Independent final review cleared the fixes; no reviewer blocker remains.
-References baseline byte-equality is recorded as one-time evidence; ongoing tests
-verify rendered/style isolation without freezing future unrelated changes.
+- DEPLOY-002, PR #78 (`083ead5`): terminal-only administrator provisioning,
+  private storage, hidden input, atomic creation. Final 27 focused tests passed;
+  independent review clear. No real administrator was created.
+- UI-001 / DEPLOY-001 / COMMUNITY-001, PR #77 (`1ed0b65`): concise public pages,
+  closed registration, world map, opt-in local profile/public pins. Previous
+  batch 192 total: 182 passes/eight skips/two errors, both corrected. Latest
+  focused 22 and Node 18 passed; the combined checkpoint above supersedes that
+  earlier verification limitation.
+- Contracts are in [requirements](NEXT_REQUIREMENTS.md), with deployment,
+  moderator provisioning and remaining limits in [community](COMMUNITY.md).
+  Community stays disabled until configured; clustering is deferred.
 
-No browser connection, production database, provider fetch, deployment or live
-security/load verification. Inherited filesystem test sessions remain an isolation
-limitation. Sequential fallback models were used after usage-limit interruptions.
+Earlier scopes/results: [completed rounds](agents/context/completed-rounds.md).
+Full previous board: `git show 083ead5:docs/AGENT_TASKS.md`.
 
-## Prior work and recovery
-
-REGRESSION-001 merged in PR #76 (`7342c9e`); corrected module 10 passed.
-See [completed rounds](agents/context/completed-rounds.md) for prior scopes/results.
-Old task scopes remain in `git show 7342c9e:docs/AGENT_TASKS.md`.
+## Recovery and limitations
 
 Retain both recovery stashes: `climate2 REGRESSION-001 checkpoint before README demo request`
-and `climate2 pre-layout working changes`. Their existence is not an instruction
-to reapply older files. No user caches, environments or databases were cleaned.
-See [workspace](agents/context/workspace.md) before branching.
+and `climate2 pre-layout working changes`. Do not reapply blindly.
+No caches, environments, databases or user data are scheduled for cleanup.
+Read [workspace](agents/context/workspace.md) before branching. Browser,
+deployment, live PostgreSQL and production load/security validation remain open.

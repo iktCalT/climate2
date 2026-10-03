@@ -1,8 +1,14 @@
 # Workspace and verification context
 
-Snapshot 2026-10-02, task base/main `1ed0b65` (PR #77). Recheck Git before acting.
+Snapshot 2026-10-03, task base/main `083ead5` (PR #78). Recheck Git before acting.
 
-- `codex/private-admin-bootstrap`: DEPLOY-002 adds an operator-only terminal
+- `codex/deployment-regression-checkpoint`: REGRESSION-002 combined offline
+  verification after UI/community and administrator setup. See current board
+  for fresh evidence. Browser inventory was empty/native connection failed and
+  the listed browser skill file was absent; no visual verification claimed.
+  Hosting target remains an owner choice; no deployment configuration changed.
+
+- `codex/private-admin-bootstrap` merged in PR #78: DEPLOY-002 adds an operator-only terminal
   command for a fresh deployment's administrator. No real account creation;
   tests use temporary stores. See current board for review/publication status.
 
@@ -22,12 +28,11 @@ Snapshot 2026-10-02, task base/main `1ed0b65` (PR #77). Recheck Git before actin
   unittest and dependency-free Node tests. No framework/tool migration implied
   by role skill names. Canonical paths/commands are in
   [architecture](../../ARCHITECTURE.md).
-- REGRESSION-001 full batch at `50af280`: Python 182 total, 173 passed, eight
-  expected PostgreSQL skips, one stale precipitation-copy assertion; Node 13
-  passed. Correction on `codex/finish-offline-regression` passed the 10 affected
-  Python tests on 2026-10-02; the full suite was not rerun after correction.
-  Provider/climate reads were mocked; inherited filesystem sessions remain an
-  isolation limitation. No connected browser, live data or deployment check.
+- REGRESSION-002 combined batch at `083ead5` on 2026-10-02: Python 204 total,
+  196 passed, eight expected PostgreSQL skips, no failures; Node 18 passed.
+  No production/test correction needed. Inherited filesystem sessions remain
+  an isolation limitation; browser, live data and deployment are unverified.
+  Earlier counts are historical in the completed-rounds index and QA log.
 - The named stash `climate2 REGRESSION-001 checkpoint before README demo request`
   preserves the original documentation checkpoint. Commands/evidence have been
   selectively reconciled; retain for recovery, not blind reapplication.
