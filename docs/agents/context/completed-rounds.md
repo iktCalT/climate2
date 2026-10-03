@@ -1,6 +1,6 @@
 # Completed implementation rounds
 
-Index refreshed 2026-10-02 from main `1ed0b65` and agent handoffs. These are
+Index refreshed 2026-10-03 from main `083ead5` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
@@ -8,6 +8,14 @@ PostgreSQL integration tests in full runs; focused counts are listed separately.
 No production database was used for these suites. Results below are historical,
 not tests rerun during the documentation refresh.
 
+- **REGRESSION-002, tested base `083ead5`:** combined offline Python run on
+  2026-10-02: 204 total, 196 passed/eight expected PostgreSQL skips/no failures;
+  Node 18 passed. No production/test changes. Documentation evidence reviewed
+  2026-10-03; browser/live deployment remain unverified.
+- **DEPLOY-002, PR #78, `083ead5`:** terminal-only administrator creation with
+  hidden input, private initialized storage and atomic user/profile inserts.
+  CLI dispatch and public-symlink defects corrected; final 27 focused checks
+  passed under QA and Reviewer. No real account creation or deployment.
 - **UI-001 / DEPLOY-001 / COMMUNITY-001, PR #77, `1ed0b65`:** concise public
   pages, hosted registration closure, world map and opt-in local profiles/public
   pin comments. Feature defaults disabled pending private deployment config.

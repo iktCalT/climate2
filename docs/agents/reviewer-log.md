@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-03 | REGRESSION-002 | combined checkpoint documentation | done
+- Result: reviewed checkpoint documentation at `083ead5`. The board now states fresh QA evidence (204 Python: 196 passed, eight PostgreSQL skips; 18 Node passed), separate from historical 192-test and 27-test feature results. No conflicting production/test changes or false browser, live database, or deployment claims found. Earlier interrupted bootstrap assignment made no edits.
+- Check: read-only diff, task board, workspace/completed-rounds context and QA handoff; `git diff --check` clean. Suites not rerun because QA ran them once on this revision.
+- Next: Lead publication. No reviewer blocker.
+
 ## 2026-10-02 | DEPLOY-002 | administrator bootstrap review | done
 - Result: earlier blocker resolved. `manage_users.py` now checks both selected and resolved locations against static by path and ancestor identity before requiring a regular single-link store. QA's inside-static-to-private and symlinked-parent regressions reject creation with unchanged user/profile rows. No remaining confirmed blocker in the assigned CLI/test scope.
 - Check: reviewed targeted fix and regression, then reran offline `tests.test_admin_bootstrap tests.test_admin_roles`: 27 passed; scoped `git diff --check` clean. No live account, full suite or deployment check.

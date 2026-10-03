@@ -2,6 +2,12 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | REGRESSION-002 | combined offline checkpoint | done
+- Result: At `083ead5`, PR #77 UI/community and PR #78 terminal-admin checks have no confirmed offline regression. Isolation review found temporary SQLite stores/mocks; PostgreSQL classes are opt-in. No production/test edits or live operations.
+- Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests`: 204 total, 196 passed, eight skipped (three cleanup, one availability, four weather PostgreSQL integration checks). `node --test tests/test_map*.mjs tests/test_community*.mjs`: 18 passed, zero skipped/failed. Both exit zero, run once.
+- Limits: inherited filesystem sessions are not fully isolated; legacy static account-path warning, SQLite ResourceWarnings, and expected mocked-failure error logs appeared. No browser, live PostgreSQL/provider/account, or deployment verification.
+- Next: Lead; no QA blocker.
+
 ## 2026-10-02 | DEPLOY-002 | administrator bootstrap tests | done
 - Result: added isolated temporary-SQLite tests for hashed creation/login, default profile, duplicates, rollback, path/input rejection, TTY prompts and argument secrecy. Regressions now cover `--` dispatch and a static symlink to an initialized private store, including a symlinked parent; rejected attempts preserve user/profile rows. No QA production edits.
 - Check: offline `python -m unittest tests.test_admin_bootstrap tests.test_admin_roles` with PostgreSQL opt-ins zero: all 27 pass. `git diff --check` passed. Existing public registration 403 and admin-role checks pass. No live store, Node or full-suite run.

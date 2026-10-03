@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-03 | REGRESSION-002 | combined deployment checkpoint | done
+
+- Result: reconciled current `083ead5`/PR #78 state with the pending checkpoint;
+  administrator setup was already merged. Preserved existing documentation and
+  QA handoff; cancelled a stale bootstrap review before any changes.
+- Check: QA's 2026-10-02 batch: Python 204 total, 196 passed/eight expected PG
+  skips/no failures; Node 18 passed. No production/test edits or repeated suites.
+  Independent evidence review clear; browser/live deployment unverified.
+- Next: publish the concise checkpoint. Hosting target remains
+  unspecified; no configuration, accounts, live stores or caches changed.
+
 ## 2026-10-02 | DEPLOY-002 | terminal administrator setup | done
 
 - Result: new terminal-only create-admin command closes the fresh-deployment
