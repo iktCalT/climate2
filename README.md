@@ -26,6 +26,10 @@ for source and licence details.
 Hosted registration is temporarily closed because the owner has no time to
 manage accounts. The registration page has no signup form and the server rejects
 registration submissions. Existing administrator login remains available.
+For a fresh deployment, initialize private account storage and run the
+terminal-only `python -m climate.cli.manage_users create-admin ADMIN_USERNAME`;
+see [administrator setup](docs/USER_ROLES.md#first-administrator-on-a-new-deployment).
+Password entry is hidden and interactive; hosted registration stays closed.
 An optional device-local profile stores a nickname and ownership credential only
 after explicit storage consent; no email or password is required. When enabled
 by the operator, visitors can publish a pin with one public comment, read comments

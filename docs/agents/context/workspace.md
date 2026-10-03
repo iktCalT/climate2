@@ -1,6 +1,10 @@
 # Workspace and verification context
 
-Snapshot 2026-10-02, task base/main `7342c9e` (PR #76). Recheck Git before acting.
+Snapshot 2026-10-02, task base/main `1ed0b65` (PR #77). Recheck Git before acting.
+
+- `codex/private-admin-bootstrap`: DEPLOY-002 adds an operator-only terminal
+  command for a fresh deployment's administrator. No real account creation;
+  tests use temporary stores. See current board for review/publication status.
 
 - `codex/concise-public-pages` implements UI-001, DEPLOY-001, COMMUNITY-001:
   concise pages, closed hosted registration, world camera, consent-only local

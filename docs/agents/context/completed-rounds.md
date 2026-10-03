@@ -1,6 +1,6 @@
 # Completed implementation rounds
 
-Index refreshed 2026-10-02 from main `7342c9e` and agent handoffs. These are
+Index refreshed 2026-10-02 from main `1ed0b65` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
@@ -8,6 +8,12 @@ PostgreSQL integration tests in full runs; focused counts are listed separately.
 No production database was used for these suites. Results below are historical,
 not tests rerun during the documentation refresh.
 
+- **UI-001 / DEPLOY-001 / COMMUNITY-001, PR #77, `1ed0b65`:** concise public
+  pages, hosted registration closure, world map and opt-in local profiles/public
+  pin comments. Feature defaults disabled pending private deployment config.
+  Full Python 192: 182 passed/eight skipped/two errors, corrected community
+  module nine passed; final path/portable-test follow-up 22 passed. Node 18
+  passed; independent review clear. No browser or live deployment verification.
 - **REGRESSION-001, PR #76, `7342c9e`:** corrected stale precipitation-copy
   assertion; affected module 10 passed. Original full batch 182 total,
   173 passed/eight skipped/one stale assertion; Node 13 passed. Full batch not

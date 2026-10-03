@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | DEPLOY-002 | administrator bootstrap tests | done
+- Result: added isolated temporary-SQLite tests for hashed creation/login, default profile, duplicates, rollback, path/input rejection, TTY prompts and argument secrecy. Regressions now cover `--` dispatch and a static symlink to an initialized private store, including a symlinked parent; rejected attempts preserve user/profile rows. No QA production edits.
+- Check: offline `python -m unittest tests.test_admin_bootstrap tests.test_admin_roles` with PostgreSQL opt-ins zero: all 27 pass. `git diff --check` passed. Existing public registration 403 and admin-role checks pass. No live store, Node or full-suite run.
+- Next: Reviewer inspects final implementation; no QA blocker.
+
 ## 2026-10-02 | COMMUNITY-001 / UI-001 | bounded paths and portable References checks | done
 - Result: removed permanent Git-history dependency; rendered References rejects concise/community wrappers, added CSS block stays scoped, native details retained. Baseline byte equality remains earlier one-off evidence. Compact path test forbids recursive traversal and rejects public symlink aliases, hardlinks, directories and FIFOs; account case aliases checked when filesystem supports them.
 - Check: offline `tests.test_content_pages tests.test_community`: 22 passed; whitespace clean. Initial fixture expectation corrected to resolved temporary path (`/var` alias). No production changes, full batch or Node repetition.
