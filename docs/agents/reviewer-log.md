@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | DEPLOY-002 | administrator bootstrap review | done
+- Result: earlier blocker resolved. `manage_users.py` now checks both selected and resolved locations against static by path and ancestor identity before requiring a regular single-link store. QA's inside-static-to-private and symlinked-parent regressions reject creation with unchanged user/profile rows. No remaining confirmed blocker in the assigned CLI/test scope.
+- Check: reviewed targeted fix and regression, then reran offline `tests.test_admin_bootstrap tests.test_admin_roles`: 27 passed; scoped `git diff --check` clean. No live account, full suite or deployment check.
+- Next: Lead integration and documentation status update.
+
 ## 2026-10-02 | COMMUNITY-001 / UI-001 | targeted fix verification | done
 - Result: no remaining review blocker. `community.settings()` now uses resolved paths, ancestor inode checks, fixed protected paths and regular-file/single-link metadata; it no longer traverses static. The content test checks rendered References isolation and scoped added CSS without historical Git objects. Lead clarified the named native disclosure for optional typed coordinates is intentional and within the UI contract; the earlier third finding is closed as a design question, not a defect.
 - Check: inspected targeted service/test/docs changes and `git diff --check` (clean). QA reports 22 focused Python tests passed after fixes; not rerun. No browser, live database or deployment check.

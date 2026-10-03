@@ -1,5 +1,31 @@
 # Next requirements
 
+## Terminal-only administrator provisioning
+
+**Status:** Implemented and reviewed 2026-10-02; DEPLOY-002.
+
+Hosted registration is closed, but a fresh deployment still needs a moderator.
+Add `python -m climate.cli.manage_users create-admin USERNAME` for the operator's
+terminal only. Never expose a provisioning HTTP route or reopen registration.
+Use the existing account-path resolver and password hashing library; require an
+already initialized, regular private account database outside static (including
+aliases), reject hard-linked store files, and never silently create a database.
+Keep existing grant/revoke behavior unchanged. Create an admin and default profile
+atomically; duplicate usernames must not overwrite, reset or promote accounts.
+
+Passwords are collected twice with hidden interactive input, never via arguments,
+environment or printed output. Reject non-interactive/echo-fallback input,
+cancellation, mismatch, invalid Unicode/control characters and weak/oversized
+passwords before database writes (15–128 characters; spaces allowed, no trimming).
+Username uses existing 3–16 ASCII letter/digit/underscore/hyphen convention.
+Hash with the existing Werkzeug helper and store only its result. Sanitize CLI
+database errors; never print passwords, hashes or private database paths.
+This round implements/tests the command using temporary stores only: no real
+account creation, credential handling, deployment, new dependencies or resources.
+References and public UI stay unchanged. Verify creation/login compatibility,
+atomic rollback, duplicate preservation, path safety, input rejection, closed
+registration and existing grant/revoke commands with focused offline tests.
+
 ## Low-maintenance public deployment and community pins
 
 **Status:** Implemented and reviewed 2026-10-02. DEPLOY-001 closes registration and opens the

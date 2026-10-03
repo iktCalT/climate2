@@ -46,10 +46,10 @@ their retention/privacy policy before deployment.
   back it up privately and ensure the deployment volume survives restarts.
 - Review existing administrator roles and verify login/removal before opening
   comments. Hosted registration is blocked, not a complete authentication audit.
-  A fresh empty account database has no administrator: the existing `manage_users`
-  command grants roles to existing accounts only. Securely provision/restore an
-  administrator account outside Git before enabling comments; never temporarily
-  reopen public registration or publish the account database to do this.
+  A fresh empty account database has no administrator. Use the terminal-only
+  [first administrator setup](USER_ROLES.md#first-administrator-on-a-new-deployment)
+  or securely restore an existing private account database before enabling
+  comments; never reopen public registration or publish account data to do this.
 - Do not trust arbitrary forwarded-IP headers. Without explicitly configured
   trusted-proxy handling, a proxy may make visitors share a rate-limit bucket.
   Multi-host deployment needs shared transactional persistence, not independent

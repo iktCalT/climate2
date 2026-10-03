@@ -16,6 +16,34 @@ To appoint or remove an administrator on your local machine, run one of:
 .venv/bin/python -m climate.cli.manage_users revoke-admin USERNAME
 ```
 
+## First administrator on a new deployment
+
+Configure `USER_DATABASE_PATH` to a private persistent path outside the web/static
+directory, consistently for the server and account commands. Then run these
+commands in an interactive terminal on that host:
+
+```sh
+.venv/bin/python -m climate.cli.setup_user_database
+.venv/bin/python -m climate.cli.manage_users create-admin ADMIN_USERNAME
+```
+
+Replace `ADMIN_USERNAME` with 3–16 ASCII letters, digits, underscores or hyphens.
+The second command requires the initialized database and prompts twice without
+echoing for a unique long password/passphrase (15–128 characters). Spaces are
+preserved; whitespace-only passwords and control characters are rejected.
+The length floor is not a guarantee of password strength. Do not put a password
+in command arguments, environment variables, shell history or a redirected pipe.
+No password or hash is printed. Cancellation/mismatch makes no account changes.
+
+The command creates a new administrator and default profile together. It refuses
+duplicate usernames without changing their password or role; use the existing
+grant/revoke commands for deliberate role changes. It does not create a missing
+database, reset passwords, migrate accounts or reopen hosted registration.
+Static aliases and hard-linked database files are rejected for creation. Test
+login and community pin removal before enabling public comments. These commands
+must be run by the operator; automated code verification uses temporary databases
+only and does not provision a real account.
+
 The command changes only the ignored local account database. Flask, account
 initialization, and this command share the same path selection: explicit
 `USER_DATABASE_PATH`, then an existing legacy `static/users.db` with a warning,

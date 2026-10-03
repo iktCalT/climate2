@@ -7,7 +7,32 @@ Use the [economical model and batched checks policy](PROJECT_DIRECTION.md#sequen
 
 ## Current round
 
-**UI-001 / DEPLOY-001 / COMMUNITY-001 — reviewed; Lead integration.**
+**DEPLOY-002 — terminal-only administrator provisioning (reviewed; Lead integration).**
+Base `1ed0b65` (merged PR #77), branch `codex/private-admin-bootstrap`.
+Lead owns requirements, README/USER_ROLES/COMMUNITY documentation and own log.
+Developer owns only `climate/cli/manage_users.py` and own log; QA owns new
+`tests/test_admin_bootstrap.py` and own log; Reviewer is read-only except own log.
+Acceptance: [terminal provisioning](NEXT_REQUIREMENTS.md#terminal-only-administrator-provisioning).
+Sequential implementation → focused QA (plus existing admin-role tests) → review.
+No actual account creation, public UI/References changes, live stores or deployment.
+Developer syntax/private temporary-store checks passed, including duplicate,
+rollback, hidden-input failure and non-echoing rejection of extra CLI arguments.
+QA: 26 focused checks, 25 passed; one command-dispatch defect: a leading `--`
+could route parsed create-admin into role revocation. Developer correction must
+reject noncanonical provisioning without mutation; regression remains in QA.
+Dispatch correction independently passes all 26 tests. Reviewer found one private
+path gap: selected static symlink → private target was accepted after resolve.
+Reject selected public paths as well as resolved targets, retaining bounded
+alias checks; add isolated inside→outside regression before final review.
+Selected-path correction and formal symlink/parent-alias regressions now pass
+all 27 focused bootstrap/admin-role tests. No full-suite or Node repetition;
+those production paths are unchanged.
+Reviewer independently reran the 27 checks and cleared the fixes. No remaining
+confirmed blocker in this scope; operator provisioning is a separate live action.
+
+## Previous round
+
+**UI-001 / DEPLOY-001 / COMMUNITY-001 — complete; merged PR #77 (`1ed0b65`).**
 Base `7342c9e` (PR #76), branch `codex/concise-public-pages`.
 
 - Lead: requirements, README/deployment guide, coordination and integration.

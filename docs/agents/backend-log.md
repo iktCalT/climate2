@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-02 | DEPLOY-002 | terminal administrator provisioning | done
+- Result: `create-admin USERNAME` collects two hidden TTY passwords and rejects echo fallback, bad arguments/credentials, missing or unsafe account stores. Creation inserts the hashed administrator and default profile in one transaction; duplicate accounts remain unchanged. QA's `-- create-admin` dispatch issue and Reviewer's public symlink-to-private path issue now fail before any account change. Existing valid grant/revoke behavior remains intact. No real account was used.
+- Check: syntax and diff checks passed. Isolated temporary-store smokes covered hash/profile, duplicate, rollback, input rejection and public symlink rejection with unchanged private DB. Focused bootstrap (10) and admin-role (16) tests passed offline after final path fix; full suite left to QA.
+- Next: QA verifies path correction, then Reviewer inspects. Contract: [DEPLOY-002](../NEXT_REQUIREMENTS.md#terminal-only-administrator-provisioning).
+
 ## 2026-10-02 | COMMUNITY-001 | bounded storage-path validation | done
 - Result: removed recursive static traversal. Resolved paths and bounded ancestor identity checks reject static/symlink/case aliases. Existing stores must be regular files with exactly one hard link; all hard-linked stores are rejected. Known account/climate paths retain resolved-path and filesystem-identity protection. Metadata/configuration failures return the same generic disabled-storage error.
 - Check: all nine community tests passed with PostgreSQL flags disabled; AST and diff checks passed. Isolated smoke forbade `rglob`, verified safe missing/existing paths and rejected static paths, symlink aliases, actual case aliases, hard-linked files and directories. Existing legacy-path/SQLite ResourceWarnings persisted.

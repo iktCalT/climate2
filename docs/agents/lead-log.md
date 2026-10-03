@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-02 | DEPLOY-002 | terminal administrator setup | done
+
+- Result: new terminal-only create-admin command closes the fresh-deployment
+  moderator gap without reopening registration. Hidden double password entry,
+  private initialized storage and atomic creation; no real account provisioned.
+- Check: QA found and verified a CLI separator correction; Reviewer found and
+  verified selected public-symlink rejection. Final 27 focused tests pass under
+  QA and Reviewer, with no remaining blocker. No full/Node repetition.
+- Next: integrate; operator instructions in
+  [user roles](../USER_ROLES.md#first-administrator-on-a-new-deployment).
+  References/UI and deployment configuration remain untouched.
+
 ## 2026-10-02 | UI-001 / DEPLOY-001 / COMMUNITY-001 | public launch features | done
 
 - Result: concise public pages; hosted registration blocked; world camera;
@@ -53,15 +65,3 @@ Older results: [completed rounds](context/completed-rounds.md). Full evidence:
   mocked reads. No browser connection or live data/deployment operations.
 - Next: publication status in GitHub for `codex/edit-location-coordinates`,
   base `a6491c1`; no further specialist task assigned.
-
-## 2026-10-01 | HISTORY-001 | seasonal coverage readouts | done
-
-- Result: chart hover metadata reports per-metric contributing months and units;
-  existing means/winter labels retained. Explicit missing years remain gaps;
-  v7 render identity replaces stale HTML without deleting old files. Locations,
-  README and References explain fixed groups, partial coverage and sources.
-- Check: 59 focused chart/route/content tests passed; review cleared. Luna
-  quota failure and stalled Sol QA required sequential replacement, preserving
-  partial tests. No live data or browser; no map/dependency changes.
-- Next: publication status in GitHub for `codex/seasonal-coverage-readouts`,
-  base `eab3e85`; no further specialist task assigned.
