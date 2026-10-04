@@ -5,6 +5,22 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**MAINT-001 — merged GitHub branch cleanup (Lead, complete).**
+
+- Owner/scope: Lead verifies climate2 remote refs and merged PRs, deletes only
+  matching unprotected task tips with explicit leases, updates direction/board
+  and own log. No application changes or specialist work needed.
+- Preserve `main`, open-PR branches, unmatched/changed tips, local worktrees,
+  branches, tags and recovery stashes. Acceptance: remote inventory confirms
+  only verified obsolete refs removed; no application test rerun needed.
+- DEPLOY-004 below was published in PR #80 (`29c3fd7`); its handoffs are historical.
+- Result: removed 69 matching merged task branches with an atomic, leased push.
+  Verified remaining refs: `main` and unmatched `codex/record-scale-compare-plans`.
+  Local branches/worktrees/stashes/tags unchanged; merged PR heads preserve
+  recovery information. No repository settings or application behavior changed.
+
+## Previous implementation
+
 **DEPLOY-004 / UI-002 — portable production foundation and numeric wheel guard (reviewed; Lead publication).**
 
 - Contract: first entry in [requirements](NEXT_REQUIREMENTS.md). Preserve all
