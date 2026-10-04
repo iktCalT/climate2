@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-04 | MAINT-001 | GitHub merged-branch cleanup | done
+
+- Result: removed 69 obsolete climate2 remote task branches, each current tip
+  matching its merged PR into main. Kept main and unmatched
+  `codex/record-scale-compare-plans`; no local branches, worktrees, tags or stashes
+  deleted. Repository automatic deletion setting unchanged.
+- Check: full branch/PR inventory, dry run, exact-tip leases and atomic push;
+  final remote inventory confirms the two retained refs. Merged PR head SHAs
+  and retained local refs support branch recreation. No application tests needed.
+- Next: publish this policy/handoff; no unfinished branch was assumed disposable.
+
 ## 2026-10-04 | DEPLOY-004 / UI-002 | portable deployment and wheel guard | done
 
 - Result: sequential Developer/QA/Reviewer delivered opt-in production serving,

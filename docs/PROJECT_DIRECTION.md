@@ -3,6 +3,16 @@
 This document records requirements added after the original refactor plan. It
 supplements, but does not replace or edit, `docs/REFACTOR.md`.
 
+## Merged GitHub branch cleanup
+
+Authorized 2026-10-04. Lead may remove obsolete climate2 task branches after
+verifying that each current remote tip matches a merged PR into `main`.
+Keep the default/protected branches, open-PR heads and bases, unmatched branches
+and branches with post-merge changes. Recheck expected tips with deletion leases;
+do not delete local branches, worktrees, stashes or tags. Merged PR history and
+retained local refs provide recovery. This is manual cleanup, not a change to
+repository-wide automatic deletion settings.
+
 ## Purpose: environmental awareness
 
 Confirmed by the user on 2026-09-30: climate2 aims to raise awareness of
