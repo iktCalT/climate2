@@ -2,6 +2,21 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-04 | DEPLOY-004 | review corrections for image context and mode | done
+- Result: Docker context now names 64 reviewed runtime files individually after default deny, without directory or wildcard exceptions. Unknown `CLIMATE_ENV` values raise through shared path validation before CLI account storage resolution; web startup uses the same validator. Runbook notes manual allowlist maintenance. README/References cite Moby's matcher and Apache 2.0 licence.
+- Check: exact-file allowlist and representative private exclusions passed; malformed CLI mode caused no account file write; Python syntax and `git diff --check` passed. Docker unavailable; no image build or full suite.
+- Next: QA adds/runs focused context and CLI mode regressions, then Reviewer rechecks.
+
+## 2026-10-03 | DEPLOY-004 | production static hardlink guard | done
+- Result: Production static serving now requires a regular file with exactly one link before Flask serves any bundled asset. This closes QA's arbitrary private-file hardlink alias; development static behavior is unchanged. Generated assets retain their separate narrow guard.
+- Check: focused `test_deployment.py` seven tests passed, including the reported alias; Python syntax and `git diff --check` passed. No full regression repeated.
+- Next: QA reruns focused deployment/content/private-storage checks, then Reviewer audits.
+
+## 2026-10-03 | DEPLOY-004 / UI-002 | production foundation and numeric wheel | done
+- Result: Added explicit production config, private owned state mount shared with account CLI, exact hosts and peer-gated proxy hops, secure sessions, stable generated-asset URLs, liveness, single-worker Gunicorn, non-root allowlisted image, and delegated numeric wheel guard. Native development remains. Runbook and mirrored resource citations added; no host chosen.
+- Check: production smoke passed host/proxy/path/asset traversal and symlink cases; invalid-config and Node wheel smokes, Python/JS syntax and `git diff --check` passed. Docker and browser unavailable; no image build or full regression.
+- Next: QA owns focused tests and one combined offline regression; Reviewer then audits security and behavior. See [runbook](../DEPLOYMENT.md).
+
 ## 2026-10-02 | DEPLOY-002 | terminal administrator provisioning | done
 - Result: `create-admin USERNAME` collects two hidden TTY passwords and rejects echo fallback, bad arguments/credentials, missing or unsafe account stores. Creation inserts the hashed administrator and default profile in one transaction; duplicate accounts remain unchanged. QA's `-- create-admin` dispatch issue and Reviewer's public symlink-to-private path issue now fail before any account change. Existing valid grant/revoke behavior remains intact. No real account was used.
 - Check: syntax and diff checks passed. Isolated temporary-store smokes covered hash/profile, duplicate, rollback, input rejection and public symlink rejection with unchanged private DB. Focused bootstrap (10) and admin-role (16) tests passed offline after final path fix; full suite left to QA.

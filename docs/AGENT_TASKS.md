@@ -5,6 +5,83 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**DEPLOY-004 / UI-002 — portable production foundation and numeric wheel guard (reviewed; Lead publication).**
+
+- Contract: first entry in [requirements](NEXT_REQUIREMENTS.md). Preserve all
+  pending DEPLOY-003 documentation, citation and QA changes in this checkout.
+- Developer owns production configuration/launch/container files, `climate/paths.py`,
+  narrowly necessary `climate/web/` integrations, shared numeric-input JS and
+  layout, plus operational docs/README/References citations and own log. No
+  data/provider algorithms, schema migrations, account redesign or hosting actions.
+- Lead owns requirements, board, architecture decisions and own log. Developer
+  may propose scope changes, not silently expand. No model/agent fan-out.
+- QA owns new deployment/number-input tests, necessary existing test updates and
+  own log after Developer hands off; tests before fixes, isolated temporary stores.
+  Run combined offline Python and Node once, focused reruns for corrections.
+- Reviewer follows QA: read-only correctness/security review except own log.
+  Focus production default-deny paths/image context, proxy spoofing, host validation,
+  no local regression, persistent state and accessible wheel handling.
+- Acceptance: local startup retained; production config/container assets provided
+  without claiming deployment/build/browser tests that weren't possible. No
+  credentials or live stores touched. Provider choice remains open.
+- Developer handoff: production/private-state/proxy settings, optional container,
+  stable generated asset URLs and number wheel guard implemented. Focused
+  isolated smokes pass; Docker and real-browser verification unavailable. QA
+  now owns `tests/test_deployment.py`, `tests/test_number_wheel_guard.mjs`, exact
+  source inventory in `tests/test_content_pages.py`, only necessary existing
+  assertion updates and own log; no production edits.
+- QA batch: Python 211 total, 202 passed/eight PG skips/one failure; Node 20
+  passed. Temporary private file hard-linked into general static was downloadable.
+  Developer now owns only the narrow production static-file guard correction and
+  own log; preserve development assets and all QA assertions. QA reruns focused
+  deployment/content/private-storage tests afterwards, then Reviewer audits.
+- Correction verified: all 29 deployment/content/private-storage tests pass,
+  no skips; production static requires single-link regular files. The combined
+  batch was not repeated; prior Node 20 remains valid. Reviewer now owns review
+  only plus own log, no production/test edits or repeated full tests.
+- Review blockers (2026-10-04): unknown `CLIMATE_ENV` values still select local
+  account storage in CLI resolution; broad negated parent directories in
+  `.dockerignore` re-include private descendants. Nothing has been built/pushed.
+  Require shared strict mode validation and an auditable exact-file image-context
+  allowlist, followed by regression tests for effective inclusion/exclusion.
+- Corrections implemented: 64 literal runtime-file exceptions, no directory or
+  wildcard exceptions; shared mode validation precedes CLI path selection. QA
+  now owns focused allowlist/CLI regressions and the two Moby citation inventory
+  additions; no production edits or full-suite repeat. Reviewer verifies next.
+- Final correction QA: 58 focused deployment/content/private-storage/account CLI
+  tests pass, zero failures/skips. Effective literal allowlist and invalid-mode
+  no-write regressions included; final independent review in progress. Actual
+  image build and hosted/browser checks remain unavailable, not implied passes.
+- Reviewer cleared both corrections without a new blocker. Lead owns only final
+  documentation, secret scanning and authorized climate2 publication. All
+  specialists have handed off; no other backlog work is assigned this round.
+
+## Prior assessment
+
+**DEPLOY-003 — hosting options assessment (complete locally; provider decision pending).**
+
+- Owner: Lead / Architect. Compare official pricing, operations burden and
+  required changes while preserving native local development.
+- Allowed files: deployment comparison, documentation index, requirements,
+  this board, Lead log and README. Citation-only addition to References is an
+  explicit documentation exception; no redesign or application behavior edits.
+- Acceptance: dated source-backed options; estimates distinguished from prices;
+  private SQLite/PostgreSQL persistence, sessions, proxy and import constraints;
+  no provider selected, purchases, deployment or live data operations.
+- Validation: source/evidence consistency, local links, template parsing and
+  whitespace checks. No repeat full regression for this documentation task.
+- QA follow-up: own only `tests/test_content_pages.py` and own QA log. Add the
+  eleven newly cited official deployment URLs to the exact reference inventory
+  (preserve existing URLs/assertions), then run the offline content-page suite.
+  No app/database/provider operations or unrelated edits. Hand back to Lead.
+- Result: [comparison](DEPLOYMENT_OPTIONS.md) saved and linked. Eleven official
+  research URLs mirrored in README/References; QA updated the exact inventory.
+  All 12 focused content-page tests pass, with no skips. Jinja syntax, local
+  links, credit parity, example arithmetic and whitespace checks pass. No full
+  regression repeat, deployment, purchases or GitHub publication this round.
+
+## Previous checkpoint
+
 **REGRESSION-002 — combined deployment-feature checkpoint (reviewed; Lead integration).**
 Base `083ead5` (merged PR #78), branch `codex/deployment-regression-checkpoint`.
 

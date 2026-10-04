@@ -1,6 +1,6 @@
 # Completed implementation rounds
 
-Index refreshed 2026-10-03 from main `083ead5` and agent handoffs. These are
+Index refreshed 2026-10-04 from main `ea5cd56` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
@@ -8,6 +8,11 @@ PostgreSQL integration tests in full runs; focused counts are listed separately.
 No production database was used for these suites. Results below are historical,
 not tests rerun during the documentation refresh.
 
+- **DEPLOY-003 / DEPLOY-004 / UI-002:** hosting comparison, portable production
+  config/private state/proxy trust, exact-file container context, numeric wheel
+  guard. Initial Python 211: 202 passed/eight PG skips/one static hardlink failure;
+  Node 20 passed. Corrections independently verified by 58 focused passes;
+  review clear. Real image build, browser and hosting not verified or performed.
 - **REGRESSION-002, tested base `083ead5`:** combined offline Python run on
   2026-10-02: 204 total, 196 passed/eight expected PostgreSQL skips/no failures;
   Node 18 passed. No production/test changes. Documentation evidence reviewed

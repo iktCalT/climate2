@@ -275,6 +275,41 @@
             <p><strong>This fork:</strong> an AI-assisted refactor produced with <a href="https://openai.com/codex/" target="_blank" rel="noopener noreferrer">OpenAI Codex (GPT-5)</a>, under the human owner’s direction and review.</p>
             <p><strong>Learning foundation:</strong> <a href="https://cs50.harvard.edu/x/" target="_blank" rel="noopener noreferrer">Harvard CS50x</a>, including adapted helper patterns from its Flask exercises.</p>
             <p><strong>Project icon:</strong> sourced from <a href="https://www.iconfinder.com/icons/9079087/global_warming_climate_change_hot_heat_temperature_icon" target="_blank" rel="noopener noreferrer">Iconfinder</a>.</p>
+            <p><strong>Deployment research (2026-10-03; not deployed):</strong>
+                Render <a href="https://render.com/pricing">pricing</a>,
+                <a href="https://render.com/docs/disks">disks</a> and
+                <a href="https://render.com/docs/free">free-service limits</a>;
+                Railway <a href="https://docs.railway.com/pricing/plans">pricing</a>,
+                <a href="https://docs.railway.com/databases">database responsibilities</a>,
+                <a href="https://docs.railway.com/volumes/reference">volumes</a> and
+                <a href="https://docs.railway.com/volumes/backups">backups</a>;
+                DigitalOcean <a href="https://www.digitalocean.com/pricing/droplets">Droplet pricing</a> and
+                <a href="https://docs.digitalocean.com/products/backups/details/pricing/">backup pricing</a>.
+                <a href="https://flask.palletsprojects.com/en/stable/deploying/">Flask production guidance</a> and
+                <a href="https://docs.docker.com/compose/">Docker Compose documentation</a>
+                informed portability research; Compose remains research only.
+                These official webpages are linked research, not copied assets;
+                hosting retains its own terms.
+                No provider has been selected or subscription created.</p>
+            <p><strong>Production and interface references:</strong>
+                <a href="https://flask.palletsprojects.com/en/stable/deploying/gunicorn/">Flask's Gunicorn guidance</a> and
+                <a href="https://flask.palletsprojects.com/en/stable/deploying/proxy_fix/">Flask's proxy guidance</a>
+                inform WSGI startup and explicit header trust. <a href="https://gunicorn.org/">Gunicorn</a>
+                serves production requests under its <a href="https://github.com/benoitc/gunicorn/blob/master/LICENSE">MIT licence</a>.
+                <a href="https://docs.docker.com/build/concepts/context/">Docker build-context guidance</a>
+                informs the default-deny image context; the optional image uses the
+                <a href="https://hub.docker.com/_/python">official Python container image</a>.
+                <a href="https://github.com/moby/patternmatcher/blob/main/patternmatcher.go">Moby's pattern matcher source</a>
+                explains why directory exceptions can include descendants; its
+                <a href="https://github.com/moby/patternmatcher/blob/main/LICENSE">Apache 2.0 licence</a>
+                applies to that reference implementation. The image context lists exact runtime files.
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event">MDN's wheel event reference</a>
+                informs the number-input wheel guard.
+                <a href="https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/">Cloudflare Full (strict)</a>
+                and <a href="https://developers.cloudflare.com/fundamentals/reference/http-headers/">HTTP header guidance</a>
+                inform origin TLS and proxy assumptions. The
+                <a href="https://docs.cloud.google.com/run/docs/container-contract">Google Cloud Run container contract</a>
+                documents its ephemeral writable filesystem; durable account/community mode is unsupported there.</p>
             <p><strong>Attribution policy:</strong> every external resource must be cited in both this page and the repository README in the same change that introduces it.</p>
             <p><strong>Repository privacy:</strong> secrets, credentials, private keys, populated databases, session data, personal information, and machine-specific configuration must never be committed or pushed. Sensitive values stay in ignored local configuration or environment variables, and staged changes are checked before publication.</p>
         </div>

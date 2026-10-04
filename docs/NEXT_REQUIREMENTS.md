@@ -1,5 +1,61 @@
 # Next requirements
 
+## Portable production foundation and numeric-wheel protection
+
+**Status:** Implemented and reviewed 2026-10-04; DEPLOY-004 / UI-002.
+Actual container build, hosted startup and browser checks remain open.
+
+Prepare one source tree for local development and Cloudflare in front of Render,
+Railway or Google Cloud, without choosing a provider or creating cloud resources.
+Preserve native `.venv` / `./run.sh` development. Add production WSGI launch and
+optional non-root container packaging with a default-deny build context so no
+local secrets, databases, sessions, uploads, Git history or caches enter images.
+No live database copying, provisioning, imports, paid actions or DNS changes.
+
+Production must explicitly configure private persistent state, database URL,
+secret and allowed hosts; fail closed on invalid configuration. Keep development
+defaults compatible. Make account/community/session paths share a documented
+private state root in production (CLI account setup must resolve the same path).
+Persist optional profile images and permit rebuildable chart output without
+exposing the state directory. Preserve existing public URL/behavior contracts.
+Provide a lightweight health endpoint without DB/provider calls or secret output.
+
+Trust forwarding headers only when an explicitly allowlisted immediate proxy
+and configured hop counts justify them; defaults trust none. Do not blindly use
+CF-Connecting-IP or enable unrestricted Gunicorn forwarding. Document origin
+access restrictions, Cloudflare Full (strict), no private/API cache overrides,
+single-instance SQLite limitations, backup/restore and interrupted import jobs.
+Google Cloud VM + persistent disk is a candidate, not a decision. Cloud Run
+remains unsupported for durable community/accounts until storage/jobs are adapted;
+temporary disk or object-store mounts are not substitutes for safe SQLite storage.
+The owner's reported cloud credit is not permission to spend or proof of eligibility.
+
+Across all pages, prevent wheel events from incrementing/decrementing number
+inputs, including dynamically added inputs. Preserve typed edits, keyboard arrows,
+spinner buttons, form validation and map zoom. Do not globally suppress scrolling
+or blur fields while the user is editing. Cancel only wheel default behavior on
+the affected numeric control; normal scrolling elsewhere must stay intact.
+
+Validate isolated development/production configuration, hostile forwarding/host
+headers, private-path rejection, health checks, image-build exclusions and numeric
+wheel behavior. Run one combined offline regression after implementation; no live
+PostgreSQL/provider operations. Cite all new resources in README and References.
+
+## Portable local and online deployment
+
+**Status:** Options assessed 2026-10-03; portable production foundation implemented
+2026-10-04. Provider selection and hosted verification remain pending.
+
+Compare hosting costs, management burden and climate2-specific changes in
+`docs/DEPLOYMENT_OPTIONS.md`. Preserve one codebase and the existing local
+`.venv` / `./run.sh` workflow. Online deployment needs a production server,
+explicit private persistent storage, environment-based configuration, tested
+backup/restore and trusted-proxy handling; do not assume it is ready unchanged.
+Do not buy hosting, provision accounts, move live data or enable community
+posting during this assessment. Docker packaging is an option, not a new
+dependency or requirement for local development. Keep published rates distinct
+from workload estimates; retain source links and the date checked.
+
 ## Terminal-only administrator provisioning
 
 **Status:** Implemented and reviewed 2026-10-02; DEPLOY-002.

@@ -6,7 +6,10 @@ database migration. Start the app from the repo root with `./run.sh`.
 
 ```text
 app.py                  Flask entry point; implementation below
+gunicorn.conf.py        explicit production WSGI launch; local run.sh unchanged
+Dockerfile              optional non-root production image; no local state bundled
 climate/
+  production.py         validated production storage/hosts and peer-gated proxy trust
   web/                  app.py routes; helpers.py charts, auth, validation
   services/             map_data.py, admin_import.py, admin_cleanup.py
                         community.py: bounded public pins in private SQLite
@@ -65,6 +68,15 @@ live under `sql/`. Setup resolves schemas relative to source, as Flask resolves
 templates/static assets. Runtime data paths, sessions, chart caches, and explicit
 relative environment paths retain their previous root-working-directory behavior;
 `run.sh` changes to the repository root before starting Flask.
+
+Production is opt-in via `CLIMATE_ENV=production`, with a required private
+persistent state root outside the source checkout. Account CLI commands use the
+same production account path. Sessions, account/community databases and generated
+files are separated beneath that root; only narrowly named charts/profile images
+retain their existing public static URLs. Development paths are unchanged.
+See [production operation](DEPLOYMENT.md) for startup, proxy trust and host limits.
+The optional image has not been built here; Cloud Run's ephemeral filesystem is
+not a supported durable deployment for the current local-store design.
 
 Account paths are shared through `climate/paths.py`: new installations use
 private `instance/users.db`; explicit configuration and warned legacy fallback

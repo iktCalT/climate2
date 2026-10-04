@@ -175,6 +175,13 @@ This project targets PostgreSQL **18** and works on Apple Silicon without machin
 
 The default weather connection is `postgresql://localhost/climate`. To use another local database, set `DATABASE_URL` in the shell that launches Flask. New account databases default to ignored `instance/users.db`, outside public assets. Flask and account tools honor `USER_DATABASE_PATH`; without it, an existing `static/users.db` is retained with a warning so upgrades do not silently replace accounts. See [private account storage](docs/USER_ROLES.md#private-account-storage) before relocating existing data. Never commit credentials or a populated user database; `.env`, database files, profile uploads, generated charts, keys, and local caches are ignored.
 
+For a public server, follow the [production deployment runbook](docs/DEPLOYMENT.md).
+It keeps `./run.sh` for local development and uses explicit production settings,
+Gunicorn, a private persistent state mount, exact allowed hosts and peer-gated
+proxy headers. An optional container image is included but has not been built or
+deployed here. On all pages, wheel movement over number fields no longer changes
+their value; typing, keyboard arrows, spinner buttons and map zoom remain usable.
+
 Flask blocks recognizable database/backup filenames and sidecars, hidden files, the configured
 account database, and static paths escaping the public root. A separate web server
 serving static files must apply its own restrictions; keep private data outside
@@ -372,6 +379,7 @@ revoke it before publishing.
 
 ## Refactor documentation
 
+- [Deployment options](docs/DEPLOYMENT_OPTIONS.md) — hosting costs, management effort and local/online portability; no provider selected yet.
 - [Refactor plan](docs/REFACTOR.md) — the agreed, unchanged source plan.
 - [PostgreSQL 18 setup](docs/POSTGRESQL.md)
 - [User roles](docs/USER_ROLES.md)
@@ -394,6 +402,17 @@ Current data and evaluated providers:
 - NOAA's [CORe regridding guidance](https://www.cpc.ncep.noaa.gov/products/CORe/regridding.html) documents its 512-by-256 Gaussian grid, the [Physical Sciences Laboratory overview](https://psl.noaa.gov/data/coreinfo.html) describes its reanalysis role, and the [Weather Program Office announcement](https://wpo.noaa.gov/ncep-introduces-operational-reanalysis-for-climate-monitoring-core/) records the operational transition. The [NCEP/NCAR Reanalysis 1 update notice](https://psl.noaa.gov/news/2026/r1datanotice.html) explains why that retired predecessor was not selected.
 - [Copernicus CDS ERA5 monthly data](https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview) remains an evaluated alternative under CC BY, but was not selected because programmatic retrieval requires an account, dataset-licence acceptance, and a private token.
 - [NASA POWER](https://power.larc.nasa.gov/docs/services/api/temporal/monthly/) and [CRU gridded datasets](https://crudata.uea.ac.uk/cru/data/hrg/) were evaluated as documented alternatives but are not active providers.
+
+Deployment research (evaluated, not deployed; checked 2026-10-03):
+
+- Render [pricing](https://render.com/pricing), [persistent disks](https://render.com/docs/disks) and [free-service limits](https://render.com/docs/free) inform the managed-hosting comparison.
+- Railway [pricing](https://docs.railway.com/pricing/plans), [database responsibilities](https://docs.railway.com/databases), [volumes](https://docs.railway.com/volumes/reference) and [backups](https://docs.railway.com/volumes/backups) inform the usage-based alternative.
+- DigitalOcean [Droplet pricing](https://www.digitalocean.com/pricing/droplets) and [backup pricing](https://docs.digitalocean.com/products/backups/details/pricing/) inform the self-managed VPS alternative.
+- [Flask production deployment](https://flask.palletsprojects.com/en/stable/deploying/) and [Docker Compose documentation](https://docs.docker.com/compose/) informed the portability assessment. Compose remains research only. No subscription or terms acceptance has occurred; hosting services retain their own terms.
+- [Flask's Gunicorn deployment guidance](https://flask.palletsprojects.com/en/stable/deploying/gunicorn/) and [proxy guidance](https://flask.palletsprojects.com/en/stable/deploying/proxy_fix/) inform WSGI launch and explicit forwarded-header trust. [Gunicorn](https://gunicorn.org/) is the production server dependency ([MIT licence](https://github.com/benoitc/gunicorn/blob/master/LICENSE)).
+- [Docker build-context documentation](https://docs.docker.com/build/concepts/context/) informs the default-deny image context; the [official Python container image](https://hub.docker.com/_/python) supplies the optional runtime. [MDN's wheel event reference](https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event) informs the numeric-input guard.
+- [Moby's pattern matcher source](https://github.com/moby/patternmatcher/blob/main/patternmatcher.go) explains why directory exceptions can include descendants in Docker build contexts; its [Apache 2.0 licence](https://github.com/moby/patternmatcher/blob/main/LICENSE) applies to that reference implementation. The image context now enumerates exact runtime files.
+- [Cloudflare Full (strict)](https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/) and [Cloudflare HTTP header guidance](https://developers.cloudflare.com/fundamentals/reference/http-headers/) inform origin TLS and forwarding assumptions. [Google Cloud Run's container contract](https://docs.cloud.google.com/run/docs/container-contract) documents its ephemeral writable filesystem; durable account/community mode is not offered there.
 
 Current application software and delivery services:
 

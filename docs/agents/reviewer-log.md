@@ -2,6 +2,16 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-04 | DEPLOY-004 / UI-002 | targeted correction verification | done
+- Result: both prior blockers closed in the reviewed correction. `.dockerignore` now has `**` followed only by 64 exact regular-file exceptions, so no parent rule restores private descendants; required runtime source, templates, SQL and public assets are listed. Shared `climate_mode()` rejects unknown values before account CLI path selection and web startup. No new correction defect found.
+- Check: read final rules, code, QA assertions and handoff; `git diff --check` clean. QA reports 58 focused Python tests passed. No repeat full/Node run, Docker build or browser check.
+- Next: Lead integration; maintain exact allowlist when adding runtime files and verify a real image when Docker is available.
+
+## 2026-10-04 | DEPLOY-004 / UI-002 | production foundation review | done
+- Result: two blockers. `.dockerignore` parent exceptions restore all descendants, so `COPY static/` can bundle an existing legacy account store, uploads and generated output; `COPY climate/` can bundle caches. Moby matcher source/tests confirm this behavior. `climate/paths.py` accepts unknown `CLIMATE_ENV` values as development while web startup rejects them; a CLI typo resolved to the legacy account store. Other scoped paths, proxy/host gates, native launch, wheel guard and mirrored citations revealed no confirmed defect.
+- Check: full diff/new files reviewed; read-only CLI typo repro and `git diff --check` passed. QA's focused 29 Python and 20 Node results reused; no full rerun, Docker build or browser available.
+- Next: Developer fixes both; QA tests effective image-context matches and invalid CLI mode; Reviewer verifies.
+
 ## 2026-10-03 | REGRESSION-002 | combined checkpoint documentation | done
 - Result: reviewed checkpoint documentation at `083ead5`. The board now states fresh QA evidence (204 Python: 196 passed, eight PostgreSQL skips; 18 Node passed), separate from historical 192-test and 27-test feature results. No conflicting production/test changes or false browser, live database, or deployment claims found. Earlier interrupted bootstrap assignment made no edits.
 - Check: read-only diff, task board, workspace/completed-rounds context and QA handoff; `git diff --check` clean. Suites not rerun because QA ran them once on this revision.
