@@ -18,7 +18,7 @@ import climate.web.app as web_app
 from climate.web.app import app
 
 
-# Existing external credits plus the approved HISTORY-001 Plotly references.
+# Exact external credits, including approved Plotly and deployment research links.
 REFERENCE_URLS = set("""
 https://carto.com/attributions
 https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels-monthly-means?tab=overview
@@ -27,22 +27,41 @@ https://colorbrewer2.org/
 https://crudata.uea.ac.uk/cru/data/hrg/
 https://cs50.harvard.edu/x/
 https://developers.openai.com/api/docs/guides/image-generation
+https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
+https://developers.cloudflare.com/fundamentals/reference/http-headers/
+https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/
+https://docs.cloud.google.com/run/docs/container-contract
+https://docs.digitalocean.com/products/backups/details/pricing/
+https://docs.docker.com/build/concepts/context/
+https://docs.docker.com/compose/
 https://docs.python.org/3/library/contextlib.html#contextlib.closing
 https://docs.python.org/3/library/hashlib.html
 https://docs.python.org/3/library/sqlite3.html
 https://docs.python.org/3/library/threading.html
+https://docs.railway.com/databases
+https://docs.railway.com/pricing/plans
+https://docs.railway.com/volumes/backups
+https://docs.railway.com/volumes/reference
 https://flask-session.readthedocs.io/en/latest/
 https://flask.palletsprojects.com/en/stable/
+https://flask.palletsprojects.com/en/stable/deploying/
+https://flask.palletsprojects.com/en/stable/deploying/gunicorn/
+https://flask.palletsprojects.com/en/stable/deploying/proxy_fix/
 https://fontawesome.com/
 https://fonts.google.com/
 https://ftp.cpc.ncep.noaa.gov/CORe/get_core/get_core.txt
 https://getbootstrap.com/docs/5.3/
 https://github.com/MazeMap/retry-requests
+https://github.com/benoitc/gunicorn/blob/master/LICENSE
 https://github.com/ecmwf/eccodes-python
 https://github.com/iktCalT/climate
 https://github.com/lennardv2/Leaflet.awesome-markers
 https://github.com/maplibre/demotiles
+https://github.com/moby/patternmatcher/blob/main/LICENSE
+https://github.com/moby/patternmatcher/blob/main/patternmatcher.go
 https://github.com/open-meteo/python-requests
+https://gunicorn.org/
+https://hub.docker.com/_/python
 https://jquery.com/
 https://leafletjs.com/
 https://maplibre.org/maplibre-gl-js/docs/
@@ -64,11 +83,15 @@ https://psl.noaa.gov/news/2026/r1datanotice.html
 https://python-visualization.github.io/folium/
 https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/style/style.ts
 https://raw.githubusercontent.com/maplibre/maplibre-gl-js/v6.6.0/src/ui/map.ts
+https://render.com/docs/disks
+https://render.com/docs/free
+https://render.com/pricing
 https://requests-cache.readthedocs.io/en/stable/
 https://wpo.noaa.gov/ncep-introduces-operational-reanalysis-for-climate-monitoring-core/
 https://www.cpc.ncep.noaa.gov/products/CORe/archive.html
 https://www.cpc.ncep.noaa.gov/products/CORe/index.html
 https://www.cpc.ncep.noaa.gov/products/CORe/regridding.html
+https://www.digitalocean.com/pricing/droplets
 https://www.iconfinder.com/icons/9079087/global_warming_climate_change_hot_heat_temperature_icon
 https://www.jsdelivr.com/
 https://www.ncei.noaa.gov/sites/default/files/2023-12/NCEI%20PD-10-2-02%20-%20Open%20Data%20Policy%20Signed.pdf

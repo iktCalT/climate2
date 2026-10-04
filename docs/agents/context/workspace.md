@@ -1,12 +1,12 @@
 # Workspace and verification context
 
-Snapshot 2026-10-03, task base/main `083ead5` (PR #78). Recheck Git before acting.
+Snapshot 2026-10-04, integration base/main `ea5cd56` (PR #79). Recheck Git before acting.
 
-- `codex/deployment-regression-checkpoint`: REGRESSION-002 combined offline
-  verification after UI/community and administrator setup. See current board
-  for fresh evidence. Browser inventory was empty/native connection failed and
-  the listed browser skill file was absent; no visual verification claimed.
-  Hosting target remains an owner choice; no deployment configuration changed.
+- DEPLOY-003 / DEPLOY-004 / UI-002: hosting comparison, portable production
+  foundation and numeric wheel guard are reviewed for integration/publication.
+  See the current board and [runbook](../../DEPLOYMENT.md). No hosting selected,
+  resource provisioning, live stores or spending. Optional container not built;
+  browser connection unavailable. Cloud Run requires a separate storage redesign.
 
 - `codex/private-admin-bootstrap` merged in PR #78: DEPLOY-002 adds an operator-only terminal
   command for a fresh deployment's administrator. No real account creation;
@@ -33,6 +33,10 @@ Snapshot 2026-10-03, task base/main `083ead5` (PR #78). Recheck Git before actin
   No production/test correction needed. Inherited filesystem sessions remain
   an isolation limitation; browser, live data and deployment are unverified.
   Earlier counts are historical in the completed-rounds index and QA log.
+- DEPLOY-004 initial batch: Python 211 total, 202 passed/eight PG skips/one
+  static hardlink failure; Node 20 passed. After that fix and review corrections
+  (exact image-file allowlist, strict CLI environment), all 58 focused tests
+  pass. Full suite not repeated; see QA log for exact scope and limitations.
 - The named stash `climate2 REGRESSION-001 checkpoint before README demo request`
   preserves the original documentation checkpoint. Commands/evidence have been
   selectively reconciled; retain for recovery, not blind reapplication.

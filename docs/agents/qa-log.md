@@ -2,6 +2,21 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-04 | DEPLOY-004 | image-context and runtime-mode review corrections | done
+- Result: added regressions requiring a default-deny `.dockerignore` with literal existing regular-file exceptions, all Python/SQL/template runtime files, and effective exclusion of representative private descendants; invalid `CLIMATE_ENV` now tested against account setup/admin CLI with no database or parent-directory creation. Added two Moby URLs to exact References inventory. No production edits.
+- Check: focused offline `tests.test_deployment tests.test_content_pages tests.test_private_account_storage tests.test_admin_bootstrap tests.test_admin_roles tests.test_user_database_setup`: 58 passed, zero skips/failures (final run). Initial focused run also passed before required-file coverage was expanded. Docker and Go unavailable; matcher assertions are static, not an actual image build. Existing mocked cleanup error log and legacy path warning are expected.
+- Next: Reviewer rechecks both corrected blockers; no full Python or Node repeat.
+
+## 2026-10-03 | DEPLOY-004 / UI-002 | portable deployment and wheel guard | done
+- Result: added temporary-state production config/proxy/static/health/container checks and Node VM tests for the real delegated wheel handler; mirrored ten new official URLs in exact References inventory. Initial test exposed arbitrary private-file hard-link leak through `static/`; Developer added production-only regular-file/single-link guard, and focused regression now passes. No QA production edits or live stores.
+- Check: initial combined offline batch: Python 211 total, 202 passed, eight PostgreSQL skips, one failure (leak); Node 20 passed. After fix, `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_deployment tests.test_content_pages tests.test_private_account_storage`: 29 passed, zero skips/failures. Docker/browser unavailable; static container checks only. Inherited session isolation remains.
+- Next: Reviewer audits final implementation; no second full batch for narrow fix.
+
+## 2026-10-03 | DEPLOY-003 | deployment References URL inventory | done
+- Result: added the 11 official deployment research URLs cited by README and rendered References to the exact content-page inventory; preserved all existing URLs and assertions. Changed only the assigned test and this log.
+- Check: offline `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest tests.test_content_pages`: 12 passed, zero failures/skips. Scoped `git diff --check` passed. Existing legacy account-path warning appeared; no live database or provider operations.
+- Next: Lead integrates the documentation and QA update; no QA blocker.
+
 ## 2026-10-02 | REGRESSION-002 | combined offline checkpoint | done
 - Result: At `083ead5`, PR #77 UI/community and PR #78 terminal-admin checks have no confirmed offline regression. Isolation review found temporary SQLite stores/mocks; PostgreSQL classes are opt-in. No production/test edits or live operations.
 - Check: `DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests`: 204 total, 196 passed, eight skipped (three cleanup, one availability, four weather PostgreSQL integration checks). `node --test tests/test_map*.mjs tests/test_community*.mjs`: 18 passed, zero skipped/failed. Both exit zero, run once.

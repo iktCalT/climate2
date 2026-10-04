@@ -4,6 +4,33 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-04 | DEPLOY-004 / UI-002 | portable deployment and wheel guard | done
+
+- Result: sequential Developer/QA/Reviewer delivered opt-in production serving,
+  private persistent state, explicit proxy/host trust and numeric wheel guard.
+  Native local startup preserved; [runbook](../DEPLOYMENT.md) covers operator
+  steps. Image context is an exact-file allowlist; CLI rejects invalid modes.
+- Check: initial Python 211: 202 passes/eight PG skips/one hardlink failure;
+  Node 20 passes. Corrected static guard and review findings independently
+  verified by 58 focused passes; final review clear. No repeated full suite.
+- Next: publish to climate2. Provider choice, real image build, browser and hosted
+  verification remain open; no deployment, spending or live data operations.
+  Recovery stashes preserved; repository-local Meow-5 identity verified.
+
+## 2026-10-03 | DEPLOY-003 | hosting comparison | done
+
+- Result: added [deployment options](../DEPLOYMENT_OPTIONS.md), comparing Render,
+  Railway and a DigitalOcean VPS with dated official rates, cost assumptions,
+  management duties and local/online portability. Linked from both indexes;
+  mirrored all eleven research URLs in README and References without redesign.
+- Check: inspected storage/session/import code; Jinja syntax, local comparison
+  links, mirrored credits, arithmetic and whitespace pass. QA updated the exact
+  source inventory; all 12 content-page tests pass. No production deployment,
+  package installation, live data operation or GitHub publication this task.
+- Next: owner chooses provider/budget. Persistent private SQLite, session/proxy
+  configuration and production serving still need implementation/verification.
+  Canvas omitted because its mandatory output path is outside climate2.
+
 ## 2026-10-03 | REGRESSION-002 | combined deployment checkpoint | done
 
 - Result: reconciled current `083ead5`/PR #78 state with the pending checkpoint;

@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 import plotly.graph_objects as go
-from flask import redirect, render_template, session
+from flask import current_app, has_app_context, redirect, render_template, session
 
 # Some assistance functions are written by CS50 staff.
 # https://cs50.harvard.edu/x/2024/psets/9/finance/
@@ -169,9 +169,11 @@ def draw_chart(
     )
 
     # Save as HTML
-    LOCATION_CHART_DIRECTORY.mkdir(parents=True, exist_ok=True)
+    chart_directory = (Path(current_app.config.get("CLIMATE_CHART_DIRECTORY", LOCATION_CHART_DIRECTORY))
+                       if has_app_context() else LOCATION_CHART_DIRECTORY)
+    chart_directory.mkdir(parents=True, exist_ok=True)
     output_name = Path(filename).name if filename else f"{lat}_{lon}.html"
-    fig.write_html(str(LOCATION_CHART_DIRECTORY / output_name))
+    fig.write_html(str(chart_directory / output_name))
     return fig
 
 

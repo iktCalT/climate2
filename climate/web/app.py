@@ -5,19 +5,21 @@ import secrets
 import hashlib
 import re
 import json
+import stat
 
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from pathlib import Path
 
-from flask import Flask, abort, jsonify, redirect, render_template, request, session
+from flask import Flask, abort, jsonify, redirect, render_template, request, session, send_from_directory
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from climate.paths import (
     STATIC_DIRECTORY, TEMPLATE_DIRECTORY,
-    resolve_user_database_path,
+    climate_mode, resolve_user_database_path,
 )
+from climate.production import configure_production
 from climate.data.db import ACTIVE_CLIMATE_PROVIDER
 from climate.data.location_sampling import sample_noaa_location
 from climate.web.helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
@@ -53,10 +55,12 @@ def default_map_month(now=None):
     return latest_map_month(now)
 
 # Configure application
+mode = climate_mode()
 app = Flask(
     __name__, template_folder=str(TEMPLATE_DIRECTORY),
     static_folder=str(STATIC_DIRECTORY), static_url_path="/static",
 )
+app.config["CLIMATE_PRODUCTION"] = mode == "production"
 app.config["CLIMATE_PROVIDER"] = ACTIVE_CLIMATE_PROVIDER
 app.config["USER_DATABASE_PATH"] = str(resolve_user_database_path())
 for name, default in (
@@ -70,6 +74,8 @@ for name, default in (
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+if app.config["CLIMATE_PRODUCTION"]:
+    configure_production(app)
 Session(app)
 
 
@@ -159,6 +165,10 @@ def protect_static_files():
         return None
 
     filename = request.view_args.get("filename", "")
+    if app.config["CLIMATE_PRODUCTION"]:
+        generated = _production_generated_asset(filename)
+        if generated is not None:
+            return generated
     requested = Path(filename)
     if any(part.startswith(".") for part in requested.parts):
         abort(404)
@@ -175,6 +185,13 @@ def protect_static_files():
         abort(404)
     if any(part.startswith(".") for part in resolved_relative.parts):
         abort(404)
+    if app.config["CLIMATE_PRODUCTION"]:
+        try:
+            metadata = candidate.lstat()
+        except (OSError, ValueError):
+            abort(404)
+        if not stat.S_ISREG(metadata.st_mode) or metadata.st_nlink != 1:
+            abort(404)
 
     names = (requested.name.lower(), candidate.name.lower(), resolved.name.lower())
     if any(_is_database_or_sidecar(name) for name in names):
@@ -206,6 +223,33 @@ def protect_static_files():
     return None
 
 
+def _production_generated_asset(filename):
+    """Serve only generated public files, never arbitrary private state."""
+    if filename.startswith("location_data/"):
+        directory = Path(app.config["CLIMATE_CHART_DIRECTORY"])
+        basename = filename.removeprefix("location_data/")
+        allowed = re.fullmatch(r"v[0-9]+_-?[0-9]+\.[0-9]{2}_-?[0-9]+\.[0-9]{2}_[0-9a-f]{64}\.html", basename)
+    elif filename.startswith("user_img/"):
+        if filename == "user_img/default_icon.png":
+            return None
+        directory = Path(app.config["CLIMATE_IMAGE_DIRECTORY"])
+        basename = filename.removeprefix("user_img/")
+        allowed = re.fullmatch(r"[0-9]+\.(?:gif|jpeg|jpg|png|webp)", basename)
+    else:
+        return None
+    if not allowed:
+        abort(404)
+    candidate = directory / basename
+    try:
+        metadata = candidate.lstat()
+        if not candidate.is_file() or candidate.is_symlink() or metadata.st_nlink != 1:
+            abort(404)
+        candidate.resolve().relative_to(directory.resolve())
+    except (OSError, RuntimeError, ValueError):
+        abort(404)
+    return send_from_directory(directory, basename)
+
+
 def _is_database_or_sidecar(name):
     """Match database extensions at end or before any non-alphanumeric delimiter."""
     return re.search(
@@ -219,6 +263,11 @@ def _is_database_or_sidecar(name):
 def index():
     message = request.args.get("message")
     return render_template("index.html", message=message, imgname=current_image_name())
+
+
+@app.route("/healthz")
+def healthz():
+    return ("ok\n", 200, {"Content-Type": "text/plain; charset=utf-8"})
 
 
 @app.route("/locations")
@@ -264,7 +313,11 @@ def locations():
         )
         digest = hashlib.sha256(content.encode()).hexdigest()
         filename = f"location_data/{LOCATION_CHART_VERSION}_{strlat}_{strlon}_{digest}.html"
-        if not os.path.isfile("static/" + filename):
+        chart_directory = Path(app.config.get("CLIMATE_CHART_DIRECTORY", "static/location_data"))
+        chart_exists = ((chart_directory / filename.split("/", 1)[1]).is_file()
+                        if app.config["CLIMATE_PRODUCTION"]
+                        else os.path.isfile("static/" + filename))
+        if not chart_exists:
             draw_chart(
                 lat, lon, data, filename=filename.split("/")[1],
                 source_label="NOAA CORe reanalysis" if noaa_sample else "Open-Meteo CMIP6 model output",
@@ -527,7 +580,7 @@ def profile():
                 )
             try:
                 imgname = f'{session["user_id"]}{extension}'
-                img.save("static/user_img/" + imgname)
+                img.save(str(Path(app.config.get("CLIMATE_IMAGE_DIRECTORY", "static/user_img")) / imgname))
             except (OSError, ValueError):
                 return apology("Cannot save the image", 400)
             finally:
