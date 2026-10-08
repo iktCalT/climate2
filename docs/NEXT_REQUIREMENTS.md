@@ -1,5 +1,45 @@
 # Next requirements
 
+## Confirm forgetting a browser-local profile
+
+**Status:** Implemented and reviewed 2026-10-08; COMMUNITY-002, local usability follow-up.
+
+An accidental click on Forget this device currently destroys the local pin
+ownership credential. Require explicit confirmation before removing local
+storage or deactivating the profile. Explain that public pins remain and this
+device will lose its ability to delete them. Cancellation must preserve both
+stored and active profile, controls and callbacks; confirmation keeps existing
+successful deletion and storage-error behavior. Do not read storage on ordinary
+visits, delete public pins, add dependencies or change server authorization.
+Use a native confirmation dialog, with focused browser-module regressions.
+Keep README/user guidance aligned; References needs no new external citation.
+
+## Google Cloud launch with a portable migration path
+
+**Status:** Paused by owner 2026-10-08; continue local programming instead.
+Retain provider-neutral production configuration and local startup. Do not
+resume cloud login, provisioning, domain setup or DNS work until requested.
+Preflight still needs account/billing verification and a confirmed hostname.
+
+Deploy climate2 on Google Cloud behind Cloudflare for now, retaining local
+operation and a practical exit before promotional credit expires. Proposed
+starting topology is one modest Compute Engine VM with persistent storage and
+self-managed PostgreSQL; verify capacity, billing eligibility and credit expiry
+before provisioning. No Cloud Run/storage redesign or paid Cloudflare tier.
+
+Keep application configuration provider-neutral. Prepare private, consistent
+PostgreSQL and app-state backups, verify restoration on a replacement host, then
+cut over the same hostname with rollback available. Do not copy local accounts,
+sessions or personal uploads implicitly; select climate data for initial seeding
+explicitly. Keep secrets and populated stores out of Git and deployment images.
+Do not destroy the old host until restored data and the new site are verified.
+
+Acceptance: HTTPS through Cloudflare, correct proxy/host handling, usable saved
+climate maps, isolated admin access, persistent state across restart, tested
+backup/restore and documented migration steps. Confirm the credit end date and
+plan migration before it; no promise of automatic future monitoring or migration.
+No resources or DNS records have been changed during initial preflight.
+
 ## Portable production foundation and numeric-wheel protection
 
 **Status:** Implemented and reviewed 2026-10-04; DEPLOY-004 / UI-002.

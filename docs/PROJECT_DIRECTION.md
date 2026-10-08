@@ -3,6 +3,14 @@
 This document records requirements added after the original refactor plan. It
 supplements, but does not replace or edit, `docs/REFACTOR.md`.
 
+## Local development while hosting is deferred
+
+Owner direction 2026-10-08: set domain/VM/deployment work aside and continue
+improving the local project. Keep one provider-neutral codebase, native local
+startup and explicit production configuration. Avoid hard-coded cloud resources,
+credentials or machine paths. Do not resume cloud account, billing, domain or
+DNS actions unless requested; retain migration plans as inactive context.
+
 ## Merged GitHub branch cleanup
 
 Authorized 2026-10-04. Lead may remove obsolete climate2 task branches after

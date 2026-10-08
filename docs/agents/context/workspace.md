@@ -1,9 +1,15 @@
 # Workspace and verification context
 
-Snapshot 2026-10-04, integration base/main `ea5cd56` (PR #79). Recheck Git before acting.
+Snapshot 2026-10-08, integration base/main `434395f` (PR #81). Recheck Git before acting.
+
+- Owner paused domain/VM/cloud deployment on 2026-10-08. Continue local
+  programming with future portability; no cloud operations or credentials needed.
+  DEPLOY-005 preflight notes remain pending in Lead-owned docs; preserve them.
+  Current local task: COMMUNITY-002, explicit confirmation before forgetting
+  browser-local pin credentials. See board for sequential file ownership.
 
 - DEPLOY-003 / DEPLOY-004 / UI-002: hosting comparison, portable production
-  foundation and numeric wheel guard are reviewed for integration/publication.
+  foundation and numeric wheel guard merged in PR #80 (`29c3fd7`).
   See the current board and [runbook](../../DEPLOYMENT.md). No hosting selected,
   resource provisioning, live stores or spending. Optional container not built;
   browser connection unavailable. Cloud Run requires a separate storage redesign.

@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-08 | COMMUNITY-002 | local-profile forget confirmation | done
+- Result: Browser harness stubs native confirmation. Added cancel checks for exact saved bytes, active profile, profile and pin controls, status, callback count, storage operations and network calls. Confirmed success and remove failure retain their prior inactive states; failure leaves saved bytes and reports the storage error. No production edits.
+- Check: `node --test tests/test_community_browser.mjs`: eight passed, zero failed/skipped; scoped `git diff --check` passed. Initial run caught a reversed test expectation, corrected before final run. No Python/full suite, browser, live storage or network operation.
+- Next: Reviewer audits COMMUNITY-002; no QA blocker.
+
 ## 2026-10-04 | DEPLOY-004 | image-context and runtime-mode review corrections | done
 - Result: added regressions requiring a default-deny `.dockerignore` with literal existing regular-file exceptions, all Python/SQL/template runtime files, and effective exclusion of representative private descendants; invalid `CLIMATE_ENV` now tested against account setup/admin CLI with no database or parent-directory creation. Added two Moby URLs to exact References inventory. No production edits.
 - Check: focused offline `tests.test_deployment tests.test_content_pages tests.test_private_account_storage tests.test_admin_bootstrap tests.test_admin_roles tests.test_user_database_setup`: 58 passed, zero skips/failures (final run). Initial focused run also passed before required-file coverage was expanded. Docker and Go unavailable; matcher assertions are static, not an actual image build. Existing mocked cleanup error log and legacy path warning are expected.

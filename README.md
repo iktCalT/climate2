@@ -36,10 +36,12 @@ by the operator, visitors can publish a pin with one public comment, read commen
 by clicking pins, and delete their own pins. Administrators can remove any pin.
 The default allowance is 10 active pins per browser identity (configurable, e.g.
 3 later), with network rate limits. Clearing storage can bypass identity quotas
-and loses deletion credentials; it does not remove public posts. Clustering is
-deferred. This is not a secure hosted account or a maintenance-free moderation
-system. Community APIs fail closed until explicitly enabled with private
-configuration; see [community setup and privacy](docs/COMMUNITY.md).
+and loses deletion credentials; it does not remove public posts. Forget this
+device asks for confirmation before clearing the local profile, warning that
+public pins remain and this device will lose the credential needed to delete
+them. Clustering is deferred. This is not a secure hosted account or a
+maintenance-free moderation system. Community APIs fail closed until explicitly
+enabled with private configuration; see [community setup and privacy](docs/COMMUNITY.md).
 
 NOAA Location history samples the imported 2° ×
 4° NOAA grid by rounding to the closest latitude and circular longitude, with
