@@ -4,6 +4,28 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-08 | COMMUNITY-002 | local profile confirmation; hosting deferred | done
+
+- Result: owner paused cloud/domain/VM work; recorded local-first development
+  with production portability preserved. Native confirmation protects local
+  pin deletion credentials against accidental Forget clicks; cancellation has
+  no storage, callback or control changes. README and on-page copy updated.
+- Check: eight focused Node tests pass; independent review clear. No new
+  dependency, backend change, live data/cloud action or full-suite repeat.
+  Real-browser interaction not checked. Secret scan precedes publication.
+- Next: integrate climate2 only. DEPLOY-005 resumes only at owner's request.
+
+## 2026-10-04 | DEPLOY-005 | Google Cloud launch preflight | paused 2026-10-08
+
+- Result: owner selected Google Cloud + Cloudflare with migration before credit
+  expiry; recorded portable topology, backup/restore and cutover requirements.
+- Check: installed CLI has saved account/project, but remote project read fails
+  on expired authentication. Billing/credit and resources remain unverified.
+  Browser inventory exposes native Chrome but no browser-tab integration.
+- Next: no cloud actions while owner defers hosting. Future resumption requires
+  renewed access and confirmed project/hostname. No cloud/DNS/data changes,
+  packages installed or paid resources created; no credentials recorded here.
+
 ## 2026-10-04 | MAINT-001 | GitHub merged-branch cleanup | done
 
 - Result: removed 69 obsolete climate2 remote task branches, each current tip

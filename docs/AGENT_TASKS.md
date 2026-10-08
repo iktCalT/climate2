@@ -5,6 +5,39 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**COMMUNITY-002 — confirm forgetting a local profile (complete; Lead integration).**
+
+- Lead owns requirements, board and own log. Developer owns only
+  `static/community_profile.js`, necessary copy in `templates/community_profile.html`,
+  README and own backend log; frontend scope explicitly assigned.
+- QA follows Developer: own focused Node profile tests and own log, cancel and
+  accept cases including failure behavior; no production edits or live stores.
+- Reviewer follows QA: scoped read-only review except own log. No full suite
+  repeat for this small browser-only change; no new dependency or cloud action.
+- Acceptance: cancellation has no storage/active-state side effects; confirmation
+  preserves prior success/failure behavior and warns public pins remain. Native
+  keyboard-accessible confirmation; provider-neutral, no server behavior change.
+- QA: eight focused community Node tests pass, no failures/skips; final scoped
+  review clear. No full-suite repeat, cloud action or live-store access. No
+  additional task assigned; future hosting remains paused.
+
+## Paused deployment
+
+**DEPLOY-005 — Google Cloud + Cloudflare launch (paused by owner 2026-10-08).**
+
+- Owner: Lead for account/project/hostname discovery, architecture and planning
+  documents; no implementation specialist assigned until deployment inputs are
+  known. Scope remains climate2 only; no other repositories or cloud workloads.
+- Contract: Google Cloud launch entry in [requirements](NEXT_REQUIREMENTS.md). User chose
+  Google Cloud temporarily and requested a later portable migration.
+- Check: CLI exists and lists a saved account/project, but the first remote
+  project read fails because reauthentication is required. Billing/credit not
+  verified; no cloud resources, data transfers or DNS changes performed.
+- Next: no action until owner resumes. Keep future deployment in mind during
+  local programming; preserve production configuration and native startup.
+
+## Previous maintenance
+
 **MAINT-001 — merged GitHub branch cleanup (Lead, complete).**
 
 - Owner/scope: Lead verifies climate2 remote refs and merged PRs, deletes only

@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-08 | COMMUNITY-002 | confirm forgetting local profile | done
+- Result: Native confirmation warns that public pins remain and the browser loses its deletion credential. Cancel returns before storage, active profile, controls, status or callback changes. Existing confirmed success/error paths remain. Template button and README explain the prompt; no server or dependency changes.
+- Check: Node syntax and `git diff --check` passed; five existing browser tests passed with a confirmation stub accepting the prompt. Direct cancel smoke verified unchanged storage, profile, UI and callback. Browser UI not run.
+- Next: QA updates focused Node tests for cancel, accept and storage failure, then Reviewer audits.
+
 ## 2026-10-04 | DEPLOY-004 | review corrections for image context and mode | done
 - Result: Docker context now names 64 reviewed runtime files individually after default deny, without directory or wildcard exceptions. Unknown `CLIMATE_ENV` values raise through shared path validation before CLI account storage resolution; web startup uses the same validator. Runbook notes manual allowlist maintenance. README/References cite Moby's matcher and Apache 2.0 licence.
 - Check: exact-file allowlist and representative private exclusions passed; malformed CLI mode caused no account file write; Python syntax and `git diff --check` passed. Docker unavailable; no image build or full suite.

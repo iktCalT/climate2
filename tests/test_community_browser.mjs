@@ -18,25 +18,27 @@ function element(tag = "div") {
         set innerHTML(_) { throw new Error("Untrusted HTML must never be rendered"); },
     };
 }
-function harness({denied = false, enabled = true, panels = []} = {}) {
+function harness({denied = false, enabled = true, panels = [], confirmResult = true} = {}) {
     const elements = new Map();
     for (const id of [...profileTemplate.matchAll(/id="([^"]+)"/g), ...pinsTemplate.matchAll(/id="([^"]+)"/g)]) elements.set("#" + id[1], element());
     elements.get("#community-controls").dataset.enabled = String(enabled);
     const root = {querySelector: id => elements.get(id) || null};
-    const operations = [], requests = [], markers = [], popups = [], timers = new Map();
-    let saved = null, randomCalls = 0, serial = 0;
+    const operations = [], requests = [], markers = [], popups = [], timers = new Map(), confirmations = [];
+    let saved = null, randomCalls = 0, serial = 0, removeDenied = false;
     const storage = {getItem() { operations.push("read"); if (denied) throw Error(); return saved; },
         setItem(_, value) { operations.push("write"); if (denied) throw Error(); saved = value; },
-        removeItem() { operations.push("remove"); if (denied) throw Error(); saved = null; }};
+        removeItem() { operations.push("remove"); if (denied || removeDenied) throw Error(); saved = null; }};
     const crypto = {getRandomValues(bytes) { randomCalls++; assert.equal(bytes.length, 32); bytes.fill(171); return bytes; }};
     const fetch = (path, options) => new Promise(resolve => requests.push({path, options, resolve: data => resolve({ok: true, json: async () => data})}));
     class Marker { constructor({element}) { this.element = element; markers.push(this); } setLngLat(value) {this.coordinates = value; return this;} addTo() {return this;} remove() {this.removed = true;} }
     class Popup { constructor() {popups.push(this);} setLngLat() {return this;} setDOMContent(content) {this.content = content; return this;} addTo() {return this;} remove() {this.removed = true;} }
-    const make = new Function("localStorage", "crypto", "document", "fetch", "setTimeout", "clearTimeout", "queueMicrotask", profileSource + "\n" + pinsSource + "\nreturn {createLocalProfile, createCommunityPins};");
+    const make = new Function("localStorage", "crypto", "document", "fetch", "setTimeout", "clearTimeout", "queueMicrotask", "confirm", profileSource + "\n" + pinsSource + "\nreturn {createLocalProfile, createCommunityPins};");
     const functions = make(storage, crypto, {createElement: element}, fetch,
-        callback => {timers.set(++serial, callback); return serial;}, id => timers.delete(id), callback => callback());
-    return {root, elements, operations, requests, markers, popups, timers, panels, Marker, Popup, functions,
+        callback => {timers.set(++serial, callback); return serial;}, id => timers.delete(id), callback => callback(),
+        message => {confirmations.push(message); return confirmResult;});
+    return {root, elements, operations, requests, markers, popups, timers, confirmations, panels, Marker, Popup, functions,
         randomCalls: () => randomCalls, saved: () => saved,
+        denyRemoval() {removeDenied = true;},
         pins() {return functions.createCommunityPins({root, panels, Marker, Popup});}};
 }
 async function activate(h) {
@@ -65,10 +67,80 @@ test("profile access and strong random identity require explicit consent; forget
     assert.match(profile.get().token, /^[0-9a-f]{64}$/);
     assert.equal(JSON.parse(h.saved()).consent, true);
     await h.elements.get("#community-profile-forget").fire("click");
+    assert.equal(h.confirmations.length, 1);
+    assert.match(h.confirmations[0], /public pins will remain/i);
+    assert.match(h.confirmations[0], /lose the credential/i);
     assert.equal(profile.get(), null);
     assert.equal(h.saved(), null);
     assert.equal(h.requests.length, 0);
     assert.match(h.elements.get("#community-profile-status").textContent, /public pins remain/);
+});
+
+test("cancelled native confirmation preserves saved bytes, active profile, controls and callbacks", async () => {
+    const h = harness({confirmResult: false});
+    const changes = [];
+    const profile = h.functions.createLocalProfile({root: h.root, onChange: value => changes.push(value)});
+    await activate(h);
+    const saved = h.saved(), active = profile.get();
+    const forget = h.elements.get("#community-profile-forget");
+    const form = h.elements.get("#community-profile-form");
+    const status = h.elements.get("#community-profile-status");
+    const before = {operations: h.operations.slice(), requests: h.requests.length,
+        forgetHidden: forget.hidden, formHidden: form.hidden, status: status.textContent,
+        changes: changes.length};
+    await forget.fire("click");
+    assert.equal(h.confirmations.length, 1);
+    assert.match(h.confirmations[0], /public pins will remain/i);
+    assert.match(h.confirmations[0], /lose the credential/i);
+    assert.equal(h.saved(), saved);
+    assert.equal(profile.get(), active);
+    assert.deepEqual(h.operations, before.operations);
+    assert.equal(h.requests.length, before.requests);
+    assert.equal(forget.hidden, before.forgetHidden);
+    assert.equal(form.hidden, before.formHidden);
+    assert.equal(status.textContent, before.status);
+    assert.equal(changes.length, before.changes);
+});
+
+test("cancelled forget keeps pin publishing and own-pin controls active", async () => {
+    const h = harness({confirmResult: false});
+    h.pins();
+    await activate(h);
+    const publish = h.elements.get("#community-publish");
+    const own = h.elements.get("#community-own-pins");
+    assert.equal(publish.disabled, false);
+    assert.equal(own.hidden, false);
+    const saved = h.saved(), operations = h.operations.slice();
+    await h.elements.get("#community-profile-forget").fire("click");
+    assert.equal(h.confirmations.length, 1);
+    assert.equal(h.saved(), saved);
+    assert.deepEqual(h.operations, operations);
+    assert.equal(publish.disabled, false);
+    assert.equal(own.hidden, false);
+    assert.equal(h.requests.length, 0);
+});
+
+test("confirmed forget updates controls once; failed removal leaves saved bytes and inactive error state", async () => {
+    for (const fails of [false, true]) {
+        const h = harness();
+        const changes = [];
+        const profile = h.functions.createLocalProfile({root: h.root, onChange: value => changes.push(value)});
+        await activate(h);
+        const saved = h.saved(), calls = changes.length;
+        if (fails) h.denyRemoval();
+        await h.elements.get("#community-profile-forget").fire("click");
+        assert.equal(h.confirmations.length, 1);
+        assert.equal(changes.length, calls + 1);
+        assert.equal(changes.at(-1), null);
+        assert.equal(profile.get(), null);
+        assert.equal(h.elements.get("#community-profile-form").hidden, false);
+        assert.equal(h.elements.get("#community-profile-forget").hidden, !fails);
+        assert.equal(h.saved(), fails ? saved : null);
+        assert.equal(h.operations.at(-1), "remove");
+        assert.equal(h.requests.length, 0);
+        assert.match(h.elements.get("#community-profile-status").textContent,
+            fails ? /saved profile may remain on this device/i : /public pins remain/i);
+    }
 });
 
 test("denied storage cannot activate an alternative identity or publish", async () => {

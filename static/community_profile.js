@@ -57,6 +57,7 @@ export function createLocalProfile({root = document, onChange = () => {}} = {}) 
         }
     });
     forget.addEventListener("click", () => {
+        if (!confirm("Forget this device's local profile? Already public pins will remain. This device will lose the credential needed to delete those pins yourself.")) return;
         try {
             localStorage.removeItem(STORAGE_KEY);
             activate(null);

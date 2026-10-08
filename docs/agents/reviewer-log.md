@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-08 | COMMUNITY-002 | local-profile forget confirmation | done
+- Result: no actionable correctness, security or accessibility finding. Native confirmation precedes storage removal and all profile/UI callbacks; cancel returns unchanged. Accepted and storage-error paths retain prior behavior. Button remains native and warns confirmation is required; README and prompt explain retained public pins and lost deletion credential. Focused assertions cover cancellation, pin controls, success and removal failure.
+- Check: reviewed scoped diff, profile/pin callback code, requirements and QA handoff; scoped `git diff --check` clean. QA reports eight focused Node passes; no duplicate test run or browser/live-store check.
+- Next: Lead integration. DEPLOY-005 remains paused; no cloud or GitHub work.
+
 ## 2026-10-04 | DEPLOY-004 / UI-002 | targeted correction verification | done
 - Result: both prior blockers closed in the reviewed correction. `.dockerignore` now has `**` followed only by 64 exact regular-file exceptions, so no parent rule restores private descendants; required runtime source, templates, SQL and public assets are listed. Shared `climate_mode()` rejects unknown values before account CLI path selection and web startup. No new correction defect found.
 - Check: read final rules, code, QA assertions and handoff; `git diff --check` clean. QA reports 58 focused Python tests passed. No repeat full/Node run, Docker build or browser check.
