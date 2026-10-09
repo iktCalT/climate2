@@ -1,6 +1,6 @@
 # Workspace and verification context
 
-Snapshot 2026-10-09, integration base/main `268ea47` (PR #83). Recheck Git before acting.
+Snapshot 2026-10-09, integration base/main `9bd2143` (PR #84). Recheck Git before acting.
 
 - Owner paused domain/VM/cloud deployment on 2026-10-08. Continue local
   programming with future portability; no cloud operations or credentials needed.
@@ -11,8 +11,11 @@ Snapshot 2026-10-09, integration base/main `268ea47` (PR #83). Recheck Git befor
   pass, scoped review clear; real-browser appearance unverified. Active task
   LOCATION-FETCH-001 adds owner-requested, bounded NOAA gap retrieval for a
   selected location only. Reviewed with 96 Python/32 Node initial passes,
-  80 Python/six Node correction passes. Explicit additive schema setup and
-  restart still required; no live fetch/migration run. Maps remain cache-only.
+  80 Python/six Node correction passes. LOCATION-FETCH-002 applied only the two
+  tracking tables locally under the shared lock and launched the native dev
+  server; health, rendered controls and read-only status passed. No NOAA job
+  started; weather rows unchanged. Recheck runtime state before assuming the
+  server still runs. Maps remain cache-only; cloud deployment remains paused.
 
 - DEPLOY-003 / DEPLOY-004 / UI-002: hosting comparison, portable production
   foundation and numeric wheel guard merged in PR #80 (`29c3fd7`).

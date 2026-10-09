@@ -4,6 +4,19 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-09 | LOCATION-FETCH-002 | local activation | done
+
+- Result: verified local climate target and idle import/cleanup lock; applied
+  only `sql/location_fetch.sql` transactionally. Skipped general setup because
+  it also rebuilds the weather primary key. Cached weather rows untouched.
+- Check: launched loopback-only native dev server without debugger/reloader;
+  health, rendered Location controls and read-only status passed. Example
+  request (10, 10) samples (10, 8): 272/909 complete months, 637 remaining.
+  Job/attempt tables remain empty, proving no fetch start. No suite repeat for
+  operational/docs-only change; live NOAA/browser checks remain outstanding.
+- Next: user can submit a location locally. Cloud remains paused. Existing
+  legacy account-path warning retained; no unrelated process/store changed.
+
 ## 2026-10-09 | LOCATION-FETCH-001 | cache-first location gaps | done
 
 - Result: selected Locations now progressively fill missing completed NOAA
