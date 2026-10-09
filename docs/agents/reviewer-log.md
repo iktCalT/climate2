@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-08 | COMMUNITY-003 | unpublished pin preview | done
+- Result: no actionable finding. Draft markers are separate from public markers, one per ready live panel, labelled and non-interactive; invalid coordinates clear them. Load/removal, pan/refresh, placement off and publish success/failure preserve the specified lifecycle. Preview has no storage or request path; POST still requires active profile, native validity and explicit public consent. README and map help match the contract.
+- Check: reviewed scoped diff, map load ordering, submit path, requirements and QA handoff; `git diff --check` clean. QA reports 15 focused Node passes; no duplicate suite, browser, live-store or cloud check.
+- Next: Lead integration; no reviewer blocker.
+
 ## 2026-10-08 | COMMUNITY-002 | local-profile forget confirmation | done
 - Result: no actionable correctness, security or accessibility finding. Native confirmation precedes storage removal and all profile/UI callbacks; cancel returns unchanged. Accepted and storage-error paths retain prior behavior. Button remains native and warns confirmation is required; README and prompt explain retained public pins and lost deletion credential. Focused assertions cover cancellation, pin controls, success and removal failure.
 - Check: reviewed scoped diff, profile/pin callback code, requirements and QA handoff; scoped `git diff --check` clean. QA reports eight focused Node passes; no duplicate test run or browser/live-store check.

@@ -34,6 +34,11 @@ An optional device-local profile stores a nickname and ownership credential only
 after explicit storage consent; no email or password is required. When enabled
 by the operator, visitors can publish a pin with one public comment, read comments
 by clicking pins, and delete their own pins. Administrators can remove any pin.
+With placement on, clicking a map or entering valid coordinates shows a labelled
+unpublished draft pin on every ready comparison map. The preview needs no local
+profile or storage consent and sends nothing; turning placement off clears it.
+Only a separate submission with a local profile and explicit public consent
+publishes a pin.
 The default allowance is 10 active pins per browser identity (configurable, e.g.
 3 later), with network rate limits. Clearing storage can bypass identity quotas
 and loses deletion credentials; it does not remove public posts. Forget this

@@ -1,5 +1,25 @@
 # Next requirements
 
+## Preview an unpublished community pin
+
+**Status:** Implemented and reviewed 2026-10-08; COMMUNITY-003, local map usability.
+
+Placement currently updates only numeric fields, making the intended location
+hard to check visually before publishing. Show a distinct, labelled draft marker
+at valid selected coordinates on every ready comparison map while placement is
+enabled. Both map clicks and typed coordinates update it; blank, non-finite or
+out-of-range coordinates remove it rather than implying zero or clipping silently.
+Use a visual treatment distinct from public comment markers, with accessible
+text identifying the pin as not published, and keep preview markers non-interactive.
+
+Turning placement off or completing publication clears the draft; failed
+publication preserves it. Public-pin refresh/panning must not discard the draft,
+and newly ready maps gain it while removed maps release their marker. Preview
+needs no active profile, storage access or network call; publishing still requires
+the existing local profile, explicit public consent and submit action. No server,
+data, dependency, clustering or automatic posting changes. Update README and
+concise map help; reuse the already credited MapLibre Marker implementation.
+
 ## Confirm forgetting a browser-local profile
 
 **Status:** Implemented and reviewed 2026-10-08; COMMUNITY-002, local usability follow-up.

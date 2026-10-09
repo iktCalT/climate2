@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-08 | COMMUNITY-003 | unpublished pin preview browser checks | done
+- Result: Added seven focused browser tests for profile-free preview, click/typed parity, invalid coordinates and blocked POST, one marker per ready map, late load/removal, public refresh/pan preservation, placement off, failed/successful publish and disabled mode. Existing public consent and anonymous-read checks remain passing. No production defect found.
+- Check: `node --test tests/test_community*.mjs`: 15 passed, zero failed/skipped; `git diff --check` passed before final test-only adjustment. Fake DOM/map/network only; no browser UI, Python, live store or service run.
+- Next: Reviewer audits COMMUNITY-003 marker lifecycle and posting/consent regressions; Lead integrates after review.
+
 ## 2026-10-08 | COMMUNITY-002 | local-profile forget confirmation | done
 - Result: Browser harness stubs native confirmation. Added cancel checks for exact saved bytes, active profile, profile and pin controls, status, callback count, storage operations and network calls. Confirmed success and remove failure retain their prior inactive states; failure leaves saved bytes and reports the storage error. No production edits.
 - Check: `node --test tests/test_community_browser.mjs`: eight passed, zero failed/skipped; scoped `git diff --check` passed. Initial run caught a reversed test expectation, corrected before final run. No Python/full suite, browser, live storage or network operation.

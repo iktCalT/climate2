@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-08 | COMMUNITY-003 | unpublished community pin preview | done
+
+- Result: coordinated a labelled, non-interactive draft on ready comparison
+  maps. Typed/clicked valid coordinates agree; invalid input clears it. Public
+  refresh retains it, successful publication clears it, failed submission keeps
+  it. Preview requires no profile, storage or request; publishing stays explicit.
+- Check: QA's 15 focused Node tests pass; independent scoped review clear.
+  No new dependencies, backend/data changes or full-suite repeat. Real-browser
+  appearance unverified; staged and committed secret scans precede publication.
+- Next: integrate climate2 only. Cloud/domain/VM deployment remains paused.
+
 ## 2026-10-08 | COMMUNITY-002 | local profile confirmation; hosting deferred | done
 
 - Result: owner paused cloud/domain/VM work; recorded local-first development

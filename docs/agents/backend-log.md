@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-08 | COMMUNITY-003 | unpublished pin preview | done
+- Result: Separate labelled, non-interactive draft markers follow valid click/typed coordinates on ready maps without profile, storage or preview requests. Strict blank/finite/bounds checks prevent a zero-position preview or invalid POST. Public refresh/pan leaves drafts alone; placement off, successful POST and map removal clear them; failed POST retains them. Updated scoped CSS, map help and README; no new resource or server change.
+- Check: `node --test tests/test_community*.mjs` eight passed; `git diff --check` passed. Initial existing harness failure on numeric mock values corrected with string normalization. No browser UI or full Python suite.
+- Next: QA adds focused lifecycle, coordinate and success/failure checks, then Reviewer audits.
+
 ## 2026-10-08 | COMMUNITY-002 | confirm forgetting local profile | done
 - Result: Native confirmation warns that public pins remain and the browser loses its deletion credential. Cancel returns before storage, active profile, controls, status or callback changes. Existing confirmed success/error paths remain. Template button and README explain the prompt; no server or dependency changes.
 - Check: Node syntax and `git diff --check` passed; five existing browser tests passed with a confirmation stub accepting the prompt. Direct cancel smoke verified unchanged storage, profile, UI and callback. Browser UI not run.
