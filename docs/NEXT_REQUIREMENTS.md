@@ -5,7 +5,9 @@
 **Status:** Implemented and reviewed 2026-10-09; LOCATION-FETCH-001.
 New installations require explicit database setup and application restart.
 Local additive setup and read-only HTTP/PostgreSQL readiness were verified on
-2026-10-09; live NOAA downloads and real-browser appearance remain unverified.
+2026-10-09. A single live September 2026 NOAA sample then passed end-to-end
+download, PostgreSQL readback and chart HTTP checks (LOCATION-FETCH-003).
+Real-browser appearance and polling behavior remain unverified.
 
 Local activation follow-up (LOCATION-FETCH-002, 2026-10-09): verify the target
 before applying the new tracking SQL alone to an existing provider-aware database.

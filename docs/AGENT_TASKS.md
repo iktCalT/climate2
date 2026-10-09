@@ -5,6 +5,22 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**LOCATION-FETCH-003 — bounded live verification (Lead, complete).**
+
+- Scope: verify the requested acquisition path by submitting at most one
+  missing-month job for the example requested coordinates (10, 10), then read
+  status/cache/chart evidence. Keep existing resource and rate limits.
+- Lead owns this operational check and own log. No automatic continuation,
+  global-grid imports, cleanup, schema changes, unrelated stores or cloud work.
+  Use only the verified local climate database and loopback app. If verification
+  exposes a defect, record it and assign a scoped implementation separately.
+- Result: one POST fetched September 2026 for sample (10, 8). Coverage rose
+  from 272 to 273 of 909 months; PostgreSQL values are finite and ordered,
+  status is complete, and refreshed chart HTML returned HTTP 200. No subsequent
+  fetch was submitted. Real-browser visual/polling behavior remains unverified.
+
+## Previous activation
+
 **LOCATION-FETCH-002 — local activation (Lead, complete).**
 
 - Scope: continuing the owner's missing-location-data request, verify the local
