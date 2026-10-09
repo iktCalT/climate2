@@ -5,7 +5,26 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
-**LOCATION-FETCH-001 — cache-first NOAA location gap fetching (reviewed; Lead integration).**
+**LOCATION-FETCH-002 — local activation (Lead, complete).**
+
+- Scope: continuing the owner's missing-location-data request, verify the local
+  climate database, apply only `sql/location_fetch.sql` under the shared lock,
+  and verify status via local HTTP without starting provider work. Lead owns
+  this operational exception and coordination documents; no code edits needed.
+- Do not rerun the full legacy schema migration, rewrite weather rows, alter
+  account/community stores, start a historical batch, or provision cloud resources.
+- Start the climate2 development app only on a verified free loopback port;
+  do not stop unrelated processes. Record readiness and remaining limitations.
+- Result: added only the two missing tracking tables under the shared lock;
+  no weather rows changed. Local health, rendered controls and read-only status
+  passed. Tracking tables remain empty: no provider job started. Native dev
+  server launched without debugger/reloader; cloud deployment remains paused.
+- Live NOAA downloads and real-browser appearance remain unverified. Existing
+  legacy account-path warning is unchanged; no account relocation in this task.
+
+## Previous implementation
+
+**LOCATION-FETCH-001 — cache-first NOAA location gap fetching (merged in PR #84).**
 
 - Lead owns requirement/architecture, board and own log. Contract: first entry
   in NEXT_REQUIREMENTS. Owner explicitly requested missing-data acquisition.

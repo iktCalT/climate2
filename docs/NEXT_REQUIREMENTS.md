@@ -3,8 +3,17 @@
 ## Fill missing location history from NOAA
 
 **Status:** Implemented and reviewed 2026-10-09; LOCATION-FETCH-001.
-Explicit database setup and application restart are required before local use;
-live provider/PostgreSQL and real-browser verification have not been performed.
+New installations require explicit database setup and application restart.
+Local additive setup and read-only HTTP/PostgreSQL readiness were verified on
+2026-10-09; live NOAA downloads and real-browser appearance remain unverified.
+
+Local activation follow-up (LOCATION-FETCH-002, 2026-10-09): verify the target
+before applying the new tracking SQL alone to an existing provider-aware database.
+The general setup command also rebuilds the weather primary key; that broader
+operation is unnecessary for this additive activation. Do not initiate historical
+downloads merely to check status or readiness.
+Activation completed with only the new tracking SQL; existing weather data
+was untouched and no fetch job or rate-limit record was created.
 
 The Location chart currently leaves decades empty because public reads are
 cache-only. After a visitor submits a location, read PostgreSQL first and
