@@ -1,6 +1,6 @@
 # Workspace and verification context
 
-Snapshot 2026-10-09, integration base/main `9bd2143` (PR #84). Recheck Git before acting.
+Snapshot 2026-10-09, integration base/main `bf480f6` (PR #85). Recheck Git before acting.
 
 - Owner paused domain/VM/cloud deployment on 2026-10-08. Continue local
   programming with future portability; no cloud operations or credentials needed.
@@ -16,6 +16,10 @@ Snapshot 2026-10-09, integration base/main `9bd2143` (PR #84). Recheck Git befor
   server; health, rendered controls and read-only status passed. No NOAA job
   started; weather rows unchanged. Recheck runtime state before assuming the
   server still runs. Maps remain cache-only; cloud deployment remains paused.
+  LOCATION-FETCH-003 subsequently submitted one live job for requested (10, 10),
+  sampled (10, 8): September 2026 saved; coverage 272→273/909, all four fields
+  finite/ordered, refreshed chart HTTP 200. No further start submitted. Browser
+  visuals/polling remain unverified; restart local server if no longer running.
 
 - DEPLOY-003 / DEPLOY-004 / UI-002: hosting comparison, portable production
   foundation and numeric wheel guard merged in PR #80 (`29c3fd7`).

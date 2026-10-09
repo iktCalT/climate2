@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-09 | LOCATION-FETCH-003 | one-month live verification | done
+
+- Result: restarted the loopback development app, verified local database
+  target, and submitted exactly one missing-month job for requested (10, 10).
+  September 2026 saved at NOAA sample (10, 8); coverage rose 272→273/909.
+- Check: persisted four fields finite, precipitation nonnegative, minimum ≤
+  mean ≤ maximum; job complete, refreshed HTML advertises 273 complete months,
+  and chart endpoint returned HTTP 200. No second start or automatic batch.
+- Next: real-browser visuals/polling remain unverified. Cloud paused; app
+  runtime may end between sessions, so recheck before promising availability.
+  No code change or duplicate offline suite; secret checks precede publication.
+
 ## 2026-10-09 | LOCATION-FETCH-002 | local activation | done
 
 - Result: verified local climate target and idle import/cleanup lock; applied
