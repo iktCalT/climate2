@@ -25,6 +25,7 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     const ownList = root.querySelector("#community-own-list");
     const ownControls = root.querySelector("#community-own-pins");
     const markerSets = new Map();
+    const draftMarkers = new Map();
     const removed = new Set();
     let pins = [], nextCursor = null, controller, timer, generation = 0, popup;
     let ownGeneration = 0, ownController, publishing = false, loading = false;
@@ -90,6 +91,40 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     function clearMarkers(panel) {
         for (const marker of markerSets.get(panel) || []) marker.remove();
         markerSets.delete(panel);
+    }
+    function draftCoordinates() {
+        if (!enabled || !placement?.checked) return null;
+        const latText = String(latitude?.value ?? "").trim();
+        const lngText = String(longitude?.value ?? "").trim();
+        if (!latText || !lngText) return null;
+        const lat = Number(latText), lng = Number(lngText);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)
+            || lat < -85 || lat > 85 || lng < -180 || lng > 180) return null;
+        return [lng, lat];
+    }
+    function clearDraft(panel) {
+        draftMarkers.get(panel)?.remove();
+        draftMarkers.delete(panel);
+    }
+    function renderDraft() {
+        const coordinates = draftCoordinates();
+        for (const panel of panels) {
+            if (!coordinates || panel.removed || removed.has(panel) || !panel.styleReady) {
+                clearDraft(panel);
+                continue;
+            }
+            let marker = draftMarkers.get(panel);
+            if (!marker) {
+                const element = document.createElement("div");
+                element.className = "community-draft-marker";
+                element.textContent = "Draft pin";
+                element.setAttribute("role", "img");
+                element.setAttribute("aria-label", "Unpublished pin preview");
+                marker = new Marker({element}).setLngLat(coordinates).addTo(panel.map);
+                draftMarkers.set(panel, marker);
+            }
+            marker.setLngLat(coordinates);
+        }
     }
     function render() {
         for (const panel of live()) {
@@ -186,6 +221,9 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     }
     root.querySelector("#community-retry")?.addEventListener("click", () => refresh());
     moreButton?.addEventListener("click", () => refresh(true));
+    placement?.addEventListener("change", renderDraft);
+    latitude?.addEventListener("input", renderDraft);
+    longitude?.addEventListener("input", renderDraft);
     form?.addEventListener("submit", async event => {
         event.preventDefault();
         const identity = profile.get();
@@ -195,15 +233,22 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
             return;
         }
         if (!form.reportValidity()) return;
+        const coordinates = draftCoordinates();
+        if (!coordinates) {
+            pinStatus.textContent = "Enter valid pin coordinates: latitude −85 to 85 and longitude −180 to 180.";
+            renderDraft();
+            return;
+        }
         publishing = true;
         publish.disabled = true;
         try {
             await api("/api/community/pins", writeOptions(identity.token, "POST", {
                 nickname: identity.nickname, comment: root.querySelector("#community-comment").value,
-                latitude: Number(latitude.value), longitude: Number(longitude.value),
+                latitude: coordinates[1], longitude: coordinates[0],
             }));
             pinStatus.textContent = "Your pin and comment are now public.";
             placement.checked = false;
+            renderDraft();
             root.querySelector("#community-public-consent").checked = false;
             await refresh();
         } catch (error) { pinStatus.textContent = error.message; }
@@ -213,11 +258,15 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
         }
     });
     for (const panel of panels) {
-        panel.map.on("load", () => queueMicrotask(schedule));
+        panel.map.on("load", () => queueMicrotask(() => {
+            renderDraft();
+            schedule();
+        }));
         panel.map.on("move", invalidate);
         panel.map.on("moveend", schedule);
         panel.map.on("remove", () => {
             removed.add(panel);
+            clearDraft(panel);
             invalidate();
             schedule();
         });
@@ -226,6 +275,7 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
         if (!enabled || !placement?.checked) return false;
         latitude.value = event.lngLat.lat;
         longitude.value = event.lngLat.lng;
+        renderDraft();
         pinStatus.textContent = "Pin coordinates selected. Enter a comment and explicitly publish it when ready.";
         return true;
     }};

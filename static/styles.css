@@ -637,5 +637,6 @@ table {
 .community-register button, .community-controls button { margin: 0.3rem 0; }
 .community-marker { background: white; border: 2px solid #18342c; border-radius: 50%; color: #18342c; cursor: pointer; height: 2rem; width: 2rem; }
 .community-marker:focus-visible { outline: 3px solid #b85232; outline-offset: 3px; }
+.community-draft-marker { background: #fff1b8; border: 2px dashed #755000; border-radius: 0.35rem; box-shadow: 0 1px 5px #18342c88; color: #493000; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.4rem; pointer-events: none; white-space: nowrap; }
 .community-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
 .community-popup { max-width: 18rem; }

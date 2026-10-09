@@ -5,7 +5,28 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
-**COMMUNITY-002 — confirm forgetting a local profile (complete; Lead integration).**
+**COMMUNITY-003 — unpublished pin preview (complete; Lead integration).**
+
+- Contract: first requirements entry. Lead owns plan, board and own log.
+- Developer explicitly owns frontend implementation in `static/community_pins.js`,
+  scoped CSS in `static/styles.css`, `templates/community_maps.html`, README and
+  own backend log. Existing files only; no server/dependency/cloud/data work.
+- QA next owns `tests/test_community_browser.mjs` and own log: valid/invalid
+  coordinates, multi-map load/remove lifecycle, pan/refresh preservation,
+  placement off, success/failure and no preview network/storage side effects.
+- Reviewer follows QA read-only except own log; focus marker lifecycle and
+  no posting/consent regression. Run focused Node checks, not full Python suite.
+- Acceptance: explicit unpublished state, typed/click coordinate parity,
+  distinct non-interactive markers on live maps, no hidden writes or downloads.
+- QA: 15 focused community Node tests pass, zero failures/skips, including
+  delayed readiness, invalid coordinates, lifecycle and explicit publication.
+  Independent scoped review clear; real-browser appearance remains unverified.
+  No new resources, backend changes or live-store/cloud operations. Lead owns
+  publication; no additional implementation task assigned this round.
+
+## Previous local improvement
+
+**COMMUNITY-002 — confirm forgetting a local profile (merged in PR #82).**
 
 - Lead owns requirements, board and own log. Developer owns only
   `static/community_profile.js`, necessary copy in `templates/community_profile.html`,

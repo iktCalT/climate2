@@ -5,7 +5,7 @@
     {% include "community_profile.html" %}
     <form id="community-pin-form">
         <label><input id="community-placement" type="checkbox"{% if not community_enabled %} disabled{% endif %}> Place a pin: use the coordinates below or click a map.</label>
-        <p>Ordinary map clicks still show climate readouts when placement mode is off. Publishing is a separate action.</p>
+        <p>Valid coordinates show a labelled Draft pin on each ready map while placement is on. This preview is not public; publishing is a separate action. Ordinary map clicks still show climate readouts when placement is off.</p>
         <label for="community-latitude">Pin latitude (−85 to 85)</label>
         <input id="community-latitude" type="number" class="form-control" step="any" min="-85" max="85" required>
         <label for="community-longitude">Pin longitude (−180 to 180)</label>
