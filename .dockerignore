@@ -29,10 +29,12 @@
 !climate/services/admin_import.py
 !climate/services/community.py
 !climate/services/map_data.py
+!climate/services/location_fetch.py
 !climate/web/__init__.py
 !climate/web/app.py
 !climate/web/helpers.py
 !sql/admin_import.sql
+!sql/location_fetch.sql
 !sql/schema.sql
 !sql/user_schema.sql
 !templates/admin_data.html
@@ -60,6 +62,7 @@
 !static/map_interpolation.js
 !static/map_scales.js
 !static/map_selection.js
+!static/location_fetch.js
 !static/number_wheel_guard.js
 !static/open-meteo.ico
 !static/styles.css

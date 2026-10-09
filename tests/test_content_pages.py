@@ -220,7 +220,8 @@ class ContentPageTests(unittest.TestCase):
                 self.assertIn("Two months do not establish a long-term trend.", home)
                 self.assertIn("awareness of broad climate patterns, not high-precision reporting", references)
                 self.assertIn("two months cannot establish a long-term climate trend", references)
-                self.assertIn("Visitors do not trigger provider downloads", references)
+                self.assertIn("Maps never trigger provider downloads", references)
+                self.assertIn("Selected NOAA Locations can retrieve missing completed months progressively", references)
                 self.assertIn("A failed viewport request offers a per-panel", references)
                 self.assertIn("repeats that saved-cache read after an explicit click", references)
                 self.assertIn("Empty coverage and out-of-world views do not offer retry", references)
@@ -248,7 +249,8 @@ class ContentPageTests(unittest.TestCase):
             "mean daily precipitation in mm/day",
             "monthly average daily rate",
             "not a monthly total",
-            "Visitors do not trigger provider downloads",
+            "Maps never trigger provider downloads",
+            "Selected NOAA Locations can retrieve missing completed months progressively",
             "January 1950 through the current month",
             "Location history starts in January 1951",
             "A selectable date does not guarantee saved values",
@@ -335,7 +337,7 @@ class ContentPageTests(unittest.TestCase):
             "prefilled with your requested coordinates rather than NOAA's sampled grid point",
             "editing fields alone leaves the displayed history unchanged",
             "returns to blank entry fields without reading history",
-            "No JavaScript is required",
+            "Saved results work without JavaScript; automatic NOAA gap fetching needs it",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, readme)
@@ -347,7 +349,7 @@ class ContentPageTests(unittest.TestCase):
                 "Submit Update location to read saved history for another location",
                 "editing fields alone leaves the displayed result unchanged",
                 "Clear returns to blank entry fields without reading history",
-                "form works without JavaScript and never triggers provider downloads",
+                "Saved results work without JavaScript; with JavaScript, selected NOAA gaps can download one completed month at a time",
             ):
                 with self.subTest(provider=provider, expected=expected):
                     self.assertIn(expected, references)

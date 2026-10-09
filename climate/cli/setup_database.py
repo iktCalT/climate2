@@ -15,6 +15,7 @@ def main():
         with con.cursor() as cur:
             cur.execute(schema)
             cur.execute((SQL_DIRECTORY / "admin_import.sql").read_text())
+            cur.execute((SQL_DIRECTORY / "location_fetch.sql").read_text())
     print("PostgreSQL weather schema is ready.")
 
 

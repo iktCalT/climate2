@@ -4,6 +4,19 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-09 | LOCATION-FETCH-001 | cache-first location gaps | done
+
+- Result: selected Locations now progressively fill missing completed NOAA
+  months, sample-only, preserving finite saved values. Shared import/cleanup
+  lock, durable attempt cap and streamed transfer limits bound acquisition;
+  polling refreshes saved charts on coverage advances. Maps remain cache-only.
+- Check: first QA batch 96 Python/32 Node passes. Review caught slow-stream
+  and cross-sample stale-chart issues; corrected, regression-tested (80 focused
+  Python/six Node), and independently cleared. No live DB/provider/browser
+  verification or migration. References/setup docs updated; no new dependency.
+- Next: secret-check and publish. Explicit schema setup plus restart enables
+  local use; production remains opt-in and cloud deployment paused.
+
 ## 2026-10-08 | COMMUNITY-003 | unpublished community pin preview | done
 
 - Result: coordinated a labelled, non-interactive draft on ready comparison

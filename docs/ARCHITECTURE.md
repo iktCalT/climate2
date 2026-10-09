@@ -12,6 +12,7 @@ climate/
   production.py         validated production storage/hosts and peer-gated proxy trust
   web/                  app.py routes; helpers.py charts, auth, validation
   services/             map_data.py, admin_import.py, admin_cleanup.py
+                        location_fetch.py: bounded single-sample NOAA gap jobs
                         community.py: bounded public pins in private SQLite
   providers/            open_meteo.py, noaa_core.py
   data/                 db.py, cache_availability.py, months.py
@@ -41,6 +42,14 @@ reads select another provider; comparisons always use explicit NOAA/CMIP6 IDs.
 The public selector is a startup code setting, not a runtime configuration API;
 restart all application workers after changing it. NOAA Location requests use
 `data/location_sampling.py` to round coordinates to one fixed saved grid point.
+
+Locations renders saved history immediately, then its browser module can start
+one bounded NOAA missing-month job at a time for that sample. The service owns
+cross-worker PostgreSQL locking, persistent attempt limits and sample-only
+upserts; it shares the administrator import/cleanup lock. Polling is read-only.
+Completed cache rows are the restart checkpoint; job/limit tables require
+explicit database setup. Production fetching is opt-in, and Maps remains
+cache-only. See [PostgreSQL operations](POSTGRESQL.md) for limits and setup.
 
 Some inherited boundaries are intentionally preserved: Open-Meteo aggregation
 and cache access share a module, NOAA retrieval and upserts share a module,

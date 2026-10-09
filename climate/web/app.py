@@ -22,6 +22,7 @@ from climate.paths import (
 from climate.production import configure_production
 from climate.data.db import ACTIVE_CLIMATE_PROVIDER
 from climate.data.location_sampling import sample_noaa_location
+from climate.data.months import last_complete_month
 from climate.web.helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
 from climate.providers.open_meteo import get_data_locations, get_location_history
 from climate.services.map_data import viewport_geojson
@@ -29,6 +30,7 @@ from climate.services.admin_import import ImportBusy, import_status, start_impor
 from climate.services.admin_cleanup import cleanup_preview, cleanup_batch
 from climate.data.cache_availability import saved_map_months
 from climate.services import community
+from climate.services import location_fetch
 
 DATA_TYPES = ["temp_mean", "temp_max", "temp_min", "precip"]
 DEFAULT_MAP_DATA_TYPE = "temp_mean"
@@ -70,6 +72,12 @@ for name, default in (
     ("DAILY_LIMIT", "100"), ("COOLDOWN_SECONDS", "10"),
 ):
     app.config["COMMUNITY_" + name] = os.environ.get("COMMUNITY_" + name, default)
+for name, default in (
+    ("ENABLED", "0" if app.config["CLIMATE_PRODUCTION"] else "1"),
+    ("HOURLY_LIMIT", "12"), ("MAX_REQUESTS", "192"),
+    ("MAX_MIB", "512"), ("MAX_SECONDS", "900"),
+):
+    app.config["LOCATION_FETCH_" + name] = os.environ.get("LOCATION_FETCH_" + name, default)
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
@@ -295,7 +303,7 @@ def locations():
         data, _ = get_location_history(
             location=(sampled_lat, sampled_lon),
             date_start=LOCATION_HISTORY_START,
-            date_end=datetime.today().strftime("%Y-%m-%d"),
+            date_end=last_complete_month().strftime("%Y-%m-%d"),
             fields=tuple(DATA_TYPES),
             fetch_missing=False,
         )
@@ -303,7 +311,7 @@ def locations():
         app.logger.exception("Cached location history unavailable")
         return apology("Climate data is temporarily unavailable", 503)
     available_months = int(data.notna().any(axis=1).sum())
-    complete_months = int(data.notna().all(axis=1).sum())
+    complete_months = int(np.isfinite(data.to_numpy(dtype=float)).all(axis=1).sum())
     filename = None
     if available_months:
         # Data and coordinates identify the chart, so cleanup/imports invalidate
@@ -323,12 +331,63 @@ def locations():
                 source_label="NOAA CORe reanalysis" if noaa_sample else "Open-Meteo CMIP6 model output",
                 sampled_location=(sampled_lat, sampled_lon),
             )
+    try:
+        fetch_enabled = provider == "noaa_core" and location_fetch.settings(app.config)["enabled"]
+    except location_fetch.FetchUnavailable:
+        app.logger.warning("Location fetching disabled by invalid operator setting")
+        fetch_enabled = False
     return render_template(
         "locations.html", imgname=imgname, lat=lat, lon=lon, filename=filename,
         noaa_sample=noaa_sample,
+        location_fetch_enabled=fetch_enabled,
         available_months=available_months, complete_months=complete_months,
         total_months=len(data),
     )
+
+
+@app.route("/api/location-fetch/status")
+def location_fetch_status():
+    try:
+        latitude = request.args["latitude"]
+        longitude = request.args["longitude"]
+        if app.config["CLIMATE_PROVIDER"] != "noaa_core":
+            return jsonify({"state": "disabled", "sample": None, "complete": 0,
+                            "total": 0, "remaining": 0, "month": None,
+                            "retry_seconds": 0})
+        return jsonify(location_fetch.status(latitude, longitude, app.config))
+    except (KeyError, ValueError):
+        return jsonify({"error": "Invalid location request"}), 400
+    except location_fetch.FetchUnavailable:
+        return jsonify({"error": "Location fetching unavailable"}), 503
+    except Exception:
+        app.logger.warning("Location fetch status unavailable")
+        return jsonify({"error": "Location status temporarily unavailable"}), 503
+
+
+@app.route("/api/location-fetch/start", methods=["POST"])
+def location_fetch_start():
+    if request.headers.get("Origin") != request.host_url.rstrip("/"):
+        return jsonify({"error": "Same-origin request required"}), 403
+    request.max_content_length = 1024
+    if request.mimetype != "application/json":
+        return jsonify({"error": "JSON request required"}), 415
+    payload = request.get_json(silent=True)
+    if (not isinstance(payload, dict) or set(payload) != {"latitude", "longitude"}
+            or any(type(payload[key]) not in (int, float) for key in payload)):
+        return jsonify({"error": "Invalid location request"}), 400
+    try:
+        if app.config["CLIMATE_PROVIDER"] != "noaa_core":
+            return jsonify({"state": "disabled", "sample": None, "complete": 0,
+                            "total": 0, "remaining": 0, "month": None,
+                            "retry_seconds": 0})
+        return jsonify(location_fetch.start(payload["latitude"], payload["longitude"], app.config))
+    except ValueError:
+        return jsonify({"error": "Invalid location request"}), 400
+    except location_fetch.FetchUnavailable:
+        return jsonify({"error": "Location fetching unavailable"}), 503
+    except Exception:
+        app.logger.warning("Location fetch start unavailable")
+        return jsonify({"error": "Location fetch temporarily unavailable"}), 503
 
 
 @app.route("/login", methods=["GET", "POST"])

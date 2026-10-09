@@ -1,14 +1,18 @@
 # Workspace and verification context
 
-Snapshot 2026-10-08, integration base/main `64e5cbf` (PR #82). Recheck Git before acting.
+Snapshot 2026-10-09, integration base/main `268ea47` (PR #83). Recheck Git before acting.
 
 - Owner paused domain/VM/cloud deployment on 2026-10-08. Continue local
   programming with future portability; no cloud operations or credentials needed.
   DEPLOY-005 preflight notes are retained as paused context.
   COMMUNITY-002 merged in PR #82: explicit confirmation before forgetting local
   pin credentials, eight focused Node tests pass. COMMUNITY-003 adds an
-  unpublished pin preview: 15 focused community Node tests pass, scoped review
-  clear. Ready for Lead integration; real-browser appearance unverified.
+  unpublished pin preview merged in PR #83: 15 focused community Node tests
+  pass, scoped review clear; real-browser appearance unverified. Active task
+  LOCATION-FETCH-001 adds owner-requested, bounded NOAA gap retrieval for a
+  selected location only. Reviewed with 96 Python/32 Node initial passes,
+  80 Python/six Node correction passes. Explicit additive schema setup and
+  restart still required; no live fetch/migration run. Maps remain cache-only.
 
 - DEPLOY-003 / DEPLOY-004 / UI-002: hosting comparison, portable production
   foundation and numeric wheel guard merged in PR #80 (`29c3fd7`).

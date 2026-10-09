@@ -5,7 +5,35 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
-**COMMUNITY-003 — unpublished pin preview (complete; Lead integration).**
+**LOCATION-FETCH-001 — cache-first NOAA location gap fetching (reviewed; Lead integration).**
+
+- Lead owns requirement/architecture, board and own log. Contract: first entry
+  in NEXT_REQUIREMENTS. Owner explicitly requested missing-data acquisition.
+- Developer owns a bounded location-fetch service, narrowly necessary NOAA
+  single-sample persistence helpers, Locations routes/template/browser module,
+  SQL/setup integration, Docker exact-file allowlist, README/References and
+  operational documentation; own backend log. No unrelated map/community work.
+- QA then owns focused service/route/browser/provider tests and required static
+  inventory updates plus own log. Mock external requests; no live DB or fetching.
+- Reviewer follows QA, read-only except own log: abuse/resource bounds, strict
+  provider identity, cache preservation, cross-worker locking, failure/restart
+  behavior, UI progress and no implicit user-profile storage.
+- Acceptance: missing completed months requested progressively for one sample,
+  saved values retained, same-provider validated data only, bounded asynchronous
+  downloads with honest retry/throttle status. Maps remain saved-data-only.
+- New SQL is additive and explicit setup; no automatic live migration. Hosting
+  stays paused. Specialist owners must report significant design gaps to Lead.
+- Developer complete; QA passed 96 focused Python and 32 Node tests, zero
+  failures/skips. Reviewer found two blockers: slow response reads could exceed
+  the elapsed budget, and another sample taking the singleton job slot can
+  hide completion from the first page. Both corrected: bounded streamed reads
+  and coverage-driven chart refresh. QA correction batch: 80 focused Python
+  and six Node tests pass. Independent recheck clear; Lead owns publication.
+  No live PostgreSQL/NOAA, Docker build or real-browser verification performed.
+
+## Previous local improvement
+
+**COMMUNITY-003 — unpublished pin preview (merged in PR #83).**
 
 - Contract: first requirements entry. Lead owns plan, board and own log.
 - Developer explicitly owns frontend implementation in `static/community_pins.js`,
