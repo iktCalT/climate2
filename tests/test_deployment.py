@@ -181,10 +181,12 @@ class ProductionConfigurationTests(unittest.TestCase):
             "climate/__init__.py", "climate/paths.py", "climate/production.py",
             "climate/web/app.py", "climate/web/helpers.py", "climate/data/db.py",
             "climate/providers/open_meteo.py", "climate/providers/noaa_core.py",
+            "climate/services/location_fetch.py", "sql/location_fetch.sql",
             "climate/services/community.py", "climate/cli/setup_user_database.py",
             "climate/cli/manage_users.py", "sql/schema.sql", "sql/user_schema.sql",
             "templates/layout.html", "templates/references.html", "templates/maps.html",
-            "static/styles.css", "static/number_wheel_guard.js", "static/user_img/default_icon.png",
+            "static/styles.css", "static/number_wheel_guard.js", "static/location_fetch.js",
+            "static/user_img/default_icon.png",
         }
         for folder, suffix in (("climate", "*.py"), ("sql", "*.sql"), ("templates", "*.html")):
             required.update(str(path.relative_to(ROOT)) for path in (ROOT / folder).rglob(suffix))

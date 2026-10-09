@@ -26,6 +26,9 @@ Set these as host secrets/settings, never in the repository:
 - `CLIMATE_ALLOWED_HOSTS` lists exact DNS names, separated by commas. Wildcards,
   ports and schemes are rejected.
 - `PORT`, if set, is a decimal integer from 1 to 65535; default is 8000.
+- `LOCATION_FETCH_ENABLED=1` opts production into bounded anonymous NOAA
+  Location gap retrieval after explicit weather schema setup. Defaults to `0`
+  in production. See [limits and restart behavior](POSTGRESQL.md#location-history-gap-fetching).
 
 `USER_DATABASE_PATH` and `COMMUNITY_DATABASE_PATH` may be omitted in production;
 if supplied, they must resolve to the respective files under the state root.

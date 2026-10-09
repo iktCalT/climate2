@@ -1,5 +1,37 @@
 # Next requirements
 
+## Fill missing location history from NOAA
+
+**Status:** Implemented and reviewed 2026-10-09; LOCATION-FETCH-001.
+Explicit database setup and application restart are required before local use;
+live provider/PostgreSQL and real-browser verification have not been performed.
+
+The Location chart currently leaves decades empty because public reads are
+cache-only. After a visitor submits a location, read PostgreSQL first and
+progressively retrieve missing completed months for that fixed NOAA sample.
+This is an explicit exception to cache-only Locations and edge-window-only
+acquisition; Maps and administrator import/cleanup behavior remain unchanged.
+Never substitute CMIP6, interpolate across missing years, fetch future/current
+incomplete months, or claim unavailable source data is complete.
+
+Use background bounded work, not a decades-long HTTP request. Reuse NOAA's
+validated four-field ingestion semantics but persist only the requested sample;
+do not import full global months for one visitor. PostgreSQL is the resumable
+checkpoint. Serialize against existing import/cleanup work, deduplicate concurrent
+requests, limit anonymous starts/download work globally, and allow an operator
+to disable automatic fetching. Browser polling/continuation must stop on errors,
+throttling or page departure; show saved results and clear progress/retry states.
+Completion rereads cached data and refreshes the chart. No profile, consent
+cookie, credentials or third-party tracking is required. Write endpoints require
+same-origin bounded JSON and validated coordinates, with no user-supplied URLs.
+
+NOAA's historical archive offers global-field byte-range retrieval, not a point
+API. Even one sample can require daily records to preserve monthly extrema;
+large gaps therefore fill gradually, subject to limits, rather than immediately.
+Document enablement/schema setup and this cost honestly. Update README and
+References together, reusing existing NOAA/archive/ecCodes citations. Tests use
+mock providers and isolated stores only; no live backfill or cloud provisioning.
+
 ## Preview an unpublished community pin
 
 **Status:** Implemented and reviewed 2026-10-08; COMMUNITY-003, local map usability.

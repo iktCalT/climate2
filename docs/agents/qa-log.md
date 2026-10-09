@@ -2,6 +2,16 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-09 | LOCATION-FETCH-001 review correction | stream deadline and cross-sample refresh | done
+- Result: Added fake-stream regressions for per-read remaining timeout, elapsed deadline, failed-transfer byte charging, incomplete range and byte cap. Tested singleton-row replacement after a first sample releases the shared lock. Browser tests now cover count-based refresh after another sample takes the job, ready/done transitions, and no duplicate reload. Route test matches the initial finite four-field count to service semantics. No production edits or confirmed remaining defect.
+- Check: offline `tests.test_location_fetch tests.test_locations_route tests.test_noaa_core tests.test_provider_identity`: 80 passed, zero skips/failures; `node --test tests/test_location_fetch_browser.mjs`: six passed. `git diff --check` clean. Mock network/PG only; no real browser, live NOAA/PostgreSQL or full-suite repeat.
+- Next: Reviewer verifies both corrections; Lead coordinates integration.
+
+## 2026-10-09 | LOCATION-FETCH-001 | isolated service, route and browser QA | done
+- Result: Added mocked PostgreSQL/provider tests for settings, completed/partial/future coverage, saved-value merge and final validation, bounded requests, shared lock, durable hourly limit, worker completion/failure, and consistent status counts. Added browser lifecycle tests for start/poll, progressive and final refresh, error/throttle retry, pagehide abort and no storage. Updated stale Location/content assertions and Docker runtime-file inventory. No production edits or confirmed defect.
+- Check: offline focused Python batch (`test_location_fetch`, `test_locations_route`, `test_chart_rendering`, `test_noaa_location_readiness`, `test_content_pages`, `test_deployment`): 96 passed, zero skips/failures. Node location/map/community batch: 32 passed, zero skips/failures. `git diff --check` passed. PostgreSQL flags disabled; mocks only. No live database/provider, actual image build or real-browser visual check.
+- Next: Reviewer audits LOCATION-FETCH-001; Lead coordinates any correction.
+
 ## 2026-10-08 | COMMUNITY-003 | unpublished pin preview browser checks | done
 - Result: Added seven focused browser tests for profile-free preview, click/typed parity, invalid coordinates and blocked POST, one marker per ready map, late load/removal, public refresh/pan preservation, placement off, failed/successful publish and disabled mode. Existing public consent and anonymous-read checks remain passing. No production defect found.
 - Check: `node --test tests/test_community*.mjs`: 15 passed, zero failed/skipped; `git diff --check` passed before final test-only adjustment. Fake DOM/map/network only; no browser UI, Python, live store or service run.

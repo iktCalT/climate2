@@ -251,7 +251,7 @@ class CoreArchiveClient:
                             "NOAA archive ignored a byte-range request; "
                             "refusing a full-file download"
                         )
-                    data = response.read(maximum_bytes + 1 if maximum_bytes else -1)
+                    data = self._read_response(response, maximum_bytes)
                     if maximum_bytes is not None and len(data) > maximum_bytes:
                         raise CoreDownloadError("NOAA response exceeded its expected size")
                     if byte_range is not None and len(data) != maximum_bytes:
@@ -268,6 +268,10 @@ class CoreArchiveClient:
 
         detail = getattr(last_error, "code", None) or str(last_error)
         raise CoreDownloadError(f"NOAA download failed ({detail})") from last_error
+
+    def _read_response(self, response, maximum_bytes):
+        """Default bulk-import read; bounded Location jobs override this hook."""
+        return response.read(maximum_bytes + 1 if maximum_bytes else -1)
 
     def index_records(self, file_url):
         if file_url not in self._index_cache:

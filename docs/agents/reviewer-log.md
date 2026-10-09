@@ -2,6 +2,16 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-09 | LOCATION-FETCH-001 correction | stream deadline and chart refresh | done
+- Result: Both blockers are closed. `CoreArchiveClient._read_response` preserves its original bounded bulk read; the Location override uses `HTTPResponse.read1` with the underlying urllib socket timeout tightened to remaining monotonic budget, charges received chunks, and leaves status/length/byte-range validation in the shared downloader. Worker rechecks after decode before persistence. Browser initializes from rendered finite complete-month count and refreshes on increases in status regardless of job state, including singleton replacement; unchanged counts do not duplicate refreshes. No new related defect found.
+- Check: read-only inspection of provider/service/worker, rendered count, browser lifecycle, QA regressions and PostgreSQL limit notes; `git diff --check` clean. QA reports 80 focused Python and six Node passes; not rerun. No live PostgreSQL/provider, real browser or full-suite run.
+- Next: Lead integration. Docs accurately state the fixed one-hour window, DNS/connect deadline limitation and that page departure stops continuation while bounded active work may finish.
+
+## 2026-10-09 | LOCATION-FETCH-001 | bounded NOAA Location gaps | review blockers
+- Result: Two issues. The job deadline is checked only between downloads; urllib's per-socket timeout and single `response.read()` can keep a trickling response alive beyond `MAX_SECONDS`, holding the global lock. A second sample can replace the singleton job after the first commits but before its page polls; status then says busy/ready, and the first page may never refresh its newly saved chart. Recommend a true per-request wall-clock deadline and chart refresh on observed coverage changes or busy/ready transitions.
+- Check: read-only service/provider/SQL/route/browser/deployment review; `git diff --check` clean. QA reports 96 focused Python and 32 Node passes; not rerun. No live PostgreSQL/provider, browser or image build.
+- Next: Developer correction, QA focused regressions, then Reviewer verification.
+
 ## 2026-10-08 | COMMUNITY-003 | unpublished pin preview | done
 - Result: no actionable finding. Draft markers are separate from public markers, one per ready live panel, labelled and non-interactive; invalid coordinates clear them. Load/removal, pan/refresh, placement off and publish success/failure preserve the specified lifecycle. Preview has no storage or request path; POST still requires active profile, native validity and explicit public consent. README and map help match the contract.
 - Check: reviewed scoped diff, map load ordering, submit path, requirements and QA handoff; `git diff --check` clean. QA reports 15 focused Node passes; no duplicate suite, browser, live-store or cloud check.

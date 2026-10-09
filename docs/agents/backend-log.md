@@ -2,6 +2,16 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-09 | LOCATION-FETCH-001 review correction | bounded stream and cross-sample refresh | done
+- Result: Location archive responses now read in bounded single-recv chunks, check elapsed time before/after each read, tighten socket timeout to remaining budget, and charge bytes even on failed transfers. The shared NOAA client's default bulk-import read stays unchanged. Browser refresh now keys off the sample's finite completed-month count rendered by the server, including when a different job replaces the singleton row.
+- Check: offline slow-trickle and exact-range smokes passed; 11 focused service, 19 NOAA/provider, four browser tests passed. Python/Node syntax and `git diff --check` passed. No live provider, PostgreSQL, browser UI or Git operations.
+- Next: QA adds slow-stream/deadline and cross-sample busy/ready browser regressions, then Reviewer verifies. OS DNS/connect behavior may exceed a socket deadline briefly; no hard process kill is claimed.
+
+## 2026-10-09 | LOCATION-FETCH-001 | bounded NOAA Location gaps | done
+- Result: Added explicit additive job/rate tables, shared-lock one-month NOAA worker with request/byte/time budgets, sample-only validated merge preserving finite fields, and same-origin status/start API. Locations show saved charts while browser polling advances successful months, refreshes each completion, and stops for retry on failure/throttle. Production is opt-in; README, References and operator guides updated. Maps untouched.
+- Check: Python compile, service/settings and mocked Location route smokes, Jinja parse, Node syntax, and `git diff --check` passed. No live PostgreSQL, provider call, browser UI, full suite or Git operation.
+- Next: QA mock-tests complete-cache, final-month, rate/retry, shared admin lock, restart, merge validity, route errors and browser lifecycle; Reviewer audits resource bounds.
+
 ## 2026-10-08 | COMMUNITY-003 | unpublished pin preview | done
 - Result: Separate labelled, non-interactive draft markers follow valid click/typed coordinates on ready maps without profile, storage or preview requests. Strict blank/finite/bounds checks prevent a zero-position preview or invalid POST. Public refresh/pan leaves drafts alone; placement off, successful POST and map removal clear them; failed POST retains them. Updated scoped CSS, map help and README; no new resource or server change.
 - Check: `node --test tests/test_community*.mjs` eight passed; `git diff --check` passed. Initial existing harness failure on numeric mock values corrected with string normalization. No browser UI or full Python suite.

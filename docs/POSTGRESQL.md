@@ -36,6 +36,43 @@ export DATABASE_URL='postgresql://localhost/climate'
 .venv/bin/python -m climate.cli.migrate_weather_sqlite static/weather.db
 ```
 
+## Location history gap fetching
+
+Run `.venv/bin/python -m climate.cli.setup_database` explicitly after updating
+the application. It additively creates `climate_location_fetch_job` and
+`climate_location_fetch_limit`; ordinary web startup never alters schema. Local
+development enables NOAA Location gap fetching by default. Production requires
+`LOCATION_FETCH_ENABLED=1`; `0` disables it. Restart workers after changing
+settings. `LOCATION_FETCH_HOURLY_LIMIT` defaults to 12 attempted months per
+fixed one-hour window (allowed 1–60), including failed attempts. Per-month limits default
+to 192 archive requests, 512 MiB downloaded, and 900 seconds elapsed;
+`LOCATION_FETCH_MAX_REQUESTS` (32–512), `LOCATION_FETCH_MAX_MIB` (32–1024),
+and `LOCATION_FETCH_MAX_SECONDS` (60–1800) may be set within those bounds.
+Elapsed checks run during streamed response reads and before saving; socket
+timeouts shrink to the remaining budget. This is not a process-level deadline
+for operating-system DNS or connection setup. Leaving the page stops browser
+continuation, not the already-started bounded month job.
+
+Only one global NOAA job runs at a time, sharing the import/cleanup advisory
+lock. PostgreSQL retains the hourly counter, latest job state, and successfully
+committed sample rows across process restarts. One start retrieves at most one
+missing completed month for one canonical sample, newest first. The browser
+continues after successful months while the page stays open; failures,
+interruption and throttling require explicit retry. The archive exposes global
+fields rather than a point endpoint, so downloading daily extrema can take
+minutes or exhaust the per-month budget. Saved finite fields are preserved;
+inconsistent combined values reject the month. Maps remain cache-only.
+
+The browser reads `GET /api/location-fetch/status` and sends a same-origin,
+bounded JSON `POST /api/location-fetch/start` with only requested latitude and
+longitude. Both return one common snapshot (`state`, sampled coordinates,
+complete/total/remaining months, current month, and throttle retry seconds).
+Normal states, including busy/throttled/disabled, use HTTP 200. Invalid input
+uses 400, cross-origin POST uses 403, wrong media type uses 415, oversized body
+uses 413, and unavailable storage or configuration uses 503. Status never
+downloads; one accepted start charges the global allowance before the worker
+begins, including a failed attempt.
+
 The migration is safe to re-run: it upserts locations and weather rows. Do not
 commit a real connection string or credentials; `.env` remains ignored if you
 choose to keep one for personal reference.

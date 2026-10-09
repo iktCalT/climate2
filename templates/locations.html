@@ -5,7 +5,7 @@
 {% block main %}
 <div class="concise-page concise-locations">
     <h1 class="locations-title">{% if lat is defined %}Location history{% else %}Explore a location{% endif %}</h1>
-    <p class="locations-intro">Saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 model{% endif %} values from 1951 through the current month. Public browsing reads the cache only; missing values are not downloaded.</p>
+    <p class="locations-intro">Saved monthly {% if climate_provider == "noaa_core" %}NOAA CORe reanalysis{% else %}Open-Meteo CMIP6 model{% endif %} values from 1951 through the last completed month. {% if climate_provider == "noaa_core" %}Missing history for a selected sample can fill gradually in the background.{% else %}Missing model values remain gaps.{% endif %}</p>
     <p class="small text-muted">{% if climate_provider == "noaa_core" %}A coarse grid sample, not an observation at the exact requested location.{% else %}Model output, not an observation at the exact requested location; inherited ocean temperatures remain suspect.{% endif %} Temperature is °C; precipitation is a monthly average daily rate (mm/day), not a monthly total.</p>
 
     <form action="/locations" method="get" class="location-coordinate-form">
@@ -43,12 +43,18 @@
                     <p>Open-Meteo CMIP6 model output at the requested coordinates.</p>
                 {% endif %}
             </div>
-            <p class="location-coverage" role="status">{{ available_months }} of {{ total_months }} months have saved values; {{ complete_months }} have all four fields. Refresh rechecks PostgreSQL; missing values are not queued for download.</p>
+            <p class="location-coverage" role="status">{{ available_months }} of {{ total_months }} months have saved values; {{ complete_months }} have all four fields. {% if location_fetch_enabled %}The chart shows saved values while missing months fill gradually.{% else %}Refresh rechecks PostgreSQL.{% endif %}</p>
         </section>
+        {% if location_fetch_enabled %}
+            <div id="location-fetch" data-latitude="{{ lat }}" data-longitude="{{ lon }}" data-complete-months="{{ complete_months }}" aria-live="polite">
+                <p id="location-fetch-status">Checking saved NOAA coverage…</p>
+                <button id="location-fetch-retry" type="button" class="btn btn-outline-success" hidden>Retry missing month</button>
+            </div>
+        {% endif %}
         {% if filename %}
             <iframe title="Cached seasonal climate history" src="{{ url_for('static', filename=filename ) }}" width="100%" height="720px" class="my-3" style="border:none;"></iframe>
         {% else %}
-            <div class="alert alert-info" role="status">No saved climate data for {% if noaa_sample %}this NOAA grid sample{% else %}these exact coordinates{% endif %}. Try another location or ask an administrator to import data for the active provider. No external climate request was made.</div>
+            <div class="alert alert-info" role="status">No saved climate data for {% if noaa_sample %}this NOAA grid sample yet. Missing completed months can download in the background.{% else %}these exact coordinates. Try another location or ask an administrator to import data for the active provider.{% endif %}</div>
         {% endif %}
     {% endif %}
     <details class="location-help">
@@ -60,9 +66,10 @@
                 <p>Locations looks up saved Open-Meteo CMIP6 model history at the requested coordinates.</p>
             {% endif %}
             <p>Season groups use Northern Hemisphere calendar months: spring March–May, summer June–August, fall September–November and winter December–February, labelled by January's year. These names may not match local seasons everywhere.</p>
-            <p>Each chart point reports how many of its three stored monthly values contribute to the mean. Counts describe stored-month coverage, not measurement accuracy. Gaps are not filled with downloaded data.</p>
+            <p>Each chart point reports how many of its three stored monthly values contribute to the mean. Counts describe stored-month coverage, not measurement accuracy. {% if climate_provider == "noaa_core" %}Missing completed months may download one at a time and remain gaps until saved.{% else %}Gaps are not filled with downloaded data.{% endif %}</p>
             <p>Two months do not establish a long-term trend. <a href="/references">Data limitations and sources</a>.</p>
         </div>
     </details>
 </div>
+{% if location_fetch_enabled %}<script src="{{ url_for('static', filename='location_fetch.js') }}" defer></script>{% endif %}
 {% endblock %}

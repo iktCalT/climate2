@@ -153,6 +153,55 @@ class LocationsRouteTests(unittest.TestCase):
         self.availability = availability_patch.start()
         self.addCleanup(availability_patch.stop)
 
+    def test_location_fetch_api_requires_same_origin_bounded_json_and_valid_coordinates(self):
+        with patch.dict(app.config, {"CLIMATE_PROVIDER": "noaa_core"}), \
+             patch("climate.web.app.location_fetch.start", return_value={"state": "running"}) as start:
+            for kwargs, expected in (
+                ({"json": {"latitude": 1, "longitude": 2}}, 403),
+                ({"json": {"latitude": 1, "longitude": 2}, "headers": {"Origin": "https://evil.example"}}, 403),
+                ({"data": "latitude=1&longitude=2", "headers": {"Origin": "http://localhost"}}, 415),
+                ({"json": {"latitude": 1, "longitude": 2, "url": "https://example.invalid"},
+                  "headers": {"Origin": "http://localhost"}}, 400),
+                ({"json": {"latitude": True, "longitude": 2},
+                  "headers": {"Origin": "http://localhost"}}, 400),
+                ({"data": "{" + "x" * 1100 + "}", "content_type": "application/json",
+                  "headers": {"Origin": "http://localhost"}}, 413),
+            ):
+                with self.subTest(kwargs=kwargs):
+                    self.assertEqual(self.client.post("/api/location-fetch/start", **kwargs).status_code, expected)
+            start.assert_not_called()
+            response = self.client.post("/api/location-fetch/start", json={"latitude": 1, "longitude": 2},
+                                        headers={"Origin": "http://localhost"})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json["state"], "running")
+            start.assert_called_once()
+
+    def test_location_fetch_api_disabled_for_other_provider_and_operator_setting(self):
+        with patch.dict(app.config, {"CLIMATE_PROVIDER": OPEN_METEO_PROVIDER}), \
+             patch("climate.web.app.location_fetch.start") as start, \
+             patch("climate.web.app.location_fetch.status") as status:
+            self.assertEqual(self.client.get("/api/location-fetch/status?latitude=1&longitude=2").json["state"],
+                             "disabled")
+            response = self.client.post("/api/location-fetch/start", json={"latitude": 1, "longitude": 2},
+                                        headers={"Origin": "http://localhost"})
+            self.assertEqual(response.json["state"], "disabled")
+            start.assert_not_called()
+            status.assert_not_called()
+        with patch.dict(app.config, {"CLIMATE_PROVIDER": "noaa_core", "LOCATION_FETCH_ENABLED": "0"}), \
+             patch("climate.web.app.location_fetch._connect", side_effect=AssertionError("database access")):
+            self.assertEqual(self.client.get("/api/location-fetch/status?latitude=1&longitude=2").json["state"],
+                             "disabled")
+            self.assertEqual(self.client.post("/api/location-fetch/start", json={"latitude": 1, "longitude": 2},
+                                              headers={"Origin": "http://localhost"}).json["state"], "disabled")
+
+    def test_location_fetch_status_rejects_bad_sample_without_database(self):
+        with patch.dict(app.config, {"CLIMATE_PROVIDER": "noaa_core"}), \
+             patch("climate.web.app.location_fetch._connect", side_effect=AssertionError("database access")):
+            for query in ("", "?latitude=nan&longitude=2", "?latitude=91&longitude=2",
+                          "?latitude=1&longitude=181"):
+                with self.subTest(query=query):
+                    self.assertEqual(self.client.get("/api/location-fetch/status" + query).status_code, 400)
+
     def test_saved_history_is_drawn_without_requesting_downloads(self):
         history = pd.DataFrame(
             {
@@ -177,7 +226,7 @@ class LocationsRouteTests(unittest.TestCase):
         )
         self.assertEqual(
             pd.Period(load.call_args.kwargs["date_end"], freq="M"),
-            pd.Timestamp.today().to_period("M"),
+            pd.Timestamp.today().to_period("M") - 1,
         )
         draw.assert_called_once()
 
@@ -201,13 +250,29 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         load.assert_called_once()
         draw.assert_not_called()
-        self.assertIn(b"Refresh rechecks PostgreSQL", response.data)
+        self.assertIn(b"The chart shows saved values while missing months fill gradually", response.data)
+        self.assertIn(b'id="location-fetch"', response.data)
+        self.assertIn(b'data-complete-months="1"', response.data)
+
+    def test_location_fetch_initial_count_uses_only_finite_four_field_months(self):
+        history = pd.DataFrame(
+            {"temp_mean": [10.0, 11.0, 12.0], "temp_max": [15.0, 16.0, float("inf")],
+             "temp_min": [5.0, None, 7.0], "precip": [2.0, 3.0, 4.0]},
+            index=pd.to_datetime(["2026-01-01", "2026-02-01", "2026-03-01"]),
+        )
+        with patch.dict(app.config, {"CLIMATE_PROVIDER": "noaa_core"}), \
+             patch("climate.web.app.get_location_history", return_value=(history, False)), \
+             patch("climate.web.app.os.path.isfile", return_value=True):
+            response = self.client.get("/locations?latitude=1&longitude=2")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(b'data-complete-months="1"', response.data)
+        self.assertIn(b"1 have all four fields", response.data)
 
     def test_location_form_describes_the_full_history_range(self):
         response = self.client.get("/locations")
 
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"from 1951 through the current month", response.data)
+        self.assertIn(b"from 1951 through the last completed month", response.data)
         self.assertIn("Temperature is °C; precipitation is a monthly average daily rate (mm/day), not a monthly total".encode(), response.data)
 
     def test_old_chart_version_is_redrawn_and_current_version_is_reused(self):
@@ -264,7 +329,7 @@ class LocationsRouteTests(unittest.TestCase):
             "three stored monthly values contribute to the mean",
             "stored-month coverage, not measurement accuracy",
             "may not match local seasons everywhere",
-            "Gaps are not filled with downloaded data",
+            "Missing completed months may download one at a time and remain gaps until saved",
         ):
             with self.subTest(expected=expected):
                 self.assertIn(expected, page)
