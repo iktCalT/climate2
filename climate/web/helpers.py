@@ -67,17 +67,9 @@ def draw_chart(
     lat: float, lon: float, df: pd.DataFrame, filename=None,
     source_label=None, sampled_location=None,
 ):
-    """Write an interactive chart with four seasonal lines per selected metric."""
+    """Write seasonal metric lines with a compact title for the Locations frame."""
     fig = go.Figure()
     available_metrics = [metric for metric in CHART_METRICS if metric[0] in df]
-    location_label = f"at {lat}, {lon}"
-    if source_label and sampled_location is not None:
-        sampled_lat, sampled_lon = sampled_location
-        location_label = (
-            f"from {source_label} at {sampled_lat}, {sampled_lon} "
-            f"(requested {lat}, {lon})"
-        )
-
     for metric_index, (field, _label, _axis_title, _axis_color) in enumerate(
         available_metrics
     ):
@@ -121,7 +113,7 @@ def draw_chart(
                 args=[
                     {"visible": visible},
                     {
-                        "title.text": f"Seasonal {label.lower()} {location_label}",
+                        "title.text": f"Seasonal<br>{label}",
                         "yaxis.title.text": axis_title,
                         "yaxis.title.font.color": axis_color,
                         "yaxis.tickfont.color": axis_color,
@@ -135,12 +127,12 @@ def draw_chart(
     default_axis_color = available_metrics[0][3] if available_metrics else "#18342c"
     fig.update_layout(
         title=dict(
-            text=f"Seasonal {default_label.lower()} {location_label}",
+            text=f"Seasonal<br>{default_label}",
             x=0.5,
             xanchor="center",
             y=0.80,
             yanchor="middle",
-            font=dict(size=24),
+            font=dict(size=18),
         ),
         xaxis=dict(title="Year", dtick=5),
         yaxis=dict(

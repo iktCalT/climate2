@@ -2,6 +2,12 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-10 | LOCATION-UI-005 / COORD-006 | chart headings and instruction cleanup | done
+- Result: No blocking regression found. Chart starts and all four metric menu states use `Seasonal<br>{metric}` at 18px; axes, hover units, coverage traces, seasonal values/gaps, and switch visibility are unchanged. Locations page continues to show active provider and requested coordinates, plus sampled NOAA coordinates and distance. Cache moves v7→v8. Exactly the three duplicate `.cursor` rules are removed; shared role, attribution and secret guidance remains in AGENTS/docs/PROJECT_DIRECTION.
+- Check: Read-only diff/template/test audit; `git diff --check` clean. QA reports 92 focused Python tests passing; not repeated. Browser visual pass unavailable in this review.
+- Follow-up: QA now patches `LOCATION_CHART_DIRECTORY` to a `TemporaryDirectory` for the all-metric chart test; the noted test-write concern is resolved, and the pre-existing ignored chart artifact was left untouched. Rechecked consolidated `PROJECT_DIRECTION.md`: role, attribution and secret rules link to their retained sources/sections; it explicitly prohibits staging secrets and printing their values. QA reports 10 affected tests passing; not rerun. No further findings.
+- Next: Lead owns final narrow/desktop browser verification; keep the ignored chart artifact intact pending owner review.
+
 ## 2026-10-09 | LOCATION-FETCH-001 correction | stream deadline and chart refresh | done
 - Result: Both blockers are closed. `CoreArchiveClient._read_response` preserves its original bounded bulk read; the Location override uses `HTTPResponse.read1` with the underlying urllib socket timeout tightened to remaining monotonic budget, charges received chunks, and leaves status/length/byte-range validation in the shared downloader. Worker rechecks after decode before persistence. Browser initializes from rendered finite complete-month count and refreshes on increases in status regardless of job state, including singleton replacement; unchanged counts do not duplicate refreshes. No new related defect found.
 - Check: read-only inspection of provider/service/worker, rendered count, browser lifecycle, QA regressions and PostgreSQL limit notes; `git diff --check` clean. QA reports 80 focused Python and six Node passes; not rerun. No live PostgreSQL/provider, real browser or full-suite run.

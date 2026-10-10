@@ -3,6 +3,22 @@
 This document records requirements added after the original refactor plan. It
 supplements, but does not replace or edit, `docs/REFACTOR.md`.
 
+## Editor-independent instructions
+
+Status: implemented 2026-10-10, at the owner's request. Removed the
+repository-local `.cursor/` folder, preserving useful guidance here and in the
+existing agent documents. Its three tracked rules duplicated root `AGENTS.md`:
+
+- Roles and handoffs: [agent roles](AGENT_ROLES.md),
+  [task board](AGENT_TASKS.md), and [shared memory](agents/SKILL.md) remain the
+  source of truth. Work only in assigned files; report defects through the Lead.
+- External attribution: preserved below in [external-source attribution](#external-source-attribution).
+- Secrets: preserved below in [secret and private-data protection](#secret-and-private-data-protection).
+
+Only the three inspected rule files and their empty parent directories are in
+scope. No global editor settings, other repositories or agent caches are touched.
+Their original contents remain recoverable from Git history.
+
 ## Local development while hosting is deferred
 
 Owner direction 2026-10-08: set domain/VM/deployment work aside and continue
@@ -42,8 +58,8 @@ Problem: multiple agents can duplicate work, edit overlapping files, or expand
 their tasks beyond the user's request without explicit ownership.
 
 Desired behavior: keep a shared four-role roster and handoff rules in
-`docs/AGENT_ROLES.md`, referenced by root `AGENTS.md` and a repo-wide editor
-rule. Keep explicit assignments and completion evidence in
+`docs/AGENT_ROLES.md`, referenced by editor-independent root `AGENTS.md`.
+Keep explicit assignments and completion evidence in
 `docs/AGENT_TASKS.md`, maintained by the Lead / Architect.
 
 Constraints: work only in climate2; preserve unrelated edits; assign one writer
@@ -175,6 +191,8 @@ resource contributes, and record its licence or required attribution when that
 information is available. Do not present third-party data or assets as original
 project work, and do not leave externally sourced material credited in only
 one of the two required locations.
+Reject resources with unknown ownership or unclear reuse terms; label incomplete
+provenance for inherited resources until replaced or fully attributed.
 
 ## Secret and private-data protection
 
@@ -183,6 +201,9 @@ passwords, populated databases, personal account data, or machine-specific
 configuration to GitHub. This includes `.env` variants, PostgreSQL connection
 strings containing passwords, CDS or other API tokens, SSH/TLS private keys,
 cloud service credentials, session files, and SQLite/PostgreSQL data exports.
+Never stage these files either. If sensitive material is found, stop without
+printing its value, remove it from the change, and warn the owner that revocation
+or rotation may be needed before publication.
 
 Keep sensitive values outside the repository and load them from ignored local
 configuration or environment variables. Provide only clearly fake,

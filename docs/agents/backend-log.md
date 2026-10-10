@@ -2,6 +2,15 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-10 | LOCATION-UI-005 | responsive chart heading | done
+- Result: Plotly titles now use `Seasonal<br>{metric}` at 18px; page context
+  retains provider and requested/sampled coordinates. Bumped chart cache version
+  from current v7 to v8. Updated README and existing Plotly reference copy.
+- Check: Focused rendering, route and NOAA readiness suites found only stale
+  expectations for old title text/version; the other checks passed.
+  `git diff --check` passed. No browser check available in this assignment.
+- Next: QA updates/tests the new title contract and validates all four metrics.
+
 ## 2026-10-09 | LOCATION-FETCH-001 review correction | bounded stream and cross-sample refresh | done
 - Result: Location archive responses now read in bounded single-recv chunks, check elapsed time before/after each read, tighten socket timeout to remaining budget, and charge bytes even on failed transfers. The shared NOAA client's default bulk-import read stays unchanged. Browser refresh now keys off the sample's finite completed-month count rendered by the server, including when a different job replaces the singleton row.
 - Check: offline slow-trickle and exact-range smokes passed; 11 focused service, 19 NOAA/provider, four browser tests passed. Python/Node syntax and `git diff --check` passed. No live provider, PostgreSQL, browser UI or Git operations.

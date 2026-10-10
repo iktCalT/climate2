@@ -3,8 +3,10 @@
 import html
 import math
 import re
+import tempfile
 import unittest
 from contextlib import contextmanager
+from pathlib import Path
 from unittest.mock import patch
 
 import pandas as pd
@@ -95,7 +97,9 @@ class PublicLocationTests(unittest.TestCase):
         response, kwargs, chart = self.request_history("open_meteo_cmip6", 1, 2, history())
         self.assertEqual(kwargs["location"], (1.0, 2.0))
         self.assertEqual(chart.call_args.kwargs["sampled_location"], (1.0, 2.0))
-        self.assertIn("Open-Meteo CMIP6 model output at the requested coordinates", response.get_data(as_text=True))
+        page = response.get_data(as_text=True)
+        self.assertIn("1.0°N, 2.0°E", page)
+        self.assertIn("Open-Meteo CMIP6 model output at the requested coordinates", page)
         self.assertNotIn("coarse grid sample", response.get_data(as_text=True))
 
     def test_noaa_missing_sample_does_not_search_or_fetch(self):
@@ -130,17 +134,24 @@ class PublicLocationTests(unittest.TestCase):
                     self.assertEqual(self.client.get("/locations?" + query).status_code, 400)
         load.assert_not_called()
 
-    def test_generated_chart_titles_follow_source_for_all_metrics(self):
-        for provider, label in (("noaa_core", "NOAA CORe reanalysis"),
-                                ("open_meteo_cmip6", "Open-Meteo CMIP6 model output")):
-            with self.subTest(provider=provider):
-                figure = draw_chart(1, 2, history(), source_label=label,
-                                    sampled_location=(0, 0) if provider == "noaa_core" else (1, 2))
-                self.assertIn(label, figure.layout.title.text)
-                self.assertIn("requested 1, 2", figure.layout.title.text)
-                for button in figure.layout.updatemenus[0].buttons:
-                    self.assertIn(label, button.args[1]["title.text"])
-                    self.assertIn("requested 1, 2", button.args[1]["title.text"])
+    def test_generated_chart_titles_stay_compact_for_all_metrics(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            with patch(
+                "climate.web.helpers.LOCATION_CHART_DIRECTORY",
+                Path(temporary_directory),
+            ):
+                for provider, label in (("noaa_core", "NOAA CORe reanalysis"),
+                                        ("open_meteo_cmip6", "Open-Meteo CMIP6 model output")):
+                    with self.subTest(provider=provider):
+                        figure = draw_chart(1, 2, history(), source_label=label,
+                                            sampled_location=(0, 0) if provider == "noaa_core" else (1, 2))
+                        self.assertEqual(figure.layout.title.text, "Seasonal<br>Mean temperature")
+                        self.assertEqual(figure.layout.title.font.size, 18)
+                        self.assertEqual(
+                            [button.args[1]["title.text"] for button in figure.layout.updatemenus[0].buttons],
+                            ["Seasonal<br>Mean temperature", "Seasonal<br>Minimum temperature",
+                             "Seasonal<br>Maximum temperature", "Seasonal<br>Precipitation"],
+                        )
 
 
 class ProviderCopyTests(unittest.TestCase):
