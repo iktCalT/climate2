@@ -41,8 +41,9 @@ class ChartRenderingTests(unittest.TestCase):
         self.assertTrue(all(trace.visible is True for trace in figure.data[:4]))
         self.assertTrue(all(trace.visible is False for trace in figure.data[4:]))
         self.assertEqual(
-            figure.layout.title.text, "Seasonal mean temperature at 1, 2"
+            figure.layout.title.text, "Seasonal<br>Mean temperature"
         )
+        self.assertEqual(figure.layout.title.font.size, 18)
         self.assertEqual(figure.layout.title.y, 0.80)
         self.assertEqual(figure.layout.title.yanchor, "middle")
         self.assertEqual(figure.layout.height, 680)
@@ -68,7 +69,7 @@ class ChartRenderingTests(unittest.TestCase):
             self.assertEqual(button.method, "update")
             self.assertEqual(
                 button.args[1]["title.text"],
-                f"Seasonal {button.label.lower()} at 1, 2",
+                f"Seasonal<br>{button.label}",
             )
 
     def test_each_metric_reports_month_coverage_and_preserves_seasonal_means(self):

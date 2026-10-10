@@ -4,6 +4,43 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-10 | LOCATION-UI-005 | compact seasonal chart headings | done
+
+- Result: all metric headings use two lines at 18px; provider/request/sample
+  context remains in the wrapping page summary. Cache v8 replaces old renders
+  on the next page request. No calculations, live data or fetching changes.
+- Check: QA 92 focused offline passes; inherited test-output isolation corrected
+  with 10 affected passes. Review clear. Browser inventory empty and explicit
+  in-app connection unavailable this round: post-fix visual check pending.
+- Next: publish with prior browser-check evidence and requested Cursor cleanup;
+  retain honest distinction between earlier synthetic UI pass and this correction.
+
+## 2026-10-10 | COORD-006 | remove Cursor folder | done
+
+- Result: inspected all three tracked `.cursor/rules` files; preserved role,
+  attribution and secret-handling guidance in PROJECT_DIRECTION and existing
+  agent documents. Deleted exact duplicate rules and empty parent directories,
+  as requested; no global editor settings or caches touched.
+- Check: folder absent, no other contents or symlinks, `git diff --check` clean.
+  Originals recoverable from Git history. Application checks belong to the
+  separate LOCATION-UI-005 round.
+- Next: publish with reviewed chart-heading correction; preserve existing
+  browser-verification documentation edits.
+
+## 2026-10-10 | LOCATION-FETCH-004 | isolated real-browser verification | done
+
+- Result: actual page/JS/chart with labelled synthetic data showed running,
+  273/274 refreshed coverage, throttle/Retry, then 274/274 completion and chart.
+  No live NOAA/database changes. Desktop chart visible; at 390px page width fits,
+  but 1102px chart title clips within 366px iframe. Recorded responsive fix in
+  NEXT_REQUIREMENTS; no production edits.
+- Check: screenshots and DOM evidence; one unattributed MutationObserver error
+  (no matching app call) remains unisolated. Fixture stopped, test tab closed,
+  viewport reset. QA recovered only its accidental ignored generated chart to
+  temporary storage; no user data removed.
+- Next: bounded responsive-heading assignment; docs on
+  `codex/location-browser-check`, based on `6e4f4a8`.
+
 ## 2026-10-09 | LOCATION-FETCH-003 | one-month live verification | done
 
 - Result: restarted the loopback development app, verified local database

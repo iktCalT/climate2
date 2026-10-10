@@ -1,5 +1,22 @@
 # Next requirements
 
+## Responsive location chart heading
+
+**Status:** Implemented and reviewed 2026-10-10 (LOCATION-UI-005).
+Uses an 18px two-line seasonal/metric title for all four variables. Existing
+wrapping page context retains provider and requested/sampled coordinates.
+Chart cache version advanced to v8. Focused offline checks pass; the in-app
+browser is unavailable this round, so post-fix visual confirmation is pending.
+
+The real chart renderer's long, fixed-size SVG title clips on narrow screens.
+At a 390px viewport the isolated synthetic chart had a 366px iframe and an
+approximately 1102px title. Keep metric, provider and sampled/requested-location
+context readable using a short responsive title and/or ordinary wrapping HTML
+context outside the plot. Preserve metric switching, units, coverage caveats,
+seasonal calculations and gap-fetch behavior. No new dependencies, provider
+requests or database changes. Delegate a bounded renderer/template change,
+focused regression tests and repeat desktop/narrow browser verification.
+
 ## Fill missing location history from NOAA
 
 **Status:** Implemented and reviewed 2026-10-09; LOCATION-FETCH-001.
@@ -7,7 +24,11 @@ New installations require explicit database setup and application restart.
 Local additive setup and read-only HTTP/PostgreSQL readiness were verified on
 2026-10-09. A single live September 2026 NOAA sample then passed end-to-end
 download, PostgreSQL readback and chart HTTP checks (LOCATION-FETCH-003).
-Real-browser appearance and polling behavior remain unverified.
+Real-browser simulated progress, coverage/chart refresh, throttling and Retry
+passed on 2026-10-10 (LOCATION-FETCH-004). This is separate from the single live
+NOAA check; no live automatic multi-month run was performed. Narrow-screen chart
+title clipping prompted the compact-heading correction above; its post-fix
+real-browser confirmation remains pending.
 
 Local activation follow-up (LOCATION-FETCH-002, 2026-10-09): verify the target
 before applying the new tracking SQL alone to an existing provider-aware database.

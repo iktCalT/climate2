@@ -5,6 +5,56 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**COORD-006 — remove redundant Cursor instructions (Lead, complete).** Inspected
+repository `.cursor/`, preserved guidance in PROJECT_DIRECTION and existing agent
+documents, removed its three tracked duplicate rules and empty directories.
+Verified exact removal and preserved role/attribution/secret rules; Git history
+provides recovery. No global editor state, caches or unrelated files touched.
+
+**LOCATION-UI-005 — responsive chart heading (implemented and reviewed).**
+
+- Lead owns design/requirements/board and own log; existing browser-check
+  documentation changes are retained on `codex/location-browser-check`.
+- Backend owns `climate/web/helpers.py`, the chart version in `climate/web/app.py`,
+  narrowly needed Locations template/CSS, README and References copy, own log.
+  Use a short two-line metric heading suitable for a 320px screen; preserve
+  provider and requested/sampled coordinates in wrapping page context. No new
+  resources, dependencies, calculations, fetching, database or unrelated UI edits.
+- QA follows: own chart/location tests and own log, using existing .venv and
+  temporary fake histories. Check all four metric headings, units, provider
+  context and chart cache invalidation. No live services.
+- Reviewer follows QA, read-only except own log; check regressions and escaping.
+- Lead then repeats isolated desktop/narrow browser check. Acceptance: no
+  clipped title, metric switching works, chart values/gaps unchanged. Keep the
+  unattributed browser console error separate unless evidence links this change.
+- Backend complete; QA: 92 focused offline tests pass, no failures/skips;
+  test-output isolation correction: 10 affected tests pass. Review clear.
+  In-app browser currently unavailable, so post-fix
+  320/390px visual confirmation remains pending, not an automated-test claim.
+
+## Previous browser verification
+
+**LOCATION-FETCH-004 — real-browser isolated verification (complete).**
+
+- QA owns a disposable loopback fixture using real Locations/layout/CSS/JS
+  and deterministic simulated fetch states, plus own log. No production edits,
+  database connections, provider requests, account/session files or dependency
+  installs. Use a private temporary directory and exact static asset allowlist.
+- Lead then owns browser operation as an explicit verification exception:
+  inspect progress, success/chart replacement, throttle/retry, and narrow layout.
+  Keep simulated data visibly labelled; do not mistake it for live validation.
+- Acceptance: observed UI states and screenshots; report actual defects for
+  bounded assignment. Stop fixture and restore temporary viewport after testing.
+- Result: real browser observed running, refreshed 273/274 coverage, throttle,
+  Retry, then 274/274 completion with refreshed chart. No live provider/database
+  work. At 390px the page fits, but the chart title clips inside its iframe.
+  Fixture stopped and viewport reset. Follow-up: responsive chart heading
+  (planned in NEXT_REQUIREMENTS); production implementation not started.
+  One unattributed MutationObserver console error needs source isolation before
+  assigning blame to application code; no such call found in app sources.
+
+## Previous verification
+
 **LOCATION-FETCH-003 — bounded live verification (Lead, complete).**
 
 - Scope: verify the requested acquisition path by submitting at most one

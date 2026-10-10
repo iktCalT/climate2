@@ -2,6 +2,16 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-10 | LOCATION-UI-005 | responsive chart heading | done
+- Result: Updated chart expectations to `Seasonal<br>{metric}` at 18px across all four metrics; preserved data/coverage and unit assertions. Location cache regression now proves v7 files redraw as v8. Existing route checks retain NOAA sample/request distance and CMIP6 requested-coordinate context. The direct heading test writes only into a temporary chart directory.
+- Check: Focused offline batch (`test_chart_rendering`, `test_noaa_location_readiness`, `test_locations_route`, `test_location_fetch`, `test_content_pages`): 92 passed, zero skips/failures; temporary-output correction rerun `test_noaa_location_readiness`: 10 passed. `git diff --check` passed. PostgreSQL flags disabled; expected mocked failure log and legacy local-path warning appeared. No browser visual pass available.
+- Next: Reviewer owns read-only audit; Lead owns isolated desktop/narrow browser check.
+
+## 2026-10-10 | LOCATION-FETCH-004 | disposable browser fixture | ready
+- Result: A disposable Flask fixture used the real Locations/layout/templates, exact static allowlist, and chart helper with synthetic pandas data. Prominent SIMULATED DATA labels were shown. No session, database, provider, or account imports/requests. Its deterministic flow reached ready, running, 273/274 complete, throttled, then 274/274 done after Retry.
+- Check: Syntax and test-client checks passed, including chart rendering, denied private static access, and no session cookie. Lead's browser check confirmed refreshed counts/chart, throttled Retry, and no Retry button at done. Page fit at 390px, but the chart title clipped. Fixture stopped and viewport reset. The generated ignored repo chart was moved recoverably into the private temporary fixture area; chart output remains there.
+- Next: Report the narrow mobile chart-title clipping for assignment; no fixture work remains.
+
 ## 2026-10-09 | LOCATION-FETCH-001 review correction | stream deadline and cross-sample refresh | done
 - Result: Added fake-stream regressions for per-read remaining timeout, elapsed deadline, failed-transfer byte charging, incomplete range and byte cap. Tested singleton-row replacement after a first sample releases the shared lock. Browser tests now cover count-based refresh after another sample takes the job, ready/done transitions, and no duplicate reload. Route test matches the initial finite four-field count to service semantics. No production edits or confirmed remaining defect.
 - Check: offline `tests.test_location_fetch tests.test_locations_route tests.test_noaa_core tests.test_provider_identity`: 80 passed, zero skips/failures; `node --test tests/test_location_fetch_browser.mjs`: six passed. `git diff --check` clean. Mock network/PG only; no real browser, live NOAA/PostgreSQL or full-suite repeat.
