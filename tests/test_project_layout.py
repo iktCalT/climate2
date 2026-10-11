@@ -28,9 +28,17 @@ class ProjectLayoutTests(unittest.TestCase):
             with patch.object(setup_database, "weather_db", return_value=connection):
                 setup_database.main()
             statements = connection.__enter__.return_value.cursor.return_value.__enter__.return_value.execute.call_args_list
-            self.assertEqual(len(statements), 2)
+            self.assertEqual(len(statements), 3)
             self.assertIn("CREATE TABLE IF NOT EXISTS locations", statements[0].args[0])
             self.assertIn("CREATE TABLE IF NOT EXISTS climate_import_job", statements[1].args[0])
+            self.assertIn(
+                "CREATE TABLE IF NOT EXISTS climate_location_fetch_job",
+                statements[2].args[0],
+            )
+            self.assertIn(
+                "CREATE TABLE IF NOT EXISTS climate_location_fetch_limit",
+                statements[2].args[0],
+            )
             with app.test_client() as client:
                 self.assertEqual(client.get("/").status_code, 200)
                 with client.get("/static/styles.css") as response:

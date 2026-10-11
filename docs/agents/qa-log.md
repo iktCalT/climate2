@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-10 | REGRESSION-003 | combined offline checkpoint | done
+- Result: Ran full unittest discovery with an in-process temporary path setup: patched Flask-Session's default before app import, then redirected account, community, session, chart and image paths under a `TemporaryDirectory`. Corrected the stale project-layout assertion to require three setup scripts and both location-fetch tables in the third.
+- Check: `DATABASE_URL=` with PostgreSQL test flags zero and bytecode disabled; full Python discovery: 230 run, 221 passed, eight skipped, one stale assertion failure. `node --test tests/test_*.mjs`: 36 passed. Isolated rerun of `tests.test_project_layout` with the same temporary paths: 3 passed, zero skips/failures. No live database/provider/network or browser.
+- Next: Reviewer checks this focused correction; no full-suite repeat.
+
 ## 2026-10-10 | LOCATION-UI-005 | responsive chart heading | done
 - Result: Updated chart expectations to `Seasonal<br>{metric}` at 18px across all four metrics; preserved data/coverage and unit assertions. Location cache regression now proves v7 files redraw as v8. Existing route checks retain NOAA sample/request distance and CMIP6 requested-coordinate context. The direct heading test writes only into a temporary chart directory.
 - Check: Focused offline batch (`test_chart_rendering`, `test_noaa_location_readiness`, `test_locations_route`, `test_location_fetch`, `test_content_pages`): 92 passed, zero skips/failures; temporary-output correction rerun `test_noaa_location_readiness`: 10 passed. `git diff --check` passed. PostgreSQL flags disabled; expected mocked failure log and legacy local-path warning appeared. No browser visual pass available.

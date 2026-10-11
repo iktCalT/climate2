@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-10 | REGRESSION-003 | setup schema layout assertion | done
+- Result: Focused correction is sound. The layout test still runs setup from a temporary off-root cwd and preserves prior path checks; it now expects the three `execute` calls in `setup_database.main()` and verifies the third SQL payload contains both location-fetch job and limit tables. These names match `sql/location_fetch.sql`; no production code changed.
+- Check: Read-only test/source/SQL inspection; `git diff --check` clean. QA evidence remains separate: initial Python discovery 230 total (221 pass, eight skips, one stale assertion failure), Node 36 pass; corrected `test_project_layout` 3 pass, zero skips/failures. No suites repeated.
+- Next: Lead integration. No reviewer blocker; browser visual check is outside this regression and remains pending.
+
 ## 2026-10-10 | LOCATION-UI-005 / COORD-006 | chart headings and instruction cleanup | done
 - Result: No blocking regression found. Chart starts and all four metric menu states use `Seasonal<br>{metric}` at 18px; axes, hover units, coverage traces, seasonal values/gaps, and switch visibility are unchanged. Locations page continues to show active provider and requested coordinates, plus sampled NOAA coordinates and distance. Cache moves v7→v8. Exactly the three duplicate `.cursor` rules are removed; shared role, attribution and secret guidance remains in AGENTS/docs/PROJECT_DIRECTION.
 - Check: Read-only diff/template/test audit; `git diff --check` clean. QA reports 92 focused Python tests passing; not repeated. Browser visual pass unavailable in this review.

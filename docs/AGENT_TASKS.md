@@ -5,6 +5,29 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**REGRESSION-003 — combined offline checkpoint (reviewed; base `bdfbef9`, PR #87).**
+
+- QA owns one combined Python/Node regression run and its own log. Inspect
+  test isolation first; use existing .venv, disabled PostgreSQL integration
+  flags, temporary output/session/account paths where needed. No live data,
+  provider requests, downloads, installs, migrations or production edits.
+- Report failures with exact reproduction and ownership; do not weaken tests.
+  Lead assigns any fixes separately. Reviewer checks new failures/corrections
+  only; do not duplicate a successful batch without a specific concern.
+- Lead owns board/log and integration. Browser remains unavailable on this
+  attempt, so desktop/mobile visual confirmation stays pending. Acceptance:
+  accurate pass/skip/failure totals and preserved real stores, not visual claims.
+- Initial batch: Python 230 total, 221 pass, eight expected integration skips,
+  one stale setup-script-count assertion; Node 36 pass. QA correction owns only
+  `tests/test_project_layout.py` and own log: require all three setup scripts,
+  explicitly assert the new location-fetch job/limit schema is executed from an
+  off-root working directory. Preserve existing assertions; rerun affected
+  checks only. Reviewer follows, read-only except own log. No runtime fix needed.
+- Correction complete: all three affected project-layout tests pass. Full
+  batches were not repeated; independent review clear. No application change.
+
+## Previous implementation (merged in PR #87)
+
 **COORD-006 — remove redundant Cursor instructions (Lead, complete).** Inspected
 repository `.cursor/`, preserved guidance in PROJECT_DIRECTION and existing agent
 documents, removed its three tracked duplicate rules and empty directories.
