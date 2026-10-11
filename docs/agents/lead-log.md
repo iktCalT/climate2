@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-11 | LOCATION-UI-006/007 | mobile chart legend correction | done
+
+- Result: browser found wrapped legend overlapping titles on phones. Moved it
+  below the plot, reserved bottom space and lowered the title to clear the
+  selector. Cache v9 refreshes old renders. Calculations/fetching unchanged.
+- Check: all four metrics pass title/menu/legend bounds and no-overlap checks
+  at 1280/390/320px using synthetic values; 56 isolated offline tests pass.
+  Unattributed MutationObserver error recurred; no clean-console claim.
+- Cleanup: before/after screenshots remain outside Git; tab closed, viewport
+  reset, no fixture listener present on port 5012. No live data/authentication,
+  imports or database work. Independent review clear; Lead owns publication.
+
 ## 2026-10-11 | ADMIN-UI-007 | isolated NOAA admin browser check | done
 
 - Result: connected in-app browser verified real admin templates/JS with labelled

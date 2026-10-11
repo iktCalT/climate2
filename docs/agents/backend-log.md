@@ -2,6 +2,24 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-11 | LOCATION-UI-007 | wrapped location-chart legend | done
+- Result: Anchored the horizontal season legend below the plot and reserved
+  bottom margin for wrapping; retained the 680px chart height. Bumped chart cache
+  version to v9 and updated paired README/References descriptions.
+- Check: A synthetic 48-month/four-metric render verified 16 traces, four
+  selector buttons, default visibility, 680px height, 145px bottom margin and
+  the generated temporary HTML. Cache version v9 confirmed; `git diff --check`
+  passed. No tests, database/provider operations or browser fixture used.
+- Next: QA focused offline layout/cache checks, then Reviewer and Lead browser.
+
+## 2026-10-11 | LOCATION-UI-007 | selector/title separation | in progress
+- Result: Lead's 320px browser recheck found the bottom legend fits, but its
+  extra margin compresses Plotly's plot domain and brings the selector into the
+  title. Lowered the title from y=0.80 to y=0.75 to add separation in the
+  reserved top area; metric update buttons keep their existing title text.
+- Check: No test run yet; awaiting Lead's browser recheck at 320px and 390px.
+- Next: Lead rechecks visual spacing; QA follows with focused layout/cache work.
+
 ## 2026-10-11 | ADMIN-UI-006 | NOAA admin update workflow | done
 - Result: Authenticated `/update` GET now redirects to `/admin/data`; POST
   returns plain-text 410 without an acquisition call. Removed the old form,

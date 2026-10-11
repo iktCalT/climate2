@@ -130,7 +130,7 @@ def draw_chart(
             text=f"Seasonal<br>{default_label}",
             x=0.5,
             xanchor="center",
-            y=0.80,
+            y=0.75,
             yanchor="middle",
             font=dict(size=18),
         ),
@@ -141,10 +141,10 @@ def draw_chart(
         ),
         hovermode="x unified",
         legend=dict(
-            orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0
+            orientation="h", yanchor="top", y=-0.28, xanchor="left", x=0
         ),
         height=680,
-        margin=dict(t=210),
+        margin=dict(t=210, b=145),
         template="plotly_white",
         updatemenus=[
             dict(

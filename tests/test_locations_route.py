@@ -282,13 +282,13 @@ class LocationsRouteTests(unittest.TestCase):
         )
         # Discover the old-version filename with the same data and coordinates.
         with patch("climate.web.app.get_location_history", return_value=(history, False)), \
-             patch("climate.web.app.LOCATION_CHART_VERSION", "v7"), \
+             patch("climate.web.app.LOCATION_CHART_VERSION", "v8"), \
              patch("climate.web.app.os.path.isfile", return_value=False), \
              patch("climate.web.app.draw_chart") as draw:
             old_response = self.client.get("/locations?latitude=10&longitude=10")
         self.assertEqual(old_response.status_code, 200)
         old_name = draw.call_args.kwargs["filename"]
-        self.assertTrue(old_name.startswith("v7_"))
+        self.assertTrue(old_name.startswith("v8_"))
 
         with patch("climate.web.app.get_location_history", return_value=(history, False)) as load, \
              patch("climate.web.app.os.path.isfile",
@@ -298,7 +298,7 @@ class LocationsRouteTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         draw.assert_called_once()
         new_name = draw.call_args.kwargs["filename"]
-        self.assertEqual(new_name, "v8_" + old_name.removeprefix("v7_"))
+        self.assertEqual(new_name, "v9_" + old_name.removeprefix("v8_"))
         exists.assert_called_once_with("static/location_data/" + new_name)
         self.assertIn(("/static/location_data/" + new_name).encode(), response.data)
         self.assertIs(load.call_args.kwargs["fetch_missing"], False)
