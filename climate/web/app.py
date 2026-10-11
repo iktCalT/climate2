@@ -23,8 +23,8 @@ from climate.production import configure_production
 from climate.data.db import ACTIVE_CLIMATE_PROVIDER
 from climate.data.location_sampling import sample_noaa_location
 from climate.data.months import last_complete_month
-from climate.web.helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required, swap
-from climate.providers.open_meteo import get_data_locations, get_location_history
+from climate.web.helpers import apology, draw_chart, is_valid_month, is_valid_username, login_required
+from climate.providers.open_meteo import get_location_history
 from climate.services.map_data import viewport_geojson
 from climate.services.admin_import import ImportBusy, import_status, start_import
 from climate.services.admin_cleanup import cleanup_preview, cleanup_batch
@@ -38,7 +38,6 @@ FIRST_DAY_MAP_FALLBACK_HOURS = 6
 START = "1950-01"
 LOCATION_HISTORY_START = "1951-01-01"
 LOCATION_CHART_VERSION = "v8"
-MAX_ADMIN_PREFETCH_POINTS = 100
 ALLOWED_PROFILE_IMAGE_EXTENSIONS = {".gif", ".jpeg", ".jpg", ".png", ".webp"}
 
 
@@ -785,84 +784,10 @@ def admin_cleanup_api():
 @login_required
 @admin_required
 def update():
-    imgname = current_image_name()
     if request.method == "POST":
-        lat_start = request.form.get("lat_start")
-        lat_end = request.form.get("lat_end")
-        n_lat = request.form.get("n_lat")
-        lon_start = request.form.get("lon_start")
-        lon_end = request.form.get("lon_end")
-        n_lon = request.form.get("n_lon")
-        date_start = request.form.get("date_start")
-        date_end = request.form.get("date_end")
-        force_update = request.form.get("force_update")
-        if not all(
-            (
-                lat_start,
-                lat_end,
-                n_lat,
-                lon_start,
-                lon_end,
-                n_lon,
-                date_start,
-                date_end,
-            )
-        ):
-            return apology("Missing parameter(s)", 400)
-        try:
-            lat_start = float(lat_start)
-            lat_end = float(lat_end)
-            n_lat = int(n_lat)
-            lon_start = float(lon_start)
-            lon_end = float(lon_end)
-            n_lon = int(n_lon)
-            dt_date_start = datetime.strptime(date_start, "%Y-%m-%d")
-            dt_date_end = datetime.strptime(date_end, "%Y-%m-%d")
-        except (TypeError, ValueError):
-            return apology("Invalid parameter(s)", 400)
-
-        if not (-90 <= lat_start <= 90 and -90 <= lat_end <= 90):
-            return apology("Latitude out of range", 400)
-        if not (-180 <= lon_start <= 180 and -180 <= lon_end <= 180):
-            return apology("Longitude out of range", 400)
-        if n_lat < 1 or n_lon < 1 or n_lat * n_lon > MAX_ADMIN_PREFETCH_POINTS:
-            return apology(
-                f"Select between 1 and {MAX_ADMIN_PREFETCH_POINTS} total points per prefetch", 400
-            )
-        if (
-            dt_date_start < datetime.strptime(START + "-01", "%Y-%m-%d")
-            or dt_date_end > datetime.today()
-        ):
-            return apology("Dates must be between January 1950 and today", 400)
-
-        force_update = bool(force_update)
-        if lat_start > lat_end:
-            lat_start, lat_end = swap(lat_start, lat_end)
-        if lon_start > lon_end:
-            lon_start, lon_end = swap(lon_start, lon_end)
-        if dt_date_start > dt_date_end:
-            date_start, date_end = swap(date_start, date_end)
-        lats = np.linspace(lat_start, lat_end, n_lat)
-        lons = np.linspace(lon_start, lon_end, n_lon)
-        is_successful = get_data_locations(
-            lats=lats,
-            lons=lons,
-            date_start=date_start,
-            date_end=date_end,
-            force_update_database=force_update,
+        return app.response_class(
+            "The legacy Open-Meteo update form is retired. Use the NOAA admin page at /admin/data.",
+            status=410,
+            mimetype="text/plain",
         )
-        if not is_successful:
-            return apology("Failed to update data", 400)
-        return redirect("/update?message=Succeeded!")
-    else:
-        message = request.args.get("message")
-        start = START + "-01"  # "1950-01-01"
-        end = datetime.today().strftime("%Y-%m-%d")  # eg: "2024-12-25"
-        return render_template(
-            "update.html",
-            message=message,
-            imgname=imgname,
-            start=start,
-            end=end,
-            max_points=MAX_ADMIN_PREFETCH_POINTS,
-        )
+    return redirect("/admin/data")

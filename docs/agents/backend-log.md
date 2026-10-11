@@ -2,6 +2,17 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-11 | ADMIN-UI-006 | NOAA admin update workflow | done
+- Result: Authenticated `/update` GET now redirects to `/admin/data`; POST
+  returns plain-text 410 without an acquisition call. Removed the old form,
+  duplicate nav item, point-prefetch imports/constants and Docker allowlist entry.
+  The NOAA page selects newest-first 2022–2026 and one month on the 8,281-point
+  grid; README, References and administrator guidance agree.
+- Check: Python AST, three Jinja parses and `git diff --check` passed; static
+  search found no old form/import references. No behavior tests (QA owns them),
+  provider, database, cloud or browser operations.
+- Next: QA owns auth/redirect/410/no-call/default/API regressions, then Reviewer.
+
 ## 2026-10-10 | LOCATION-UI-005 | responsive chart heading | done
 - Result: Plotly titles now use `Seasonal<br>{metric}` at 18px; page context
   retains provider and requested/sampled coordinates. Bumped chart cache version

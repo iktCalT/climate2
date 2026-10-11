@@ -1,7 +1,9 @@
-# User roles and manual climate prefetch
+# User roles and NOAA data administration
 
-Visitors and normal registered users can browse Maps and Locations. They cannot
-open or submit `/update`.
+Visitors and normal registered users can browse Maps and Locations. Administrator
+pages and APIs require an authenticated administrator. An administrator GET to
+the retired `/update` path redirects to `/admin/data`; a legacy POST returns HTTP
+410 with directions to the NOAA page and starts no work.
 
 Hosted self-registration is temporarily closed because the owner has no time to
 manage accounts. `/register` explains the closure; POST requests are rejected
@@ -75,8 +77,11 @@ server; ignored Git files are not automatically private HTTP resources.
 
 ## Climate acquisition
 
-Administrators use `/update` to pre-fetch Open-Meteo climate data into the
-PostgreSQL cache. Each request is capped at 100 locations, uses dates from
-January 1950 through today, and is validated on the server as well as in the
-form. Break larger areas into several requests to stay within Open-Meteo usage
-limits.
+Administrators use **Admin → Data** at `/admin/data` to import NOAA CORe months
+into the PostgreSQL cache. The page selects 2022–2026 and one month per batch by
+default; 1950–1954 remains available, and the limit can be raised to 12 months.
+The recent window runs newest-first. Each month covers the fixed global 2° × 4°
+sampling grid, and the page explains that a month may take a while. Current and
+future months are excluded, completed months are skipped, and only an explicit
+CSRF-protected start begins a batch. The retired `/update` GET redirects to this
+page; POST requests receive HTTP 410 without invoking a provider or job.

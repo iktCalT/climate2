@@ -4,9 +4,10 @@
 <section class="data-note text-start">
     <div>
         <p class="eyebrow">Administrator tools</p>
-        <h1>Fetch a little. Resume anytime.</h1>
+        <h1>Fetch NOAA CORe a little at a time. Resume anytime.</h1>
         <p>Only the first and last five years are in scope: <strong>1950–1954</strong>
-            and <strong>2022–2026</strong>. Current and future months are excluded.</p>
+            and <strong>2022–2026</strong>. The recent window is selected by default.
+            Current and future months are excluded.</p>
         {% if climate_provider == "noaa_core" %}
         <p>Public Maps and Locations currently read saved NOAA CORe data only.
             This page adds NOAA rows to that same provider cache. Open-Meteo CMIP6
@@ -28,13 +29,14 @@
     <label for="import-window" class="form-label">Choose a five-year window</label>
     <select id="import-window" class="form-select mb-3">
         <option value="first">1950–1954 · oldest missing month first</option>
-        <option value="last">2022–2026 · newest missing month first</option>
+        <option value="last" selected>2022–2026 · newest missing month first (default)</option>
     </select>
     <label for="import-limit" class="form-label">Maximum months in this batch</label>
     <input id="import-limit" class="form-control mb-3" type="number" min="1" max="12" step="1" value="1" required>
-    <p class="text-muted">Start with one month. Each month covers the global grid
-        and may take a while. Completed months are skipped. Only one admin batch
-        can run at a time, and no batch starts automatically.</p>
+    <p class="text-muted">The default batch is one month. Each NOAA CORe month covers
+        the global 2° × 4° sampling grid (8,281 points) and may take a while.
+        Completed months are skipped. Only one admin batch can run at a time,
+        and no batch starts automatically.</p>
     <button id="import-start" class="btn btn-climate-primary" type="submit" disabled>Start / resume batch</button>
     <button id="import-refresh" class="btn btn-climate-secondary" type="button">Refresh status</button>
     <p id="import-message" class="mt-3" role="status" aria-live="polite"></p>

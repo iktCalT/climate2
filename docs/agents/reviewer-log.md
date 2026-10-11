@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-11 | ADMIN-UI-006 | NOAA Update-page retirement | done
+- Result: No reviewer blocker. Current database-backed admin checks guard `/update`, `/admin/data` and import API; GET `/update` only redirects, and POST returns 410 before provider or job calls. Selected `last`/one-month form values match the fixed NOAA service, which orders recent months newest-first, skips complete rows, excludes incomplete months and uses the shared lock. Legacy template/nav/Docker entry are removed; README, References and role guide match.
+- Check: Read-only diff, route/service/template/test/documentation inventory and `git diff --check` clean. QA reports 56 focused offline Python tests passed; not repeated. No browser, live provider/database or image build verification.
+- Next: Lead integration. Browser visual confirmation remains pending because the connection is unavailable.
+
 ## 2026-10-10 | REGRESSION-003 | setup schema layout assertion | done
 - Result: Focused correction is sound. The layout test still runs setup from a temporary off-root cwd and preserves prior path checks; it now expects the three `execute` calls in `setup_database.main()` and verifies the third SQL payload contains both location-fetch job and limit tables. These names match `sql/location_fetch.sql`; no production code changed.
 - Check: Read-only test/source/SQL inspection; `git diff --check` clean. QA evidence remains separate: initial Python discovery 230 total (221 pass, eight skips, one stale assertion failure), Node 36 pass; corrected `test_project_layout` 3 pass, zero skips/failures. No suites repeated.

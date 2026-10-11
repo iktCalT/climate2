@@ -4,6 +4,17 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-11 | ADMIN-UI-006 | NOAA admin workflow and defaults | done
+
+- Result: administrator GET `/update` now redirects to NOAA Data; legacy POST
+  returns 410 without acquisition. Recent 2022–2026 and one missing month are
+  preselected. Removed obsolete form/navigation/Docker exception; updated README,
+  References and role guide. Deleted template remains recoverable in Git.
+- Check: sequential implementation, 56 isolated offline tests and independent
+  review passed. Browser connection unavailable, so visual confirmation remains
+  pending. No live downloads, database changes, new dependencies or cloud work.
+- Next: Lead publishes `codex/noaa-update-defaults`; browser check when connected.
+
 ## 2026-10-10 | COORD-007 | concise handoff checkpoint | done
 
 - Result: condensed completed task scopes and own log, refreshed workspace and

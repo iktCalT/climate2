@@ -4,13 +4,34 @@ import sqlite3
 import tempfile
 import unittest
 from contextlib import closing
-from datetime import datetime
+from html.parser import HTMLParser
 from unittest.mock import patch
 
 from werkzeug.security import generate_password_hash
 
-from climate.web.app import MAX_ADMIN_PREFETCH_POINTS, app
+from climate.web.app import app
 from climate.cli.manage_users import set_admin_status
+
+
+class ImportFormParser(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.in_window = False
+        self.options = []
+        self.limit = None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "select" and attrs.get("id") == "import-window":
+            self.in_window = True
+        elif tag == "option" and self.in_window:
+            self.options.append((attrs.get("value"), "selected" in attrs))
+        elif tag == "input" and attrs.get("id") == "import-limit":
+            self.limit = attrs
+
+    def handle_endtag(self, tag):
+        if tag == "select":
+            self.in_window = False
 
 
 class AdminRoleTests(unittest.TestCase):
@@ -192,54 +213,81 @@ class AdminRoleTests(unittest.TestCase):
 
         self.assertEqual(response.status_code, 400)
 
-    def test_normal_user_cannot_see_or_open_manual_prefetch(self):
-        self.sign_in_as(self.create_user("member", False))
+    def test_update_and_admin_data_require_current_admin_for_get_and_post(self):
+        with patch("climate.web.app.start_import") as start, patch("climate.web.app.import_status") as status:
+            for path, method, expected in (("/update", "get", 302), ("/update", "post", 302),
+                                           ("/admin/data", "get", 302), ("/admin/data", "post", 405)):
+                with self.subTest(role="anonymous", path=path, method=method):
+                    self.assertEqual(getattr(self.client, method)(path).status_code, expected)
+            user_id = self.create_user("member", False)
+            self.sign_in_as(user_id)
+            for path, method, expected in (("/update", "get", 403), ("/update", "post", 403),
+                                           ("/admin/data", "get", 403), ("/admin/data", "post", 405)):
+                with self.subTest(role="member", path=path, method=method):
+                    self.assertEqual(getattr(self.client, method)(path).status_code, expected)
+            set_admin_status("member", True, self.user_database_path)
+            self.assertEqual(self.client.get("/admin/data").status_code, 200)
+            set_admin_status("member", False, self.user_database_path)
+            for path, method, expected in (("/update", "get", 403), ("/update", "post", 403),
+                                           ("/admin/data", "get", 403), ("/admin/data", "post", 405)):
+                with self.subTest(role="revoked", path=path, method=method):
+                    self.assertEqual(getattr(self.client, method)(path).status_code, expected)
+            start.assert_not_called()
+            status.assert_not_called()
 
-        home = self.client.get("/")
-        update = self.client.get("/update")
-
-        self.assertNotIn(b'href="/update"', home.data)
-        self.assertEqual(update.status_code, 403)
-
-    def test_admin_can_prefetch_a_bounded_grid(self):
+    def test_legacy_update_get_is_safe_and_post_never_starts_acquisition(self):
         self.sign_in_as(self.create_user("climateadmin", True))
-        today = datetime.today().strftime("%Y-%m-%d")
-        request_data = {
-            "lat_start": "10",
-            "lat_end": "11",
-            "n_lat": "2",
-            "lon_start": "20",
-            "lon_end": "21",
-            "n_lon": "2",
-            "date_start": "2020-01-01",
-            "date_end": today,
+        legacy_data = {
+            "lat_start": "10", "lat_end": "11", "n_lat": "2",
+            "lon_start": "20", "lon_end": "21", "n_lon": "2",
+            "date_start": "2020-01-01", "date_end": "2020-12-31",
         }
-        with patch("climate.web.app.get_data_locations", return_value=True) as prefetch:
-            form = self.client.get("/update")
-            response = self.client.post("/update", data=request_data)
+        with (patch("climate.web.app.start_import") as start,
+              patch("climate.web.app.import_status") as status,
+              patch("climate.providers.open_meteo.get_data_locations") as open_meteo,
+              patch("climate.providers.noaa_core.load_core_month") as noaa):
+            response = self.client.get("/update")
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.headers["Location"], "/admin/data")
+            with self.client.session_transaction() as session:
+                self.assertNotIn("import_csrf", session)
+            for data in (legacy_data, {"n_lat": "not-a-number"}, {}):
+                with self.subTest(data=data):
+                    rejected = self.client.post("/update", data=data)
+                    self.assertEqual(rejected.status_code, 410)
+                    self.assertIn(b"NOAA admin page", rejected.data)
+                    self.assertIn(b"/admin/data", rejected.data)
+            start.assert_not_called()
+            status.assert_not_called()
+            open_meteo.assert_not_called()
+            noaa.assert_not_called()
 
-        self.assertEqual(form.status_code, 200)
-        self.assertIn(str(MAX_ADMIN_PREFETCH_POINTS).encode(), form.data)
-        self.assertEqual(response.status_code, 302)
-        prefetch.assert_called_once()
-        self.assertEqual(prefetch.call_args.kwargs["lats"].size, 2)
-        self.assertEqual(prefetch.call_args.kwargs["lons"].size, 2)
-
-    def test_admin_prefetch_rejects_excessive_point_counts(self):
+    def test_rendered_noaa_defaults_submit_to_csrf_protected_api(self):
         self.sign_in_as(self.create_user("climateadmin", True))
-        today = datetime.today().strftime("%Y-%m-%d")
-        with patch("climate.web.app.get_data_locations") as prefetch:
-            response = self.client.post(
-                "/update",
-                data={
-                    "lat_start": "0", "lat_end": "1", "n_lat": str(MAX_ADMIN_PREFETCH_POINTS + 1),
-                    "lon_start": "0", "lon_end": "1", "n_lon": "1",
-                    "date_start": "2020-01-01", "date_end": today,
-                },
-            )
-
-        self.assertEqual(response.status_code, 400)
-        prefetch.assert_not_called()
+        with patch("climate.web.app.start_import") as start, patch("climate.web.app.import_status") as status:
+            page = self.client.get("/admin/data")
+            self.assertEqual(page.status_code, 200)
+            parser = ImportFormParser()
+            parser.feed(page.get_data(as_text=True))
+            self.assertEqual(parser.options, [("first", False), ("last", True)])
+            self.assertEqual({key: parser.limit[key] for key in ("type", "min", "max", "step", "value")},
+                             {"type": "number", "min": "1", "max": "12", "step": "1", "value": "1"})
+            self.assertIn("required", parser.limit)
+            self.assertEqual(page.data.count(b'href="/admin/data"'), 1)
+            self.assertNotIn(b'href="/update"', page.data)
+            self.assertNotIn(b"lat_start", page.data)
+            with self.client.session_transaction() as session:
+                token = session["import_csrf"]
+            payload = {"window": next(value for value, selected in parser.options if selected),
+                       "limit": int(parser.limit["value"])}
+            self.assertEqual(self.client.post("/api/admin/import", json=payload).status_code, 403)
+            start.assert_not_called()
+            start.return_value = {"started": True, "message": "Started"}
+            response = self.client.post("/api/admin/import", json=payload,
+                                        headers={"X-CSRF-Token": token})
+            self.assertEqual(response.status_code, 202)
+            start.assert_called_once_with("last", 1)
+            status.assert_not_called()
 
     def test_noaa_api_requires_current_admin_and_csrf(self):
         with patch("climate.web.app.start_import") as start, patch("climate.web.app.import_status") as status:
