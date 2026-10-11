@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full evidence:
 `git show 5b17b0d:docs/agents/lead-log.md`.
 
+## 2026-10-10 | REGRESSION-003 | combined offline checkpoint | done
+
+- Result: tested PR #87 base `bdfbef9` with temporary app state and disabled
+  PostgreSQL integration. Found and corrected only an outdated setup-count
+  assertion: off-root setup must execute all three scripts and include both
+  location-fetch tracking tables. Production code unchanged.
+- Check: initial Python discovery 230 total: 221 pass, eight expected skips,
+  one stale assertion; all 36 Node tests pass. Corrected layout module: three
+  pass. Full batches not repeated. Browser still disconnected, so no new
+  visual evidence or live database/provider/deployment operations.
+- Next: independent review clear; integration on `codex/offline-regression-oct10`.
+
 ## 2026-10-10 | LOCATION-UI-005 | compact seasonal chart headings | done
 
 - Result: all metric headings use two lines at 18px; provider/request/sample
