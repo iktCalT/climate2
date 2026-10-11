@@ -88,6 +88,14 @@ private data, or global caches. No automatic cleanup job is introduced.
 
 ## Indexed context and local cache cleanup
 
+Maintenance round COORD-007 (2026-10-10): implemented documentation-only refresh
+after PR #88 (`1d548e3`). Lead owns board, own log, workspace/completed-rounds
+notes, and correction of the stale error-artwork requirement status. Preserve
+unfinished browser checks, deferred hosting, test limits and Git recovery while
+removing repeated completed assignments. Other agents' logs, fixed REFACTOR,
+application files and local data/caches stay untouched. Validate local links,
+revisions, scope and whitespace; reuse completed tests rather than rerun them.
+
 Maintenance round COORD-005 (2026-10-01): implemented refresh after PR #70.
 The board had accumulated completed assignments and stale publication handoffs.
 Lead condensed it, indexed PRs #63–70, refreshed the dated workspace snapshot,
