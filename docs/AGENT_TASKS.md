@@ -5,10 +5,25 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**ADMIN-UI-007 — isolated browser confirmation of PR #90 (`8c8bb90`).**
+Lead owns this board and own log, browser checks and integration. QA owns a
+temporary loopback fixture and own log only: render real admin template/JS with
+labelled synthetic responses, no production app import, accounts, PostgreSQL,
+provider calls or real jobs. Verify defaults, explicit simulated start/status
+and desktop/narrow layout. No application changes or repeated offline suite.
+Remove no user artifacts; stop the fixture and reset browser overrides afterward.
+Result: connected in-app browser passed defaults, explicit simulated start,
+running/completed state and 1280/390/320px layout. Exactly one `last`/1 POST;
+opening made only a status GET. No console warnings/errors or horizontal overflow.
+This validates real templates/JS with synthetic responses, not live acquisition
+or authenticated browser sessions. Lead owns documentation publication.
+
+## Previous assignment (complete)
+
 **ADMIN-UI-006 — NOAA Update-page workflow and defaults.**
 Owner chose the existing monthly importer. Contract: first NEXT_REQUIREMENTS entry.
 Implementation, 56 focused offline tests and independent review are complete
-(2026-10-11); Lead owns publication. No live imports were started.
+(2026-10-11); merged in PR #90 (`8c8bb90`). No live imports were started.
 
 - Lead owns requirement/board and own log. Backend owns only `/update` route and
   dead imports/constants in app.py, old update template removal, admin_data and
@@ -29,8 +44,9 @@ evidence remains indexed, no repeat needed.
 
 ## Remaining verification
 
-- **ADMIN-UI-006:** visual confirmation of the NOAA admin-page defaults remains
-  pending; rendered-form, access-control and API checks passed offline.
+- **ADMIN-UI-006/007:** NOAA admin-page visual/default checks passed with simulated
+  responses; access-control and API checks passed offline in PR #90. No live
+  import or real administrator browser session was exercised.
 - **LOCATION-UI-005:** check the compact v8 chart at desktop and 320/390px widths,
   including all four metrics. Implemented/reviewed in PR #87; post-fix browser
   confirmation remains pending because the connection was absent.

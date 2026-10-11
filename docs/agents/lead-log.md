@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-11 | ADMIN-UI-007 | isolated NOAA admin browser check | done
+
+- Result: connected in-app browser verified real admin templates/JS with labelled
+  synthetic responses: recent/one-month defaults, explicit start, disabled start
+  while running, completion and refreshed coverage. Fixture recorded exactly one
+  `last`/1 POST; opening only read status.
+- Check: 1280/390/320px layouts fit viewport widths; labels/buttons readable,
+  no console warnings/errors. Narrow native select truncates its descriptive
+  suffix but retains the year window. Existing 56 tests not repeated.
+- Scope: no real authentication, NOAA, database or cleanup operation. Screenshot
+  kept outside Git; viewport reset, test tab closed and QA fixture stopped.
+
 ## 2026-10-11 | ADMIN-UI-006 | NOAA admin workflow and defaults | done
 
 - Result: administrator GET `/update` now redirects to NOAA Data; legacy POST
@@ -13,7 +25,7 @@ Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 - Check: sequential implementation, 56 isolated offline tests and independent
   review passed. Browser connection unavailable, so visual confirmation remains
   pending. No live downloads, database changes, new dependencies or cloud work.
-- Next: Lead publishes `codex/noaa-update-defaults`; browser check when connected.
+- Publication: PR #90 merged as `8c8bb90`; simulated browser follow-up above.
 
 ## 2026-10-10 | COORD-007 | concise handoff checkpoint | done
 
