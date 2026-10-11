@@ -1,6 +1,6 @@
 # Completed implementation rounds
 
-Index refreshed 2026-10-04 from main `ea5cd56` and agent handoffs. These are
+Index refreshed 2026-10-10 from main `1d548e3` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
@@ -8,6 +8,40 @@ PostgreSQL integration tests in full runs; focused counts are listed separately.
 No production database was used for these suites. Results below are historical,
 not tests rerun during the documentation refresh.
 
+- **REGRESSION-003, PR #88, `1d548e3`:** combined offline checkpoint at `bdfbef9`:
+  Python 230 total, 221 pass/eight integration skips/one stale setup-count
+  assertion; Node 36 pass. Corrected layout module three pass; no full rerun.
+  Temporary app state used; review clear. No runtime or live-data changes.
+- **LOCATION-UI-005 / COORD-006, PR #87, `bdfbef9`:** compact two-line chart
+  headings/cache v8; provider and coordinates remain in wrapping page context.
+  QA 92 focused passes, isolation correction 10 passes; review clear. Removed
+  three duplicate Cursor rules, retained policy in root AGENTS/project docs.
+  Post-fix desktop/narrow browser confirmation remains pending.
+- **LOCATION-FETCH-004, recorded in PR #87:** actual page/JS/chart, synthetic
+  labelled data, real browser: progress, 273/274 refresh, throttle/Retry and
+  274/274 completion passed. At 390px original title clipped (addressed by
+  LOCATION-UI-005). Unattributed MutationObserver error remains unisolated.
+  No live requests; fixture stopped, viewport reset, accidental fixture chart
+  recoverably moved from ignored app output to temporary storage.
+- **LOCATION-FETCH-003, PR #86, `6e4f4a8`:** exactly one live September 2026
+  NOAA month for requested (10, 10), sampled (10, 8): coverage 272→273/909,
+  finite/ordered/nonnegative readback and refreshed chart HTTP pass. No second
+  start or automatic live multi-month run; this is separate from synthetic UI QA.
+- **LOCATION-FETCH-002, PR #85, `bf480f6`:** explicit additive tracking schema
+  under shared lock, existing weather unchanged; local status/health pass.
+  Skipped broad setup because it also rebuilds the weather primary key.
+- **LOCATION-FETCH-001, PR #84, `9bd2143`:** bounded single-sample NOAA jobs,
+  durable attempt limits, shared import/cleanup lock, progressive chart refresh.
+  QA 96 Python/32 Node passes; slow-stream and cross-sample refresh corrections
+  independently cleared after 80 Python/six Node passes. Production opt-in;
+  no new dependency. Maps remain saved-data-only.
+- **COMMUNITY-002/003, PRs #82–83, `64e5cbf` / `268ea47`:** confirm before
+  forgetting local profile; preview unpublished pins across ready maps without
+  storage/network side effects. Eight then 15 focused Node passes, review clear.
+  Real-browser interactions remain unverified; clustering deferred.
+- **MAINT-001, `434395f`:** 69 verified merged remote task branches removed
+  using exact-tip leases. Unmatched branch and all local refs/worktrees/stashes
+  preserved. Historical inventory, not a claim about current remote branches.
 - **DEPLOY-003 / DEPLOY-004 / UI-002:** hosting comparison, portable production
   config/private state/proxy trust, exact-file container context, numeric wheel
   guard. Initial Python 211: 202 passed/eight PG skips/one static hardlink failure;
@@ -93,12 +127,15 @@ not tests rerun during the documentation refresh.
   Backend/QA/Review `*-001`, `*-002`, `REVIEW-003` assignments are complete.
   Final 133 Python tests and Node checks passed. No real account DB was moved.
 
-Recent rounds after PAGES-001 had no connected browser; passing offline tests
-does not establish visual behavior. See [data/map context](data-and-maps.md)
+Many rounds had no connected browser; LOCATION-FETCH-004's limited synthetic
+browser check is identified above. Offline tests do not establish visual behavior.
+See [data/map context](data-and-maps.md)
 for preserved audit limitations and [coordination history](coordination-history.md)
 for setup. Other agents retain ownership of their detailed logs.
 
 Recover pre-compaction task scopes and Lead evidence without transcript copies:
+`git show 1d548e3:docs/AGENT_TASKS.md` and
+`git show 1d548e3:docs/agents/lead-log.md` for PRs #75–88;
 `git show 5b17b0d:docs/AGENT_TASKS.md` and
 `git show 5b17b0d:docs/agents/lead-log.md` (latest compacted scopes);
 use revision `002223e` for earlier assignments.

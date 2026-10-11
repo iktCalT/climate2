@@ -5,344 +5,62 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
-**REGRESSION-003 — combined offline checkpoint (reviewed; base `bdfbef9`, PR #87).**
+**COORD-007 — concise handoff checkpoint (Lead, base `1d548e3` / PR #88).**
+Consolidate completed assignments and Lead notes into existing context files,
+correct stale status, preserve outstanding checks and recovery details.
+Allowed: this board, Lead log, workspace/completed-rounds notes, PROJECT_DIRECTION
+and the error-artwork status in NEXT_REQUIREMENTS. No other agent logs, runtime
+files, data, caches or fixed REFACTOR edits. Validate links, revisions and diff;
+no repeated application tests. No new implementation specialist assigned.
+Result: board and Lead log now 64 lines each; six Markdown files, 23 local links
+and 33 referenced commits validated. Diff whitespace clean; publication follows.
 
-- QA owns one combined Python/Node regression run and its own log. Inspect
-  test isolation first; use existing .venv, disabled PostgreSQL integration
-  flags, temporary output/session/account paths where needed. No live data,
-  provider requests, downloads, installs, migrations or production edits.
-- Report failures with exact reproduction and ownership; do not weaken tests.
-  Lead assigns any fixes separately. Reviewer checks new failures/corrections
-  only; do not duplicate a successful batch without a specific concern.
-- Lead owns board/log and integration. Browser remains unavailable on this
-  attempt, so desktop/mobile visual confirmation stays pending. Acceptance:
-  accurate pass/skip/failure totals and preserved real stores, not visual claims.
-- Initial batch: Python 230 total, 221 pass, eight expected integration skips,
-  one stale setup-script-count assertion; Node 36 pass. QA correction owns only
-  `tests/test_project_layout.py` and own log: require all three setup scripts,
-  explicitly assert the new location-fetch job/limit schema is executed from an
-  off-root working directory. Preserve existing assertions; rerun affected
-  checks only. Reviewer follows, read-only except own log. No runtime fix needed.
-- Correction complete: all three affected project-layout tests pass. Full
-  batches were not repeated; independent review clear. No application change.
+## Remaining verification
 
-## Previous implementation (merged in PR #87)
+- **LOCATION-UI-005:** check the compact v8 chart at desktop and 320/390px widths,
+  including all four metrics. Implemented/reviewed in PR #87; post-fix browser
+  confirmation remains pending because the connection was absent.
+- **COMMUNITY-002/003:** real-browser profile-forget confirmation and draft-pin
+  appearance/lifecycle remain unverified; offline tests passed. Use synthetic
+  profiles/pins only, never live publication merely to test the UI.
+- **LOCATION-FETCH-004:** one unattributed MutationObserver browser error remains
+  unisolated. No matching app call was found; do not call it an application bug
+  without evidence. Simulated fetch progress/refresh/throttle/Retry passed.
+- Actual container build, hosted operation, production load/security and opt-in
+  PostgreSQL integration tests are not established by offline checks.
+  These limitations are not permission to deploy or use live stores.
 
-**COORD-006 — remove redundant Cursor instructions (Lead, complete).** Inspected
-repository `.cursor/`, preserved guidance in PROJECT_DIRECTION and existing agent
-documents, removed its three tracked duplicate rules and empty directories.
-Verified exact removal and preserved role/attribution/secret rules; Git history
-provides recovery. No global editor state, caches or unrelated files touched.
+## Paused / deferred
 
-**LOCATION-UI-005 — responsive chart heading (implemented and reviewed).**
+**DEPLOY-005:** Google Cloud + Cloudflare hosting paused by owner on 2026-10-08.
+Do not resume cloud account, billing, domain, VM, DNS or data-transfer work until
+the owner resumes it. Prior authentication and billing/project verification were
+incomplete. Preserve local startup and portable production configuration.
+See [deployment requirements](NEXT_REQUIREMENTS.md#google-cloud-launch-with-a-portable-migration-path).
 
-- Lead owns design/requirements/board and own log; existing browser-check
-  documentation changes are retained on `codex/location-browser-check`.
-- Backend owns `climate/web/helpers.py`, the chart version in `climate/web/app.py`,
-  narrowly needed Locations template/CSS, README and References copy, own log.
-  Use a short two-line metric heading suitable for a 320px screen; preserve
-  provider and requested/sampled coordinates in wrapping page context. No new
-  resources, dependencies, calculations, fetching, database or unrelated UI edits.
-- QA follows: own chart/location tests and own log, using existing .venv and
-  temporary fake histories. Check all four metric headings, units, provider
-  context and chart cache invalidation. No live services.
-- Reviewer follows QA, read-only except own log; check regressions and escaping.
-- Lead then repeats isolated desktop/narrow browser check. Acceptance: no
-  clipped title, metric switching works, chart values/gaps unchanged. Keep the
-  unattributed browser console error separate unless evidence links this change.
-- Backend complete; QA: 92 focused offline tests pass, no failures/skips;
-  test-output isolation correction: 10 affected tests pass. Review clear.
-  In-app browser currently unavailable, so post-fix
-  320/390px visual confirmation remains pending, not an automated-test claim.
+Community clustering remains deferred until density/performance warrants it.
+Public comments stay disabled until operator configuration; implementation
+checks did not create a real administrator.
 
-## Previous browser verification
+## Latest completed checkpoint
 
-**LOCATION-FETCH-004 — real-browser isolated verification (complete).**
+**REGRESSION-003, PR #88 (`1d548e3`):** isolated Python discovery at `bdfbef9`
+ran 230 tests: 221 passed, eight expected PostgreSQL skips, one stale setup-count
+assertion failed. Corrected it to require all three SQL scripts and both
+location-fetch tables; three affected tests then passed. All 36 Node tests passed.
+Full batches were not repeated after correction; independent review clear.
+No application change, live provider/database operation or new visual claim.
 
-- QA owns a disposable loopback fixture using real Locations/layout/CSS/JS
-  and deterministic simulated fetch states, plus own log. No production edits,
-  database connections, provider requests, account/session files or dependency
-  installs. Use a private temporary directory and exact static asset allowlist.
-- Lead then owns browser operation as an explicit verification exception:
-  inspect progress, success/chart replacement, throttle/retry, and narrow layout.
-  Keep simulated data visibly labelled; do not mistake it for live validation.
-- Acceptance: observed UI states and screenshots; report actual defects for
-  bounded assignment. Stop fixture and restore temporary viewport after testing.
-- Result: real browser observed running, refreshed 273/274 coverage, throttle,
-  Retry, then 274/274 completion with refreshed chart. No live provider/database
-  work. At 390px the page fits, but the chart title clips inside its iframe.
-  Fixture stopped and viewport reset. Follow-up: responsive chart heading
-  (planned in NEXT_REQUIREMENTS); production implementation not started.
-  One unattributed MutationObserver console error needs source isolation before
-  assigning blame to application code; no such call found in app sources.
+Details: [completed rounds](agents/context/completed-rounds.md),
+[QA log](agents/qa-log.md), [reviewer log](agents/reviewer-log.md).
+Completed handoffs are history, not instructions to redo the work.
 
-## Previous verification
+## Recovery and scope
 
-**LOCATION-FETCH-003 — bounded live verification (Lead, complete).**
-
-- Scope: verify the requested acquisition path by submitting at most one
-  missing-month job for the example requested coordinates (10, 10), then read
-  status/cache/chart evidence. Keep existing resource and rate limits.
-- Lead owns this operational check and own log. No automatic continuation,
-  global-grid imports, cleanup, schema changes, unrelated stores or cloud work.
-  Use only the verified local climate database and loopback app. If verification
-  exposes a defect, record it and assign a scoped implementation separately.
-- Result: one POST fetched September 2026 for sample (10, 8). Coverage rose
-  from 272 to 273 of 909 months; PostgreSQL values are finite and ordered,
-  status is complete, and refreshed chart HTML returned HTTP 200. No subsequent
-  fetch was submitted. Real-browser visual/polling behavior remains unverified.
-
-## Previous activation
-
-**LOCATION-FETCH-002 — local activation (Lead, complete).**
-
-- Scope: continuing the owner's missing-location-data request, verify the local
-  climate database, apply only `sql/location_fetch.sql` under the shared lock,
-  and verify status via local HTTP without starting provider work. Lead owns
-  this operational exception and coordination documents; no code edits needed.
-- Do not rerun the full legacy schema migration, rewrite weather rows, alter
-  account/community stores, start a historical batch, or provision cloud resources.
-- Start the climate2 development app only on a verified free loopback port;
-  do not stop unrelated processes. Record readiness and remaining limitations.
-- Result: added only the two missing tracking tables under the shared lock;
-  no weather rows changed. Local health, rendered controls and read-only status
-  passed. Tracking tables remain empty: no provider job started. Native dev
-  server launched without debugger/reloader; cloud deployment remains paused.
-- Live NOAA downloads and real-browser appearance remain unverified. Existing
-  legacy account-path warning is unchanged; no account relocation in this task.
-
-## Previous implementation
-
-**LOCATION-FETCH-001 — cache-first NOAA location gap fetching (merged in PR #84).**
-
-- Lead owns requirement/architecture, board and own log. Contract: first entry
-  in NEXT_REQUIREMENTS. Owner explicitly requested missing-data acquisition.
-- Developer owns a bounded location-fetch service, narrowly necessary NOAA
-  single-sample persistence helpers, Locations routes/template/browser module,
-  SQL/setup integration, Docker exact-file allowlist, README/References and
-  operational documentation; own backend log. No unrelated map/community work.
-- QA then owns focused service/route/browser/provider tests and required static
-  inventory updates plus own log. Mock external requests; no live DB or fetching.
-- Reviewer follows QA, read-only except own log: abuse/resource bounds, strict
-  provider identity, cache preservation, cross-worker locking, failure/restart
-  behavior, UI progress and no implicit user-profile storage.
-- Acceptance: missing completed months requested progressively for one sample,
-  saved values retained, same-provider validated data only, bounded asynchronous
-  downloads with honest retry/throttle status. Maps remain saved-data-only.
-- New SQL is additive and explicit setup; no automatic live migration. Hosting
-  stays paused. Specialist owners must report significant design gaps to Lead.
-- Developer complete; QA passed 96 focused Python and 32 Node tests, zero
-  failures/skips. Reviewer found two blockers: slow response reads could exceed
-  the elapsed budget, and another sample taking the singleton job slot can
-  hide completion from the first page. Both corrected: bounded streamed reads
-  and coverage-driven chart refresh. QA correction batch: 80 focused Python
-  and six Node tests pass. Independent recheck clear; Lead owns publication.
-  No live PostgreSQL/NOAA, Docker build or real-browser verification performed.
-
-## Previous local improvement
-
-**COMMUNITY-003 — unpublished pin preview (merged in PR #83).**
-
-- Contract: first requirements entry. Lead owns plan, board and own log.
-- Developer explicitly owns frontend implementation in `static/community_pins.js`,
-  scoped CSS in `static/styles.css`, `templates/community_maps.html`, README and
-  own backend log. Existing files only; no server/dependency/cloud/data work.
-- QA next owns `tests/test_community_browser.mjs` and own log: valid/invalid
-  coordinates, multi-map load/remove lifecycle, pan/refresh preservation,
-  placement off, success/failure and no preview network/storage side effects.
-- Reviewer follows QA read-only except own log; focus marker lifecycle and
-  no posting/consent regression. Run focused Node checks, not full Python suite.
-- Acceptance: explicit unpublished state, typed/click coordinate parity,
-  distinct non-interactive markers on live maps, no hidden writes or downloads.
-- QA: 15 focused community Node tests pass, zero failures/skips, including
-  delayed readiness, invalid coordinates, lifecycle and explicit publication.
-  Independent scoped review clear; real-browser appearance remains unverified.
-  No new resources, backend changes or live-store/cloud operations. Lead owns
-  publication; no additional implementation task assigned this round.
-
-## Previous local improvement
-
-**COMMUNITY-002 — confirm forgetting a local profile (merged in PR #82).**
-
-- Lead owns requirements, board and own log. Developer owns only
-  `static/community_profile.js`, necessary copy in `templates/community_profile.html`,
-  README and own backend log; frontend scope explicitly assigned.
-- QA follows Developer: own focused Node profile tests and own log, cancel and
-  accept cases including failure behavior; no production edits or live stores.
-- Reviewer follows QA: scoped read-only review except own log. No full suite
-  repeat for this small browser-only change; no new dependency or cloud action.
-- Acceptance: cancellation has no storage/active-state side effects; confirmation
-  preserves prior success/failure behavior and warns public pins remain. Native
-  keyboard-accessible confirmation; provider-neutral, no server behavior change.
-- QA: eight focused community Node tests pass, no failures/skips; final scoped
-  review clear. No full-suite repeat, cloud action or live-store access. No
-  additional task assigned; future hosting remains paused.
-
-## Paused deployment
-
-**DEPLOY-005 — Google Cloud + Cloudflare launch (paused by owner 2026-10-08).**
-
-- Owner: Lead for account/project/hostname discovery, architecture and planning
-  documents; no implementation specialist assigned until deployment inputs are
-  known. Scope remains climate2 only; no other repositories or cloud workloads.
-- Contract: Google Cloud launch entry in [requirements](NEXT_REQUIREMENTS.md). User chose
-  Google Cloud temporarily and requested a later portable migration.
-- Check: CLI exists and lists a saved account/project, but the first remote
-  project read fails because reauthentication is required. Billing/credit not
-  verified; no cloud resources, data transfers or DNS changes performed.
-- Next: no action until owner resumes. Keep future deployment in mind during
-  local programming; preserve production configuration and native startup.
-
-## Previous maintenance
-
-**MAINT-001 — merged GitHub branch cleanup (Lead, complete).**
-
-- Owner/scope: Lead verifies climate2 remote refs and merged PRs, deletes only
-  matching unprotected task tips with explicit leases, updates direction/board
-  and own log. No application changes or specialist work needed.
-- Preserve `main`, open-PR branches, unmatched/changed tips, local worktrees,
-  branches, tags and recovery stashes. Acceptance: remote inventory confirms
-  only verified obsolete refs removed; no application test rerun needed.
-- DEPLOY-004 below was published in PR #80 (`29c3fd7`); its handoffs are historical.
-- Result: removed 69 matching merged task branches with an atomic, leased push.
-  Verified remaining refs: `main` and unmatched `codex/record-scale-compare-plans`.
-  Local branches/worktrees/stashes/tags unchanged; merged PR heads preserve
-  recovery information. No repository settings or application behavior changed.
-
-## Previous implementation
-
-**DEPLOY-004 / UI-002 — portable production foundation and numeric wheel guard (reviewed; Lead publication).**
-
-- Contract: first entry in [requirements](NEXT_REQUIREMENTS.md). Preserve all
-  pending DEPLOY-003 documentation, citation and QA changes in this checkout.
-- Developer owns production configuration/launch/container files, `climate/paths.py`,
-  narrowly necessary `climate/web/` integrations, shared numeric-input JS and
-  layout, plus operational docs/README/References citations and own log. No
-  data/provider algorithms, schema migrations, account redesign or hosting actions.
-- Lead owns requirements, board, architecture decisions and own log. Developer
-  may propose scope changes, not silently expand. No model/agent fan-out.
-- QA owns new deployment/number-input tests, necessary existing test updates and
-  own log after Developer hands off; tests before fixes, isolated temporary stores.
-  Run combined offline Python and Node once, focused reruns for corrections.
-- Reviewer follows QA: read-only correctness/security review except own log.
-  Focus production default-deny paths/image context, proxy spoofing, host validation,
-  no local regression, persistent state and accessible wheel handling.
-- Acceptance: local startup retained; production config/container assets provided
-  without claiming deployment/build/browser tests that weren't possible. No
-  credentials or live stores touched. Provider choice remains open.
-- Developer handoff: production/private-state/proxy settings, optional container,
-  stable generated asset URLs and number wheel guard implemented. Focused
-  isolated smokes pass; Docker and real-browser verification unavailable. QA
-  now owns `tests/test_deployment.py`, `tests/test_number_wheel_guard.mjs`, exact
-  source inventory in `tests/test_content_pages.py`, only necessary existing
-  assertion updates and own log; no production edits.
-- QA batch: Python 211 total, 202 passed/eight PG skips/one failure; Node 20
-  passed. Temporary private file hard-linked into general static was downloadable.
-  Developer now owns only the narrow production static-file guard correction and
-  own log; preserve development assets and all QA assertions. QA reruns focused
-  deployment/content/private-storage tests afterwards, then Reviewer audits.
-- Correction verified: all 29 deployment/content/private-storage tests pass,
-  no skips; production static requires single-link regular files. The combined
-  batch was not repeated; prior Node 20 remains valid. Reviewer now owns review
-  only plus own log, no production/test edits or repeated full tests.
-- Review blockers (2026-10-04): unknown `CLIMATE_ENV` values still select local
-  account storage in CLI resolution; broad negated parent directories in
-  `.dockerignore` re-include private descendants. Nothing has been built/pushed.
-  Require shared strict mode validation and an auditable exact-file image-context
-  allowlist, followed by regression tests for effective inclusion/exclusion.
-- Corrections implemented: 64 literal runtime-file exceptions, no directory or
-  wildcard exceptions; shared mode validation precedes CLI path selection. QA
-  now owns focused allowlist/CLI regressions and the two Moby citation inventory
-  additions; no production edits or full-suite repeat. Reviewer verifies next.
-- Final correction QA: 58 focused deployment/content/private-storage/account CLI
-  tests pass, zero failures/skips. Effective literal allowlist and invalid-mode
-  no-write regressions included; final independent review in progress. Actual
-  image build and hosted/browser checks remain unavailable, not implied passes.
-- Reviewer cleared both corrections without a new blocker. Lead owns only final
-  documentation, secret scanning and authorized climate2 publication. All
-  specialists have handed off; no other backlog work is assigned this round.
-
-## Prior assessment
-
-**DEPLOY-003 — hosting options assessment (complete locally; provider decision pending).**
-
-- Owner: Lead / Architect. Compare official pricing, operations burden and
-  required changes while preserving native local development.
-- Allowed files: deployment comparison, documentation index, requirements,
-  this board, Lead log and README. Citation-only addition to References is an
-  explicit documentation exception; no redesign or application behavior edits.
-- Acceptance: dated source-backed options; estimates distinguished from prices;
-  private SQLite/PostgreSQL persistence, sessions, proxy and import constraints;
-  no provider selected, purchases, deployment or live data operations.
-- Validation: source/evidence consistency, local links, template parsing and
-  whitespace checks. No repeat full regression for this documentation task.
-- QA follow-up: own only `tests/test_content_pages.py` and own QA log. Add the
-  eleven newly cited official deployment URLs to the exact reference inventory
-  (preserve existing URLs/assertions), then run the offline content-page suite.
-  No app/database/provider operations or unrelated edits. Hand back to Lead.
-- Result: [comparison](DEPLOYMENT_OPTIONS.md) saved and linked. Eleven official
-  research URLs mirrored in README/References; QA updated the exact inventory.
-  All 12 focused content-page tests pass, with no skips. Jinja syntax, local
-  links, credit parity, example arithmetic and whitespace checks pass. No full
-  regression repeat, deployment, purchases or GitHub publication this round.
-
-## Previous checkpoint
-
-**REGRESSION-002 — combined deployment-feature checkpoint (reviewed; Lead integration).**
-Base `083ead5` (merged PR #78), branch `codex/deployment-regression-checkpoint`.
-
-- QA: run the documented offline Python discovery and all map/community Node
-  suites once; inspect isolation before running, report exact counts/skips and
-  real regressions. Write only own log; no production/test edits unless Lead
-  assigns a reproduced failure separately. No live database, provider or account
-  operations. Existing tests use mocked/temporary data; do not enable PG opt-ins.
-- Lead: board, own log, workspace/completed-rounds context and verification
-  evidence. No feature implementation. Browser inventory is empty and native
-  connection failed; listed browser skill file unavailable. Do not claim visual
-  verification. Hosting target requested from owner, not assumed.
-- Reviewer: inspect checkpoint evidence/documentation read-only except own log;
-  do not repeat unchanged suites. Developer only if a confirmed fix is assigned.
-- Acceptance: fresh combined results covering UI/community and terminal-admin
-  rounds, accurate limitations, concise handoff. No app/References/dependency,
-  deployment configuration or permission changes.
-
-## Verification result
-
-QA ran the documented offline batch once at `083ead5` on 2026-10-02:
-Python **204 total: 196 passed, eight expected PostgreSQL skips**, no failures;
-Node **18 passed**, none skipped or failed. The skips are three cleanup, one
-availability and four weather integration tests. See the newest
-[QA handoff](agents/qa-log.md) for exact commands and isolation limitations.
-
-No production or test changes were needed. Legacy account-path warnings,
-SQLite ResourceWarnings and expected mocked-failure logs appeared. Inherited
-filesystem sessions remain incompletely isolated. These results do not establish
-browser appearance, live PostgreSQL, proxy behavior or deployment readiness.
-Lead is finishing the documentation checkpoint on 2026-10-03 without rerunning
-unchanged suites.
-Independent evidence review is clear; no remaining checkpoint blocker.
-
-## Completed features
-
-- DEPLOY-002, PR #78 (`083ead5`): terminal-only administrator provisioning,
-  private storage, hidden input, atomic creation. Final 27 focused tests passed;
-  independent review clear. No real administrator was created.
-- UI-001 / DEPLOY-001 / COMMUNITY-001, PR #77 (`1ed0b65`): concise public pages,
-  closed registration, world map, opt-in local profile/public pins. Previous
-  batch 192 total: 182 passes/eight skips/two errors, both corrected. Latest
-  focused 22 and Node 18 passed; the combined checkpoint above supersedes that
-  earlier verification limitation.
-- Contracts are in [requirements](NEXT_REQUIREMENTS.md), with deployment,
-  moderator provisioning and remaining limits in [community](COMMUNITY.md).
-  Community stays disabled until configured; clustering is deferred.
-
-Earlier scopes/results: [completed rounds](agents/context/completed-rounds.md).
-Full previous board: `git show 083ead5:docs/AGENT_TASKS.md`.
-
-## Recovery and limitations
-
-Retain both recovery stashes: `climate2 REGRESSION-001 checkpoint before README demo request`
+Retain both stashes: `climate2 REGRESSION-001 checkpoint before README demo request`
 and `climate2 pre-layout working changes`. Do not reapply blindly.
 No caches, environments, databases or user data are scheduled for cleanup.
-Read [workspace](agents/context/workspace.md) before branching. Browser,
-deployment, live PostgreSQL and production load/security validation remain open.
+Read [workspace](agents/context/workspace.md) before branching; use local Meow-5
+identity and climate2 only. Removed Cursor rules remain recoverable in Git;
+guidance lives in root AGENTS.md and PROJECT_DIRECTION.
+Full prior board: `git show 1d548e3:docs/AGENT_TASKS.md`.

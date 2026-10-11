@@ -1357,7 +1357,9 @@ requested two-date comparison. No data was downloaded or deleted.
 
 ## 26. Original, publication-safe error artwork
 
-**Status:** Planned on 2026-09-24; recorded before implementation.
+**Status:** Implemented; verified in repository state `1d548e3` on 2026-10-10.
+The local `static/img/climate-error.png`, accessible HTML message/status and
+README/References credit already exist; this is a status correction, not new art.
 
 Replace the remote Memegen/Grumpy Cat error image because the inherited
 background's original-image licence is not established. Error pages must use a
