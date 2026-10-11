@@ -389,6 +389,19 @@ class ContentPageTests(unittest.TestCase):
             self.assertIn(other_copy, page)
             self.assertIn("imports do not", page)
 
+    def test_noaa_admin_guidance_matches_retired_update_route(self):
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text()
+        guide = (root / "docs/USER_ROLES.md").read_text()
+        references = self.get_page("/references")
+        for document in (readme, guide, references):
+            with self.subTest(document=document[:60]):
+                self.assertIn("2022–2026", document)
+                self.assertIn("/admin/data", document)
+                self.assertIn("one month", document)
+        self.assertIn("/update", guide)
+        self.assertIn("410", guide)
+
 
 if __name__ == "__main__":
     unittest.main()

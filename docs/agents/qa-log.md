@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-11 | ADMIN-UI-006 | NOAA update-route and default-form QA | done
+- Result: Replaced obsolete Open-Meteo prefetch tests with current-role GET/POST access, safe legacy GET redirect and 410 POST no-call checks. Parsed the rendered NOAA form, submitted selected recent/one-month values through the CSRF API, and checked documentation and removed-template Docker inventory. Flask rejects POST `/admin/data` with 405 before route authentication. No production edits.
+- Check: Isolated offline unittest batch (`test_admin_roles`, `test_admin_import`, `test_content_pages`, `test_deployment`, `test_private_account_storage`): 56 passed. Temporary session/account/community/chart/image paths, PostgreSQL integration flags disabled, provider and job starts mocked; `git diff --check` passed. Expected mocked cleanup error was logged. No live data, browser or image build.
+- Next: Reviewer audits ADMIN-UI-006; browser visual confirmation remains unavailable.
+
 ## 2026-10-10 | REGRESSION-003 | combined offline checkpoint | done
 - Result: Ran full unittest discovery with an in-process temporary path setup: patched Flask-Session's default before app import, then redirected account, community, session, chart and image paths under a `TemporaryDirectory`. Corrected the stale project-layout assertion to require three setup scripts and both location-fetch tables in the third.
 - Check: `DATABASE_URL=` with PostgreSQL test flags zero and bytecode disabled; full Python discovery: 230 run, 221 passed, eight skipped, one stale assertion failure. `node --test tests/test_*.mjs`: 36 passed. Isolated rerun of `tests.test_project_layout` with the same temporary paths: 3 passed, zero skips/failures. No live database/provider/network or browser.

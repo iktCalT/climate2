@@ -5,18 +5,32 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
-**COORD-007 — concise handoff checkpoint (Lead, base `1d548e3` / PR #88).**
-Consolidate completed assignments and Lead notes into existing context files,
-correct stale status, preserve outstanding checks and recovery details.
-Allowed: this board, Lead log, workspace/completed-rounds notes, PROJECT_DIRECTION
-and the error-artwork status in NEXT_REQUIREMENTS. No other agent logs, runtime
-files, data, caches or fixed REFACTOR edits. Validate links, revisions and diff;
-no repeated application tests. No new implementation specialist assigned.
-Result: board and Lead log substantially shortened; six Markdown files, 23 local links
-and 33 referenced commits validated. Diff whitespace clean; publication follows.
+**ADMIN-UI-006 — NOAA Update-page workflow and defaults.**
+Owner chose the existing monthly importer. Contract: first NEXT_REQUIREMENTS entry.
+Implementation, 56 focused offline tests and independent review are complete
+(2026-10-11); Lead owns publication. No live imports were started.
+
+- Lead owns requirement/board and own log. Backend owns only `/update` route and
+  dead imports/constants in app.py, old update template removal, admin_data and
+  layout templates, Docker exact-file allowlist, README/References/USER_ROLES and
+  own log. Keep `/admin/data` security, import service and cleanup unchanged.
+- QA then owns admin-role/import/content and narrowly affected tests plus own
+  log. Verify both GET/POST access controls, safe redirect, legacy POST rejection
+  with no acquisition, selected recent window/one-month default, existing CSRF
+  API behavior and removed-template inventory. Temporary app/account/session
+  state and mocked downloads only. No test weakening or production edits.
+- Reviewer follows read-only except own log: source identity, no accidental
+  downloads, authentication/CSRF, documentation/defaults parity.
+- No live data/cloud operations or new dependencies. Existing browser connection
+  absent; report missing visual verification rather than claiming a pass.
+
+Previous COORD-007 handoff cleanup merged in PR #89 (`3cc6534`); historical
+evidence remains indexed, no repeat needed.
 
 ## Remaining verification
 
+- **ADMIN-UI-006:** visual confirmation of the NOAA admin-page defaults remains
+  pending; rendered-form, access-control and API checks passed offline.
 - **LOCATION-UI-005:** check the compact v8 chart at desktop and 320/390px widths,
   including all four metrics. Implemented/reviewed in PR #87; post-fix browser
   confirmation remains pending because the connection was absent.

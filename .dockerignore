@@ -49,7 +49,6 @@
 !templates/profile.html
 !templates/references.html
 !templates/register.html
-!templates/update.html
 !static/community_pins.js
 !static/community_profile.js
 !static/favicon.ico

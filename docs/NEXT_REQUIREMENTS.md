@@ -1,5 +1,27 @@
 # Next requirements
 
+## Replace the legacy Update page with NOAA monthly defaults
+
+**Status:** Implemented and reviewed 2026-10-11; ADMIN-UI-006 (planned 2026-10-10).
+Owner explicitly chose the existing NOAA monthly workflow instead of preserving
+the Open-Meteo point-grid fields. All 56 focused offline tests passed; browser
+visual confirmation remains pending because the connection was unavailable.
+
+The screenshot's `/update` form still downloads Open-Meteo and has empty inputs.
+Make authenticated administrator GET `/update` lead to `/admin/data`, selecting
+the recent 2022–2026 window and one missing month per batch. Existing oldest
+1950–1954 window remains selectable. Keep fixed global NOAA sampling, newest-first
+recent imports, completed-month skipping, current/future month exclusion,
+shared lock and CSRF-protected explicit start. No automatic download on opening.
+
+Reject legacy POST `/update` without provider calls or job starts, with a clear
+message to use the NOAA page. Remove the obsolete form and duplicate navigation;
+keep CLI Open-Meteo tools and historical source rows unchanged. Update README,
+website References and administrator guide accurately. No cleanup behavior,
+database migration, live downloads, new external resources or cloud work.
+Validate administrator access, redirect/rejected POST, default selections and
+API payloads with isolated tests and mocks; browser-check if connected.
+
 ## Responsive location chart heading
 
 **Status:** Implemented and reviewed 2026-10-10 (LOCATION-UI-005).

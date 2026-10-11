@@ -191,6 +191,8 @@ class ProductionConfigurationTests(unittest.TestCase):
         for folder, suffix in (("climate", "*.py"), ("sql", "*.sql"), ("templates", "*.html")):
             required.update(str(path.relative_to(ROOT)) for path in (ROOT / folder).rglob(suffix))
         self.assertTrue(required <= allowed, sorted(required - allowed))
+        self.assertFalse((ROOT / "templates/update.html").exists())
+        self.assertNotIn("templates/update.html", allowed)
         self.assertTrue(all(name.startswith(("climate/", "sql/", "templates/", "static/"))
                             or name in {"Dockerfile", "requirements.txt", "requirements-prod.txt",
                                         "gunicorn.conf.py", "app.py"} for name in allowed))
