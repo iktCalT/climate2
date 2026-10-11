@@ -4,8 +4,9 @@
 
 **Status:** Implemented and reviewed 2026-10-11; ADMIN-UI-006 (planned 2026-10-10).
 Owner explicitly chose the existing NOAA monthly workflow instead of preserving
-the Open-Meteo point-grid fields. All 56 focused offline tests passed; browser
-visual confirmation remains pending because the connection was unavailable.
+the Open-Meteo point-grid fields. All 56 focused offline tests passed. Subsequent
+ADMIN-UI-007 browser checks passed using real templates/JS and simulated job
+responses at desktop and 390/320px widths; no live import or database was used.
 
 The screenshot's `/update` form still downloads Open-Meteo and has empty inputs.
 Make authenticated administrator GET `/update` lead to `/admin/data`, selecting

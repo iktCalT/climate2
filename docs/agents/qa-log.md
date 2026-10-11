@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-11 | ADMIN-UI-007 | isolated NOAA admin browser fixture | done
+- Result: Disposable loopback Flask fixture renders the real admin/layout templates with a prominent SIMULATED DATA banner. No production app, account, session, database or provider import. Only three exact public assets are served; cleanup GET/POST return 404. In-memory evidence shows page opening made no POST, and the explicit start made exactly one `{window: last, limit: 1}` POST; status then completed 1/1.
+- Check: Python syntax and isolated Flask test-client assertions passed, including defaults, no session cookie, static denial and disabled cleanup. Lead reports 1280/390/320px layout without horizontal overflow, readable controls and no console warnings/errors. No live service, provider, database, full suite or Git action.
+- Next: Lead owns integration. Desktop screenshot retained in the private temporary fixture directory; fixture stopped after browser tab closure and viewport reset. This checks simulated template/JS behavior, not live authentication or import.
+
 ## 2026-10-11 | ADMIN-UI-006 | NOAA update-route and default-form QA | done
 - Result: Replaced obsolete Open-Meteo prefetch tests with current-role GET/POST access, safe legacy GET redirect and 410 POST no-call checks. Parsed the rendered NOAA form, submitted selected recent/one-month values through the CSRF API, and checked documentation and removed-template Docker inventory. Flask rejects POST `/admin/data` with 405 before route authentication. No production edits.
 - Check: Isolated offline unittest batch (`test_admin_roles`, `test_admin_import`, `test_content_pages`, `test_deployment`, `test_private_account_storage`): 56 passed. Temporary session/account/community/chart/image paths, PostgreSQL integration flags disabled, provider and job starts mocked; `git diff --check` passed. Expected mocked cleanup error was logged. No live data, browser or image build.
