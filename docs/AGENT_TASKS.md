@@ -5,6 +5,28 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Current assignment
 
+**LOCATION-UI-006 — compact location-chart browser confirmation.**
+Lead owns board, own log and browser checks. QA owns only a disposable loopback
+fixture and own log: real Locations template/chart helper, labelled synthetic
+values, temporary chart output, no application/DB/account/provider imports or
+live fetching. Check four metrics at desktop and 390/320px, readable compact
+titles/context and metric switching. Do not repeat prior suites or edit production
+code; report defects for assignment. Reset viewport and stop fixture afterward.
+
+Browser finding: compact titles fit, but the season legend wraps upward into
+them at 390/320px. LOCATION-UI-007 now owns this bounded correction: Backend
+may edit chart layout in `climate/web/helpers.py`, chart cache version only in
+`climate/web/app.py`, README/References description if needed, and own log.
+Preserve calculations/source/fetch behavior. QA follows with focused chart/cache
+tests (temporary outputs only), then Reviewer audits; Lead repeats browser
+checks. Record: first NEXT_REQUIREMENTS entry. No new dependencies or live data.
+Current result: v9 layout passes all four metrics at 1280/390/320px in the
+synthetic browser fixture; QA's 56 focused offline tests pass. Independent review
+clear; Lead owns publication. Test tab closed and viewport reset; no listener
+remained on fixture port 5012 at the final check.
+
+## Previous browser assignment (complete)
+
 **ADMIN-UI-007 — isolated browser confirmation of PR #90 (`8c8bb90`).**
 Lead owns this board and own log, browser checks and integration. QA owns a
 temporary loopback fixture and own log only: render real admin template/JS with
@@ -16,7 +38,7 @@ Result: connected in-app browser passed defaults, explicit simulated start,
 running/completed state and 1280/390/320px layout. Exactly one `last`/1 POST;
 opening made only a status GET. No console warnings/errors or horizontal overflow.
 This validates real templates/JS with synthetic responses, not live acquisition
-or authenticated browser sessions. Lead owns documentation publication.
+or authenticated browser sessions. Published in PR #91 (`8347909`).
 
 ## Previous assignment (complete)
 
@@ -47,15 +69,15 @@ evidence remains indexed, no repeat needed.
 - **ADMIN-UI-006/007:** NOAA admin-page visual/default checks passed with simulated
   responses; access-control and API checks passed offline in PR #90. No live
   import or real administrator browser session was exercised.
-- **LOCATION-UI-005:** check the compact v8 chart at desktop and 320/390px widths,
-  including all four metrics. Implemented/reviewed in PR #87; post-fix browser
-  confirmation remains pending because the connection was absent.
+- **LOCATION-UI-005/006/007:** compact titles and the corrected v9 legend pass
+  desktop and 320/390px browser checks for all four metrics with synthetic data.
 - **COMMUNITY-002/003:** real-browser profile-forget confirmation and draft-pin
   appearance/lifecycle remain unverified; offline tests passed. Use synthetic
   profiles/pins only, never live publication merely to test the UI.
 - **LOCATION-FETCH-004:** one unattributed MutationObserver browser error remains
   unisolated. No matching app call was found; do not call it an application bug
-  without evidence. Simulated fetch progress/refresh/throttle/Retry passed.
+  without evidence. It recurred during LOCATION-UI-006, without a source URL.
+  Simulated fetch progress/refresh/throttle/Retry passed.
 - Actual container build, hosted operation, production load/security and opt-in
   PostgreSQL integration tests are not established by offline checks.
   These limitations are not permission to deploy or use live stores.

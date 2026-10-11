@@ -2,6 +2,16 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-11 | LOCATION-UI-007 | wrapped chart legend | done
+- Result: Updated chart layout assertions for title y=0.75, below-plot legend position/anchor, and 145px bottom margin. Updated cache regression to prove v8 charts redraw as v9 and v9 is reused; preserved existing data, units, visibility, and coverage checks.
+- Check: Isolated focused batch (`test_chart_rendering`, `test_locations_route`): 56 passed, zero skips/failures. Temporary user/community/session/chart/image paths and empty `DATABASE_URL`; PostgreSQL flags disabled. No provider calls or live database. Content assertions not needed for this layout/cache change.
+- Next: Reviewer and Lead own their assigned follow-up; existing LOCATION-UI-006 fixture remains running for Lead's browser check.
+
+## 2026-10-11 | LOCATION-UI-006 | compact chart browser fixture | blocker found
+- Result: Disposable loopback fixture renders actual Locations/layout templates and current Plotly helper with 36 synthetic months, all four metrics, a prominent simulation banner and fetching disabled. Lead's browser inspection found the 390px legend wraps to two rows and overlaps the compact title; at 320px, four legend rows overlap titles for all four metrics. Desktop titles, metric switching and units work. Production fix belongs to Backend.
+- Check: In-memory syntax/test-client/allowlist assertions passed. Only three public assets and the temporary chart are served; no session cookie, provider, database, account or live fetch. No full suite or Git action.
+- Next: Fixture remains running for post-fix recheck. Regenerate its temporary chart after renderer edits, then hard-refresh the page; Lead owns browser evidence.
+
 ## 2026-10-11 | ADMIN-UI-007 | isolated NOAA admin browser fixture | done
 - Result: Disposable loopback Flask fixture renders the real admin/layout templates with a prominent SIMULATED DATA banner. No production app, account, session, database or provider import. Only three exact public assets are served; cleanup GET/POST return 404. In-memory evidence shows page opening made no POST, and the explicit start made exactly one `{window: last, limit: 1}` POST; status then completed 1/1.
 - Check: Python syntax and isolated Flask test-client assertions passed, including defaults, no session cookie, static denial and disabled cleanup. Lead reports 1280/390/320px layout without horizontal overflow, readable controls and no console warnings/errors. No live service, provider, database, full suite or Git action.

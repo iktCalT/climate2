@@ -44,9 +44,12 @@ class ChartRenderingTests(unittest.TestCase):
             figure.layout.title.text, "Seasonal<br>Mean temperature"
         )
         self.assertEqual(figure.layout.title.font.size, 18)
-        self.assertEqual(figure.layout.title.y, 0.80)
+        self.assertEqual(figure.layout.title.y, 0.75)
         self.assertEqual(figure.layout.title.yanchor, "middle")
         self.assertEqual(figure.layout.height, 680)
+        self.assertEqual(figure.layout.legend.y, -0.28)
+        self.assertEqual(figure.layout.legend.yanchor, "top")
+        self.assertEqual(figure.layout.margin.b, 145)
         self.assertEqual(figure.layout.yaxis.title.text, "Temperature (°C)")
         self.assertFalse("yaxis2" in figure.layout)
 

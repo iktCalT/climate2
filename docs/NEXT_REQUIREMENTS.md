@@ -1,5 +1,22 @@
 # Next requirements
 
+## Keep chart titles and wrapped season legends separate
+
+**Status:** Implemented 2026-10-11; LOCATION-UI-007, discovered in LOCATION-UI-006.
+Legend moved below the plot with reserved bottom space; title lowered to avoid
+the metric selector when Plotly adjusts the margins. Cache v9 replaces v8 on
+the next page request. All 56 focused offline tests passed. Real-browser checks
+of all four metrics at 1280/390/320px passed using synthetic values: title, menu
+and legend fit without overlap or horizontal overflow. Independent review clear.
+The compact title fits at 390/320px, but the horizontal legend wraps upward
+into it (two rows at 390px, four at 320px). Keep all four season labels, metric
+selector, compact title, axis units and plot readable without overlap at desktop
+and phone widths. Use a bounded Plotly layout correction and advance the chart
+cache version so existing renders refresh. Preserve seasonal calculations,
+coverage/hover details, metric switching, source context and fetching behavior.
+No new dependency, data operation or chart-library rewrite. Verify with focused
+offline layout/cache tests and the existing synthetic browser fixture.
+
 ## Replace the legacy Update page with NOAA monthly defaults
 
 **Status:** Implemented and reviewed 2026-10-11; ADMIN-UI-006 (planned 2026-10-10).
@@ -28,8 +45,9 @@ API payloads with isolated tests and mocks; browser-check if connected.
 **Status:** Implemented and reviewed 2026-10-10 (LOCATION-UI-005).
 Uses an 18px two-line seasonal/metric title for all four variables. Existing
 wrapping page context retains provider and requested/sampled coordinates.
-Chart cache version advanced to v8. Focused offline checks pass; the in-app
-browser is unavailable this round, so post-fix visual confirmation is pending.
+Chart cache version advanced to v8. Focused offline checks passed; the later
+LOCATION-UI-006 browser check confirmed titles fit but exposed wrapped-legend
+overlap. LOCATION-UI-007 above corrects that overlap and advances to v9.
 
 The real chart renderer's long, fixed-size SVG title clips on narrow screens.
 At a 390px viewport the isolated synthetic chart had a 366px iframe and an
