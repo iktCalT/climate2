@@ -240,6 +240,25 @@ class ContentPageTests(unittest.TestCase):
                 else:
                     self.assertIn("model outputs, not direct station observations", references)
 
+    def test_community_optional_messages_entry_and_fixed_ownership_guidance_stay_aligned(self):
+        root = Path(__file__).resolve().parents[1]
+        readme = (root / "README.md").read_text()
+        guide = (root / "docs/COMMUNITY.md").read_text()
+        references = self.get_page("/references")
+        for document in (readme, guide, references):
+            with self.subTest(document="community guidance"):
+                lowered = document.lower()
+                self.assertIn("optional", lowered)
+                self.assertIn("30 days", document)
+                self.assertTrue(any(phrase in lowered for phrase in
+                    ("public pins remain", "remain public", "public pins")))
+        self.assertIn("Add pin here", " ".join(readme.split()))
+        self.assertIn("Add pin here", " ".join(guide.split()))
+        self.assertIn("Add pin here", references)
+        self.assertIn("up to 500 trimmed characters", guide)
+        self.assertIn("blank messages are allowed", guide)
+        self.assertIn("does not extend", guide)
+
     def test_references_distinguish_provider_dates_coverage_and_history(self):
         page = self.get_page("/references")
         for expected in (

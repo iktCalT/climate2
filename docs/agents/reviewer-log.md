@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-12 | COMMUNITY-005 | optional messages and local expiry | done
+- Result: Initial P2 Unicode length mismatch is resolved. The form now counts trimmed code points with `Array.from`, sets and clears custom validity, and explicitly blocks overlength submission; native `maxlength` is removed. UI and Python service both permit 500 code points.
+- Check: Read correction, template, focused QA regression and docs; `git diff --check` clean. QA reports 500 emoji and mixed Unicode accepted, 501 blocked even with `reportValidity` stubbed true, valid edits clear stale validity, and 27/27 focused community/map-selection/template Node tests pass. No browser visual verification; no broad rerun.
+- Next: No remaining reviewer issue; Lead owns integration. No live stores or posts.
+
 ## 2026-10-11 | LOCATION-UI-007 | wrapped location-chart legend | done
 - Result: No review blocker. Plotly layout only moves the compact title to y=0.75, places the wrapped season legend below the plot, and reserves bottom margin; chart cache advances v8→v9. Seasonal values, axes/units, four-metric menu visibility, gaps and hover coverage remain unchanged. README and References describe the layout; the requirement and task-board entries bound the work and preserve the reported discovery. No accidental feature/data/provider scope found.
 - Check: Read-only diff/source/test audit and `git diff --check` clean. QA reports 56 focused tests passed (zero skips/failures); not rerun. Lead reports all four metrics at 1280/390/320px fit without title/menu/legend overlap or horizontal overflow. The pre-existing unattributed MutationObserver warning remains unproven and separate from this change.

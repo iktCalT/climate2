@@ -8,7 +8,7 @@ const {createMapSelection} = await import(
 const interpolationSource = await readFile(new URL("../static/map_interpolation.js", import.meta.url), "utf8");
 const {sampleGrid} = await import(`data:text/javascript;base64,${Buffer.from(interpolationSource).toString("base64")}`);
 
-function harness(months, unit = "°C", sample) {
+function harness(months, unit = "°C", sample, onAddPinHere) {
     const panels = months.map(month => ({month, map: {}}));
     const popups = [];
     const document = {
@@ -16,6 +16,8 @@ function harness(months, unit = "°C", sample) {
             return {
                 tag, textContent: "", children: [],
                 append(child) { this.children.push(child); },
+                addEventListener(name, callback) { (this.listeners ||= {})[name] = callback; },
+                async fire(name) { return this.listeners?.[name]?.({stopPropagation() {}}); },
             };
         },
     };
@@ -32,7 +34,7 @@ function harness(months, unit = "°C", sample) {
             return collect(this.content);
         }
     }
-    return {panels, popups, selection: createMapSelection({panels, Popup, document, unit, sample})};
+    return {panels, popups, selection: createMapSelection({panels, Popup, document, unit, sample, onAddPinHere})};
 }
 
 function feature({west, east, south, north, value, latitude, longitude, source = "direct_cache"}) {
@@ -54,6 +56,43 @@ function strongRows(element) {
         .filter(child => child.tag === "div" && child.children.length === 1
             && child.children[0].tag === "strong")
         .map(child => ({row: child, text: child.children[0].textContent}));
+}
+
+{
+    const forwarded = [];
+    const {panels, popups, selection} = harness(["baseline", "current"], "°C", undefined,
+        point => forwarded.push(point));
+    panels.forEach(panel => selection.acceptData(panel, {features: []}));
+    selection.select({lng: 12.3456789012345, lat: -23.456789012345});
+    assert.equal(popups.length, 2);
+    for (const popup of popups) {
+        assert.match(popup.text(), /No saved climate data at this location/);
+        assert.equal(historyLinks(popup).length, 1);
+        const buttons = popup.content.children.flatMap(child => child.tag === "button" ? [child] : []);
+        assert.equal(buttons.length, 1);
+        assert.equal(buttons[0].textContent, "Add pin here");
+        await buttons[0].fire("click");
+    }
+    assert.deepEqual(forwarded, [
+        {lng: 12.3456789012345, lat: -23.456789012345},
+        {lng: 12.3456789012345, lat: -23.456789012345},
+    ], "the popup forwards the exact unrounded selection without replacing readouts");
+    assert.ok(popups.every(popup => popup.map === panels[popups.indexOf(popup)].map));
+}
+
+{
+    for (const [coordinates, expected] of [
+        [{lng: 180, lat: 85}, 1], [{lng: -180, lat: -85}, 1],
+        [{lng: 180.000001, lat: 0}, 0], [{lng: 0, lat: -85.000001}, 0],
+    ]) {
+        const {popups, selection} = harness(["month"], "°C", undefined, () => {});
+        selection.select(coordinates);
+        assert.equal(popups[0].content.children.filter(child => child.tag === "button").length, expected);
+    }
+    const {popups, selection} = harness(["month"]);
+    selection.select({lng: 2, lat: 3});
+    assert.equal(popups[0].content.children.filter(child => child.tag === "button").length, 0,
+        "disabled community does not add a pin action");
 }
 
 {

@@ -11,6 +11,9 @@ assert.match(template, /<button id="map-retry-\{\{ loop\.index0 \}\}"[\s\S]*?typ
     "each month has a native, initially hidden retry button associated with its status");
 assert.match(moduleScript, /const selection = createMapSelection\(\{\s*panels, Popup, document, unit: activeScale\.unit,\s*sample: useInterpolatedNoaa \? sampleGrid : undefined,/);
 assert.match(moduleScript, /panel\.map\.on\("click", event => \{\s*if \(!communityPins\.handleMapClick\(event\)\) selection\.select\(event\.lngLat\);\s*\}\)/);
+assert.match(moduleScript, /const communityPins = createCommunityPins\(\{panels, Marker, Popup\}\);\s*const selection = createMapSelection\(\{[\s\S]*?onAddPinHere: communityPins\.addPinHere,/,
+    "the popup entry callback is supplied only by the enabled community module and does not own climate selection");
+assert.match(moduleScript, /onAddPinHere: communityPins\.addPinHere,/);
 assert.doesNotMatch(moduleScript.match(/panel\.map\.on\("click"[\s\S]*?\n\s*\}\);/)?.[0] || "", /fetch\(/,
     "click handling only updates the selected location; it does not request data");
 

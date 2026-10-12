@@ -1,5 +1,7 @@
 // Local storage is touched only after an explicit profile action.
 const STORAGE_KEY = "climate.community.profile.v1";
+const PROFILE_DAYS = 30;
+const PROFILE_MS = PROFILE_DAYS * 24 * 60 * 60 * 1000;
 
 export function createLocalProfile({root = document, onChange = () => {}} = {}) {
     const open = root.querySelector("#community-profile-open");
@@ -9,32 +11,66 @@ export function createLocalProfile({root = document, onChange = () => {}} = {}) 
     const status = root.querySelector("#community-profile-status");
     const forget = root.querySelector("#community-profile-forget");
     let profile = null;
-    function activate(value) {
+    let expiryTimer;
+    function scheduleExpiry() {
+        clearTimeout(expiryTimer);
+        if (!profile) return;
+        const delay = Math.min(Math.max(0, profile.expiresAt - Date.now()), 2_147_000_000);
+        expiryTimer = setTimeout(() => {
+            if (!expire()) scheduleExpiry();
+        }, delay);
+    }
+    function activate(value, message = "") {
+        clearTimeout(expiryTimer);
         profile = value;
         forget.hidden = !profile;
         form.hidden = !!profile;
-        status.textContent = profile ? `Local profile active: ${profile.nickname}.` : "No active local profile.";
+        status.textContent = message || (profile
+            ? `Local profile active: ${profile.nickname}. Device ownership expires ${new Date(profile.expiresAt).toLocaleDateString()}.`
+            : "No active local profile.");
         onChange(profile);
+        scheduleExpiry();
     }
     function valid(value) {
         return value?.consent === true && typeof value.nickname === "string"
             && value.nickname.trim().length >= 1 && value.nickname.length <= 40
-            && typeof value.token === "string" && /^[0-9a-f]{64}$/.test(value.token);
+            && typeof value.token === "string" && /^[0-9a-f]{64}$/.test(value.token)
+            && (!Object.hasOwn(value, "expiresAt")
+                || (typeof value.expiresAt === "number" && Number.isFinite(value.expiresAt)
+                    && value.expiresAt > 0));
+    }
+    function expire() {
+        if (!profile || Date.now() < profile.expiresAt) return false;
+        consent.checked = false;
+        activate(null, "This local profile expired after 30 days. Its public pins remain, but this device can no longer delete them. Reuse this device to remove the expired record, then create a new profile if needed.");
+        return true;
+    }
+    function get() {
+        expire();
+        return profile;
     }
     open.addEventListener("click", () => {
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             const value = saved ? JSON.parse(saved) : null;
             if (valid(value)) {
-                // A saved profile remains usable only while consented storage
-                // is available; do not switch to an in-memory-only identity.
-                localStorage.setItem(STORAGE_KEY, saved);
-                activate(value);
+                if (Number.isFinite(value.expiresAt) && value.expiresAt <= Date.now()) {
+                    consent.checked = false;
+                    localStorage.removeItem(STORAGE_KEY);
+                    activate(null, "This local profile expired after 30 days. Its public pins remain and this device has lost their deletion credential. Create a new profile with fresh consent to publish again.");
+                } else {
+                    // A legacy, explicitly reused profile keeps its ownership token
+                    // and starts its one fixed remembrance period now.
+                    const upgraded = Number.isFinite(value.expiresAt)
+                        ? value : {...value, expiresAt: Date.now() + PROFILE_MS};
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(upgraded));
+                    activate(upgraded);
+                }
             }
             else {
                 activate(null);
                 form.hidden = false;
-                status.textContent = "Choose a nickname and agree to local storage to create a profile.";
+                status.textContent = "Choose a nickname and agree to local storage to create a profile. Profiles are remembered for 30 days; after expiry, public pins remain but this device loses deletion access.";
             }
         } catch {
             activate(null);
@@ -48,7 +84,8 @@ export function createLocalProfile({root = document, onChange = () => {}} = {}) 
             const bytes = new Uint8Array(32);
             crypto.getRandomValues(bytes);
             const value = {nickname: nickname.value.trim(), consent: true,
-                token: Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")};
+                token: Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join(""),
+                expiresAt: Date.now() + PROFILE_MS};
             localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
             activate(value);
         } catch {
@@ -68,5 +105,5 @@ export function createLocalProfile({root = document, onChange = () => {}} = {}) 
             status.textContent = "Could not clear local storage. The saved profile may remain on this device.";
         }
     });
-    return {get: () => profile};
+    return {get};
 }

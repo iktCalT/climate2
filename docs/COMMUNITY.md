@@ -7,17 +7,29 @@ administrator accounts remain.
 ## Privacy and ownership
 
 Ordinary climate browsing does not require a local profile or prompt for storage.
-Choosing the local-profile feature offers explicit consent to store a nickname
-and a random ownership token in this browser's localStorage. No email or password
-is needed. This is device-local convenience, not an authenticated personal account.
-Blocked storage must produce an error, not silently create another identity.
+Choosing the local-profile feature offers explicit consent to store a nickname,
+a random ownership token and its fixed expiry in this browser's localStorage for
+30 days. Reopening an unexpired profile does not extend that period. Explicitly
+reusing a valid older profile adds the expiry while preserving its token; an
+expired profile is removed only when the user explicitly reuses the device.
+While a page remains open, expiry deactivates the profile without a storage write.
+After expiry, this browser cannot delete those pins, but they remain public and
+administrators can still remove them. The server continues to authorize by token
+hash; browser expiry is convenience behavior, not server-side revocation. No email
+or password is needed. This is not an authenticated personal account. Blocked
+storage must produce an error, not silently create another identity.
 
-Publishing deliberately sends a nickname, one plain-text comment and coordinates
-to the site; everyone can read them by opening its pin. Do not post private
+Publishing deliberately sends a nickname, coordinates and an optional plain-text
+message of up to 500 trimmed characters to the site; blank messages are allowed.
+Everyone can read the pin and any message by opening it. Do not post private
 information. Server storage is necessary for public visibility: localStorage alone
-cannot share comments with other visitors. Clearing this browser's profile does
-not delete public comments and loses its deletion credential. Delete your pins
+cannot share pins with other visitors. Clearing or expiring this browser's profile
+does not delete public pins and loses its deletion credential. Delete your pins
 first if that is your intention. Administrators can remove public pins.
+On Maps, clicking a climate location keeps its usual readouts and offers an
+enabled-only **Add pin here** action. That action selects coordinates and opens the
+draft controls; it does not read storage or publish. Typing coordinates is also
+available. Both paths require a separate submit and explicit public consent.
 
 ## Limits and abuse controls
 
@@ -26,8 +38,8 @@ the operator. Lowering it (for example to three) prevents new posts above the ne
 limit without deleting existing ones. Clearing storage can create another
 identity, so this is not a reliable per-person limit. Transactional checks and
 IP/identity write throttles reduce abuse, but do not prevent determined attackers.
-Each pin has one comment; clustering is deferred, with grouped comments required
-when clusters are eventually added.
+Each pin has at most one optional message; clustering is deferred, with grouped
+messages required when clusters are eventually added.
 
 Published text must be length-limited and rendered as text, never HTML. Write
 requests require same-origin JSON and the appropriate ownership token or admin

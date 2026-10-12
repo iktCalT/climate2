@@ -4,6 +4,20 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-12 | COMMUNITY-005 | two pin entry paths and temporary ownership | done
+
+- Contract: optional message, coordinate form or climate-popup draft action,
+  existing owner-only deletion, explicit-consent local storage with fixed
+  30-day expiry. No schema, dependency, provider or cloud changes.
+- Implementation: Backend delivered scoped service/browser/help changes.
+  Lead caught timer overflow during development; QA caught stale consent on
+  expiry; review caught UTF-16/code-point message-limit mismatch. Backend fixed
+  all three. Lead resolved requirement-file whitespace.
+- Check: 12 community + 14 content Python passes; initial Node batch 35/36,
+  consent correction 23/23, then Unicode correction 27/27 focused passes.
+- Review: independent correction audit clear; Lead owns publication. No new
+  real-browser or live-publication claim; no production database was touched.
+
 ## 2026-10-12 | COMMUNITY-004 | isolated community browser checks | done
 
 - Result: real community JS/MapLibre passed linked draft placement, typed/click

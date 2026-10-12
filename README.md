@@ -31,9 +31,19 @@ terminal-only `python -m climate.cli.manage_users create-admin ADMIN_USERNAME`;
 see [administrator setup](docs/USER_ROLES.md#first-administrator-on-a-new-deployment).
 Password entry is hidden and interactive; hosted registration stays closed.
 An optional device-local profile stores a nickname and ownership credential only
-after explicit storage consent; no email or password is required. When enabled
-by the operator, visitors can publish a pin with one public comment, read comments
-by clicking pins, and delete their own pins. Administrators can remove any pin.
+after explicit storage consent; no email or password is required. It is remembered
+for a fixed 30 days, then loses this device's delete access; public pins remain and
+administrators can still remove them. Reusing an unexpired profile does not extend
+its expiry; valid older profiles gain an expiry on explicit reuse without rotating
+their token. Expired data is removed on explicit reuse, not in the background.
+When enabled by the operator, visitors can publish pins with an optional plain-text
+message of up to 500 characters, read messages by clicking
+pins, and delete their own pins. Administrators can remove any pin.
+Clicking a climate location opens its usual readouts, with an enabled-only **Add
+pin here** action that selects coordinates and previews an unpublished draft.
+Typing coordinates remains available; neither entry path publishes or reads
+browser storage, and publication still requires a separate submit and explicit
+public consent.
 With placement on, clicking a map or entering valid coordinates shows a labelled
 unpublished draft pin on every ready comparison map. The preview needs no local
 profile or storage consent and sends nothing; turning placement off clears it.

@@ -66,7 +66,7 @@ function unavailableReason(value, label) {
     return "";
 }
 
-export function createMapSelection({panels, Popup, document, unit, sample}) {
+export function createMapSelection({panels, Popup, document, unit, sample, onAddPinHere}) {
     let selected = null;
     let suppressClose = false;
     const state = new Map(panels.map(panel => [panel, {
@@ -158,6 +158,18 @@ export function createMapSelection({panels, Popup, document, unit, sample}) {
                 historyLink.textContent = "View saved location history";
                 body.append(historyLink);
                 line(document, body, "History uses its own sampling rule and may differ from the map display estimate.");
+            }
+            if (typeof onAddPinHere === "function" && Number.isFinite(selected.lat)
+                && selected.lat >= -85 && selected.lat <= 85 && Number.isFinite(selected.lng)
+                && selected.lng >= -180 && selected.lng <= 180) {
+                const addPin = document.createElement("button");
+                addPin.type = "button";
+                addPin.textContent = "Add pin here";
+                addPin.addEventListener("click", event => {
+                    event.stopPropagation();
+                    onAddPinHere(selected);
+                });
+                body.append(addPin);
             }
             const popup = new Popup({closeOnClick: false})
                 .setLngLat(selected)

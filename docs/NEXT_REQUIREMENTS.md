@@ -1,5 +1,44 @@
 # Next requirements
 
+## Two pin entry methods and temporary ownership
+
+**Status:** Implemented and reviewed 2026-10-12; COMMUNITY-005. Focused offline
+checks pass. New popup/expiry behavior has not had real-browser QA.
+
+Allow a public pin with latitude/longitude and an optional plain-text message
+(0–500 trimmed characters). Omitted/empty/whitespace messages become empty text;
+reject non-string supplied values and preserve Unicode/control-character checks.
+Count message characters as Unicode code points on both client and server;
+native UTF-16 textarea limits must not halve the allowance for emoji.
+Keep existing valid coordinate bounds, same-origin writes, limits and moderation.
+No schema change or live store migration is needed.
+
+Ordinary climate location popups gain an enabled-only "Add pin here" button,
+including locations without climate coverage. It opens the pin controls,
+selects coordinates and previews a draft on comparison maps without publishing,
+reading storage or suppressing climate readouts. Coordinate entry remains
+available; publishing still needs a separate explicit submission and consent.
+Messages are optional in the form, public popup and own-pin list.
+
+Reuse random browser-local ownership credentials and server-side owner-hash
+checks, not nickname/IP matching. Choose 30 days from profile creation (not
+sliding) for browser-local remembrance. Access storage only after an explicit
+profile action. On explicit reuse, upgrade a valid legacy profile with the same
+token and a new 30-day expiry; never silently rotate ownership. Expired profiles
+must not activate or authorize actions through this UI, including an already
+open page; explain deletion access is lost and pins remain public. Removal of
+expired local data happens on explicit reuse; no background storage access.
+Browser expiry is convenience/retention behavior, not server-enforced credential
+revocation or a reliable per-person quota. Blocked storage fails closed.
+
+Keep "Show my published pins" / "Delete my pin" available with an active
+identity, including message-free pins. Explain expiry and manual forgetting;
+administrators can still remove posts. No cookies, external dependencies,
+automatic posting, clustering, hosted registration or cloud changes. Update
+README, website help/References and COMMUNITY guide. Verify synthetic-only
+Python service/routes and Node profile/pin/selection tests, then independent
+review; never publish real pins to test.
+
 ## Keep chart titles and wrapped season legends separate
 
 **Status:** Implemented 2026-10-11; LOCATION-UI-007, discovered in LOCATION-UI-006.
