@@ -108,6 +108,9 @@ mock providers and isolated stores only; no live backfill or cloud provisioning.
 ## Preview an unpublished community pin
 
 **Status:** Implemented and reviewed 2026-10-08; COMMUNITY-003, local map usability.
+Browser follow-up 2026-10-12 (COMMUNITY-004): linked draft placement, movement,
+clearing and consent-gated simulated publication passed in an isolated two-map
+fixture with real community JS/MapLibre; full Maps integration not exercised.
 
 Placement currently updates only numeric fields, making the intended location
 hard to check visually before publishing. Show a distinct, labelled draft marker
@@ -128,6 +131,8 @@ concise map help; reuse the already credited MapLibre Marker implementation.
 ## Confirm forgetting a browser-local profile
 
 **Status:** Implemented and reviewed 2026-10-08; COMMUNITY-002, local usability follow-up.
+Browser follow-up 2026-10-12: native confirm/cancel remains unverified because
+dialog automation stalled; existing offline confirmation tests remain the evidence.
 
 An accidental click on Forget this device currently destroys the local pin
 ownership credential. Require explicit confirmation before removing local
