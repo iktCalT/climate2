@@ -2,6 +2,16 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-12 | COMMUNITY-005 | Unicode message length parity | done
+- Result: Removed textarea's UTF-16 `maxlength`; client validates trimmed Unicode code points against the server's 500-character limit, sets custom validity and announces an actionable error while editing, and explicitly blocks invalid submits.
+- Check: `node --check static/community_pins.js`, absence-of-maxlength search and scoped `git diff --check` passed. Tests left to QA as assigned.
+- Next: QA adds coverage; no other scope changed.
+
+## 2026-10-12 | COMMUNITY-005 | fresh consent after profile expiry | done
+- Result: Timer expiry and explicit expired-record reuse now clear the prior storage-consent checkbox, so a replacement ownership token requires a fresh check. Existing active-profile reuse and forget cancellation are unchanged; expiry still performs no timer storage access.
+- Check: `node --test tests/test_community*.mjs` passed 23/23; scoped `git diff --check` passed. No browser, live store or post operation.
+- Next: Lead/Reviewer can continue; earlier repository whitespace warning was resolved by Lead.
+
 ## 2026-10-11 | LOCATION-UI-007 | wrapped location-chart legend | done
 - Result: Anchored the horizontal season legend below the plot and reserved
   bottom margin for wrapping; retained the 680px chart height. Bumped chart cache

@@ -3,7 +3,36 @@
 Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
 and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Latest assignment (verification round complete)
+## Latest assignment (complete)
+
+**COMMUNITY-005 — optional messages, popup entry and 30-day local ownership.**
+Contract: first NEXT_REQUIREMENTS entry. Lead owns requirement, board and own
+log; implementation → QA → review runs sequentially. No live stores or posts.
+Implementation and focused QA complete: 12 community + 14 content Python
+checks passed; initial combined Node run found one stale-consent issue, fixed
+and verified with 23 community passes. Review found Unicode length mismatch,
+corrected with 27 community/selection/template passes. Final review clear;
+new popup/expiry behavior has no real-browser visual verification this round.
+
+- Backend owns `climate/services/community.py`, `static/community_profile.js`,
+  `static/community_pins.js`, `static/map_selection.js`, `templates/maps.html`,
+  community templates, narrowly necessary CSS, README, References, COMMUNITY
+  guide and own log. Preserve all server authorization/rate controls and existing
+  map readouts. Add optional selection callback rather than coupling climate
+  selection to community storage. No new dependencies or schema changes.
+- QA owns focused community Python/Node, map-selection/template and content
+  tests plus own log. Use isolated temporary stores and mock network only.
+  Cover blank/omitted/invalid messages, draft-only popup action, disabled mode,
+  coordinate entry, fixed expiry/legacy reuse/storage failures, own-only delete,
+  stale active expiry and existing consent/marker/selection regressions.
+- Reviewer is read-only except own log; audit security, integration/lifecycle,
+  expiry semantics and documentation parity. Report fixes to Lead/Backend.
+- Acceptance: both entry paths lead to the same explicit draft/publish flow;
+  optional messages survive reads/deletes; temporary identity preserves owner
+  checks and consent, never leaks credentials to public APIs. Focused tests and
+  review required before integration; real-browser coverage reported separately.
+
+## Previous assignment (verification round complete)
 
 **COMMUNITY-004 — browser verification of profile forgetting and draft pins.**
 Lead owns board, own log, browser checks and integration. QA owns only a disposable

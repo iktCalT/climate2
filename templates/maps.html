@@ -262,11 +262,12 @@
                 rasterBounds: null,
                 overlayLayers: [],
             }));
+            const communityPins = createCommunityPins({panels, Marker, Popup});
             const selection = createMapSelection({
                 panels, Popup, document, unit: activeScale.unit,
                 sample: useInterpolatedNoaa ? sampleGrid : undefined,
+                onAddPinHere: communityPins.addPinHere,
             });
-            const communityPins = createCommunityPins({panels, Marker, Popup});
 
             function livePanels() {
                 return panels.filter(panel => !panel.removed);

@@ -8,13 +8,15 @@ const profileTemplate = await readFile(new URL("../templates/community_profile.h
 const pinsTemplate = await readFile(new URL("../templates/community_maps.html", import.meta.url), "utf8");
 
 function element(tag = "div") {
-    return {tag, listeners: {}, children: [], hidden: false, checked: false, value: "", textContent: "", dataset: {},
-        addEventListener(name, callback) { this.listeners[name] = callback; },
+    return {tag, listeners: {}, children: [], hidden: false, checked: false, value: "", textContent: "", dataset: {}, focused: false,
+        addEventListener(name, callback) { (this.listeners[name] ||= []).push(callback); },
+        focus() { this.focused = true; },
         append(...children) { this.children.push(...children); },
         replaceChildren(...children) { this.children = children; },
         setAttribute(name, value) { this[name] = value; },
-        reportValidity() { return this.valid !== false; },
-        async fire(name) { return this.listeners[name]?.({preventDefault() {}, stopPropagation() {}}); },
+        setCustomValidity(message) { this.customValidityMessage = message; this.validity = {customError: Boolean(message)}; },
+        reportValidity() { return this.reportValidityOverride ?? (this.valid !== false && !this.customValidityMessage); },
+        async fire(name) { let result; for (const callback of this.listeners[name] || []) result = await callback({preventDefault() {}, stopPropagation() {}}); return result; },
         set innerHTML(_) { throw new Error("Untrusted HTML must never be rendered"); },
     };
 }
@@ -24,7 +26,7 @@ function harness({denied = false, enabled = true, panels = [], confirmResult = t
     elements.get("#community-controls").dataset.enabled = String(enabled);
     const root = {querySelector: id => elements.get(id) || null};
     const operations = [], requests = [], markers = [], popups = [], timers = new Map(), confirmations = [];
-    let saved = null, randomCalls = 0, serial = 0, removeDenied = false;
+    let saved = null, randomCalls = 0, serial = 0, removeDenied = false, clock = Date.now();
     const storage = {getItem() { operations.push("read"); if (denied) throw Error(); return saved; },
         setItem(_, value) { operations.push("write"); if (denied) throw Error(); saved = value; },
         removeItem() { operations.push("remove"); if (denied || removeDenied) throw Error(); saved = null; }};
@@ -33,12 +35,18 @@ function harness({denied = false, enabled = true, panels = [], confirmResult = t
         resolve: (data, ok = true) => resolve({ok, json: async () => data})}));
     class Marker { constructor({element}) { this.element = element; markers.push(this); } setLngLat(value) {this.coordinates = value; return this;} addTo(map) {this.map = map; return this;} remove() {this.removed = true;} }
     class Popup { constructor() {popups.push(this);} setLngLat() {return this;} setDOMContent(content) {this.content = content; return this;} addTo() {return this;} remove() {this.removed = true;} }
-    const make = new Function("localStorage", "crypto", "document", "fetch", "setTimeout", "clearTimeout", "queueMicrotask", "confirm", profileSource + "\n" + pinsSource + "\nreturn {createLocalProfile, createCommunityPins};");
+    function TestDate(...args) { return new Date(...args); }
+    TestDate.now = () => clock;
+    TestDate.prototype = Date.prototype;
+    const make = new Function("localStorage", "crypto", "document", "fetch", "setTimeout", "clearTimeout", "queueMicrotask", "confirm", "Date", profileSource + "\n" + pinsSource + "\nreturn {createLocalProfile, createCommunityPins};");
     const functions = make(storage, crypto, {createElement: element}, fetch,
-        callback => {timers.set(++serial, callback); return serial;}, id => timers.delete(id), queueMicrotask,
-        message => {confirmations.push(message); return confirmResult;});
+        (callback, delay) => {timers.set(++serial, {callback, delay}); return serial;}, id => timers.delete(id), queueMicrotask,
+        message => {confirmations.push(message); return confirmResult;}, TestDate);
     return {root, elements, operations, requests, markers, popups, timers, confirmations, panels, Marker, Popup, functions,
         randomCalls: () => randomCalls, saved: () => saved,
+        now: () => clock,
+        advance(ms) { clock += ms; },
+        seed(value) { saved = JSON.stringify(value); },
         denyRemoval() {removeDenied = true;},
         pins() {return functions.createCommunityPins({root, panels, Marker, Popup});}};
 }
@@ -145,6 +153,124 @@ test("confirmed forget updates controls once; failed removal leaves saved bytes 
     }
 });
 
+test("new profiles expire after a fixed 30 days and explicit reuse never slides the date", async () => {
+    const h = harness();
+    const profile = h.functions.createLocalProfile({root: h.root});
+    await activate(h);
+    const created = JSON.parse(h.saved());
+    assert.equal(created.expiresAt, h.now() + 30 * 24 * 60 * 60 * 1000);
+    await h.elements.get("#community-profile-open").fire("click");
+    assert.equal(profile.get().token, created.token);
+    assert.equal(JSON.parse(h.saved()).expiresAt, created.expiresAt);
+    assert.equal(h.randomCalls(), 1);
+    assert.deepEqual(h.operations.slice(-2), ["read", "write"]);
+});
+
+test("legacy reuse keeps its token, while malformed and expired records fail closed", async () => {
+    const h = harness();
+    const profile = h.functions.createLocalProfile({root: h.root});
+    const legacy = {nickname: "Old", consent: true, token: "ab".repeat(32)};
+    h.seed(legacy);
+    await h.elements.get("#community-profile-open").fire("click");
+    const upgraded = JSON.parse(h.saved());
+    assert.equal(upgraded.token, legacy.token);
+    assert.equal(upgraded.expiresAt, h.now() + 30 * 24 * 60 * 60 * 1000);
+    assert.equal(profile.get().token, legacy.token);
+    assert.equal(h.randomCalls(), 0);
+
+    h.seed({...legacy, expiresAt: "not-a-date"});
+    await h.elements.get("#community-profile-open").fire("click");
+    assert.equal(profile.get(), null);
+    assert.equal(h.randomCalls(), 0);
+    assert.equal(h.requests.length, 0);
+    assert.notEqual(h.saved(), null, "malformed expiry does not activate or silently delete the stored record");
+
+    h.seed({...legacy, expiresAt: h.now() - 1});
+    await h.elements.get("#community-profile-open").fire("click");
+    assert.equal(profile.get(), null);
+    assert.equal(h.saved(), null, "expired local data is removed only during explicit reuse");
+    assert.ok(h.operations.includes("remove"));
+});
+
+test("failed explicit removal of an expired record stays inactive and reports storage failure", async () => {
+    const h = harness();
+    const profile = h.functions.createLocalProfile({root: h.root});
+    h.seed({nickname: "Old", consent: true, token: "ab".repeat(32), expiresAt: h.now() - 1});
+    h.denyRemoval();
+    await h.elements.get("#community-profile-open").fire("click");
+    assert.equal(profile.get(), null);
+    assert.notEqual(h.saved(), null);
+    assert.equal(h.operations.at(-1), "remove");
+    assert.match(h.elements.get("#community-profile-status").textContent, /local storage is unavailable/i);
+});
+
+test("active expiry deactivates controls and blocks later publish and own-pin deletion without storage access", async () => {
+    const h = harness();
+    h.pins();
+    await activate(h);
+    const ownButton = h.elements.get("#community-own-refresh");
+    const loading = ownButton.fire("click");
+    assert.equal(h.requests.length, 1);
+    h.requests[0].resolve({pins: [{id: 77, latitude: 1, longitude: 2, comment: ""}]});
+    await loading;
+    const detachedDelete = h.elements.get("#community-own-list").children[0].children[1];
+    const identity = JSON.parse(h.saved());
+    const shortExpiry = h.now() + 1000;
+    h.seed({...JSON.parse(h.saved()), expiresAt: shortExpiry});
+    await h.elements.get("#community-profile-open").fire("click");
+    const activeTimers = [...h.timers.values()].filter(timer => timer.delay === 1000);
+    assert.ok(activeTimers.length >= 1);
+    const operationsBefore = h.operations.slice();
+    h.advance(shortExpiry - h.now());
+    for (const timer of activeTimers) timer.callback();
+    assert.equal(h.elements.get("#community-publish").disabled, true);
+    assert.equal(h.elements.get("#community-own-pins").hidden, true);
+    assert.equal(h.elements.get("#community-own-list").children.length, 0);
+    assert.deepEqual(h.operations, operationsBefore, "the expiry timer never reads, writes, or removes storage");
+
+    h.elements.get("#community-placement").checked = true;
+    h.elements.get("#community-public-consent").checked = true;
+    await h.elements.get("#community-pin-form").fire("submit");
+    await detachedDelete.fire("click");
+    assert.equal(h.requests.length, 1, "expired publish and detached own-pin delete issue no request");
+});
+
+test("expired profile requires a fresh consent action before replacement identity creation", async () => {
+    const h = harness();
+    const profile = h.functions.createLocalProfile({root: h.root});
+    await activate(h);
+    const identity = profile.get();
+    const shortExpiry = h.now() + 1000;
+    h.seed({...JSON.parse(h.saved()), expiresAt: shortExpiry});
+    await h.elements.get("#community-profile-open").fire("click");
+    h.advance(shortExpiry - h.now());
+    const timer = [...h.timers.values()].findLast(item => item.delay === 1000);
+    assert.ok(timer);
+    timer.callback();
+    await h.elements.get("#community-profile-open").fire("click");
+    assert.equal(h.elements.get("#community-storage-consent").checked, false);
+    h.elements.get("#community-nickname").value = "Replacement";
+    await h.elements.get("#community-profile-form").fire("submit");
+    assert.equal(profile.get(), null);
+    assert.equal(h.randomCalls(), 1, "no replacement token is minted without renewed consent");
+});
+
+test("long expiry timers rearm in bounded intervals without touching storage", async () => {
+    const h = harness();
+    const profile = h.functions.createLocalProfile({root: h.root});
+    const expiresAt = h.now() + 60 * 24 * 60 * 60 * 1000;
+    h.seed({nickname: "Reader", consent: true, token: "ab".repeat(32), expiresAt});
+    await h.elements.get("#community-profile-open").fire("click");
+    const timer = [...h.timers.values()].findLast(item => item.delay === 2_147_000_000);
+    assert.ok(timer, "timeout is capped below the platform maximum");
+    const before = h.operations.slice();
+    h.advance(timer.delay);
+    timer.callback();
+    assert.equal(profile.get().expiresAt, expiresAt);
+    assert.deepEqual(h.operations, before);
+    assert.ok([...h.timers.values()].some(item => item.delay > 0 && item.delay <= 2_147_000_000));
+});
+
 test("denied storage cannot activate an alternative identity or publish", async () => {
     const h = harness({denied: true});
     h.pins();
@@ -165,7 +291,7 @@ test("ordinary clicks preserve readout flow; placement alone never publishes; na
     await activate(h);
     h.elements.get("#community-placement").checked = true;
     assert.equal(pins.handleMapClick(click), true);
-    assert.equal(h.elements.get("#community-latitude").value, 12);
+    assert.equal(h.elements.get("#community-latitude").value, "12");
     assert.equal(h.requests.length, 0);
     assert.match(pinsTemplate, /id="community-public-consent"[^>]*required/);
     const form = h.elements.get("#community-pin-form");
@@ -184,6 +310,28 @@ test("ordinary clicks preserve readout flow; placement alone never publishes; na
     await pending;
     assert.equal(h.elements.get("#community-placement").checked, false);
     assert.equal(h.elements.get("#community-public-consent").checked, false);
+});
+
+test("active identity can read and delete a message-free own pin", async () => {
+    const h = harness();
+    h.pins();
+    await activate(h);
+    const load = h.elements.get("#community-own-refresh").fire("click");
+    assert.equal(h.requests[0].path, "/api/community/my-pins");
+    assert.match(h.requests[0].options.headers["X-Community-Token"], /^[0-9a-f]{64}$/);
+    h.requests[0].resolve({pins: [{id: 8, latitude: -1.25, longitude: 2.5, comment: ""}]});
+    await load;
+    const row = h.elements.get("#community-own-list").children[0];
+    assert.equal(row.children[0].textContent, "-1.25°, 2.5° ");
+    assert.equal(row.children[1].textContent, "Delete my pin");
+    const deleting = row.children[1].fire("click");
+    assert.equal(h.requests[1].path, "/api/community/pins/8");
+    assert.equal(h.requests[1].options.method, "DELETE");
+    h.requests[1].resolve({});
+    await flush();
+    assert.equal(h.requests[2].path, "/api/community/my-pins");
+    h.requests[2].resolve({pins: []});
+    await deleting;
 });
 
 test("public reads omit identity and render comments as text; pagination is explicit", async () => {
@@ -254,6 +402,92 @@ test("draft preview works without a profile, storage, or network and click match
     assert.deepEqual(h.operations, []);
     assert.equal(h.requests.length, 0);
     assert.equal(h.randomCalls(), 0);
+});
+
+test("Add pin here opens and focuses the draft form without storage or requests until consented submit", async () => {
+    const h = harness({panels: [panel()]});
+    const pins = h.pins();
+    assert.equal(pins.addPinHere({lat: 12.25, lng: -34.75}), true);
+    assert.equal(h.elements.get("#community-controls").open, true);
+    assert.equal(h.elements.get("#community-placement").checked, true);
+    assert.equal(h.elements.get("#community-latitude").value, "12.25");
+    assert.equal(h.elements.get("#community-longitude").value, "-34.75");
+    assert.equal(h.elements.get("#community-comment").focused, true);
+    assert.deepEqual(drafts(h)[0].coordinates, [-34.75, 12.25]);
+    assert.deepEqual(h.operations, []);
+    assert.equal(h.requests.length, 0);
+
+    await activate(h);
+    const form = h.elements.get("#community-pin-form");
+    await form.fire("submit");
+    assert.equal(h.requests.length, 0);
+    assert.equal(h.elements.get("#community-public-consent").focused, true);
+    h.elements.get("#community-public-consent").checked = true;
+    const pending = form.fire("submit");
+    assert.equal(h.requests.length, 1);
+    assert.deepEqual(JSON.parse(h.requests[0].options.body), {
+        nickname: "Reader", comment: "", latitude: 12.25, longitude: -34.75,
+    }, "the popup path publishes the same coordinate shape with an optional empty message");
+    h.requests[0].resolve({pin: {id: 1}});
+    await flush();
+    h.requests[1].resolve({pins: [], more: false, next_cursor: null});
+    await pending;
+});
+
+test("message limit counts trimmed Unicode code points and clears stale custom validity", async () => {
+    const templateComment = pinsTemplate.match(/<textarea\b[^>]*id="community-comment"[^>]*>/)?.[0];
+    assert.ok(templateComment, "optional message textarea exists");
+    assert.doesNotMatch(templateComment, /maxlength/i,
+        "native maxlength counts UTF-16 code units and would reject valid Unicode at the boundary");
+
+    for (const message of ["🙂".repeat(500), `  ${"é".repeat(250)}${"🌦️".repeat(125)}  `]) {
+        assert.equal(Array.from(message.trim()).length, 500);
+        const h = harness();
+        h.pins();
+        await activate(h);
+        h.elements.get("#community-placement").checked = true;
+        h.elements.get("#community-latitude").value = "1";
+        h.elements.get("#community-longitude").value = "2";
+        const comment = h.elements.get("#community-comment");
+        comment.value = message;
+        await comment.fire("input");
+        assert.equal(comment.customValidityMessage, "");
+        h.elements.get("#community-public-consent").checked = true;
+        const pending = h.elements.get("#community-pin-form").fire("submit");
+        assert.equal(h.requests.length, 1, "500 trimmed code points are publishable");
+        assert.equal(JSON.parse(h.requests[0].options.body).comment, message,
+            "the server receives the entered text and applies its own trimming before storage");
+        h.requests[0].resolve({pin: {id: 1}});
+        await pending;
+    }
+
+    const h = harness();
+    h.pins();
+    await activate(h);
+    h.elements.get("#community-placement").checked = true;
+    h.elements.get("#community-latitude").value = "1";
+    h.elements.get("#community-longitude").value = "2";
+    const comment = h.elements.get("#community-comment");
+    comment.value = `  ${"🙂".repeat(501)}  `;
+    await comment.fire("input");
+    assert.match(comment.customValidityMessage, /500 characters or fewer/);
+    comment.reportValidityOverride = true;
+    h.elements.get("#community-public-consent").checked = true;
+    await h.elements.get("#community-pin-form").fire("submit");
+    assert.equal(h.requests.length, 0, "explicit length validation blocks POST even when reportValidity is stubbed true");
+
+    comment.value = ` ${"🙂".repeat(500)} `;
+    await comment.fire("input");
+    assert.equal(comment.customValidityMessage, "", "valid edits clear the custom validity error");
+    assert.equal(comment.validity.customError, false);
+    assert.equal(h.elements.get("#community-pin-status").textContent, "");
+    h.elements.get("#community-public-consent").checked = true;
+    const pending = h.elements.get("#community-pin-form").fire("submit");
+    assert.equal(h.requests.length, 1);
+    assert.equal(JSON.parse(h.requests[0].options.body).comment, comment.value,
+        "valid edits clear the length error and submit the entered text for server-side trimming");
+    h.requests[0].resolve({pin: {id: 2}});
+    await pending;
 });
 
 test("blank, whitespace, non-finite and out-of-range edits clear drafts instead of showing zero", async () => {
@@ -406,6 +640,7 @@ test("disabled community remains inert for typed edits, map clicks, refresh and 
     await h.elements.get("#community-placement").fire("change");
     await h.elements.get("#community-latitude").fire("input");
     assert.equal(pins.handleMapClick({lngLat: {lat: 3, lng: 4}}), false);
+    assert.equal(pins.addPinHere, null);
     await h.elements.get("#community-retry").fire("click");
     await h.elements.get("#community-pin-form").fire("submit");
     assert.equal(drafts(h).length, 0);

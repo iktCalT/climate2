@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-12 | COMMUNITY-005 | optional messages, popup entry and expiry | done
+- Result: Tests cover optional message boundaries/private fields/owner-only routes, popup/draft parity, expiry lifecycle, message-free own-pin operations and content. Found stale consent after expiry; Backend cleared it. Added Unicode code-point boundaries and custom-validity reset checks; verified the textarea has no native `maxlength`.
+- Check: Isolated Python community tests 12 passed; content tests 14 passed. Initial Node batch was 35/36, exposing stale consent; focused community rerun passed 23/23 after Backend's fix. Unicode follow-up across community browser, map selection and template suites passed 27/27, including 500/501 code points. No live stores, providers, posts or browser.
+- Next: Reviewer audit; Lead owns sequence. Python session/chart paths are temporary per fixture.
+
 ## 2026-10-12 | COMMUNITY-004 | real-browser community lifecycle | done
 - Result: Lead's real browser run with MapLibre and actual community JS passed two-marker typed/click coordinates, placement-off clearing, storage and public-consent gates, simulated publish, comment popup, reload/profile restore, invalid-coordinate clearing, and final placement-off. Fixture used actual community includes/CSS/modules and two blank-style maps; it was not the full Maps page integration. Native Forget confirm/cancel could not be verified because the browser dialog stalled CDP; no claim of coverage. Profile storage remains on the fresh fixture origin; no token or unrelated browser storage was read or cleared.
 - Check: Sanitized fixture state: one simulated POST, zero DELETEs, one active synthetic pin; six public reads. Fixture stopped and former loopback port returned connection refused. Screenshot retained in the disposable temp fixture folder. No production edits, tests, or Git actions.

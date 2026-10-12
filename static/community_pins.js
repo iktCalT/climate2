@@ -22,6 +22,8 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     const readStatus = root.querySelector("#community-read-status");
     const moreButton = root.querySelector("#community-more");
     const profileStatus = root.querySelector("#community-profile-status");
+    const publicConsent = root.querySelector("#community-public-consent");
+    const comment = root.querySelector("#community-comment");
     const ownList = root.querySelector("#community-own-list");
     const ownControls = root.querySelector("#community-own-pins");
     const markerSets = new Map();
@@ -29,13 +31,14 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     const removed = new Set();
     let pins = [], nextCursor = null, controller, timer, generation = 0, popup;
     let ownGeneration = 0, ownController, publishing = false, loading = false;
+    let commentLengthError = false;
     const live = () => panels.filter(panel => !panel.removed && !removed.has(panel) && panel.styleReady);
-    const profile = createLocalProfile({root, onChange() {
+    const profile = createLocalProfile({root, onChange(identity) {
         ownGeneration++;
         ownController?.abort();
         ownList.replaceChildren();
-        ownControls.hidden = !enabled || !profile.get();
-        if (publish) publish.disabled = !enabled || !profile.get() || publishing;
+        ownControls.hidden = !enabled || !identity;
+        if (publish) publish.disabled = !enabled || !identity || publishing;
     }});
 
     function writeOptions(token, method = "DELETE", payload = {}, admin = false) {
@@ -68,7 +71,7 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
                 const item = document.createElement("li");
                 const text = document.createElement("span");
                 text.className = "community-comment";
-                text.textContent = `${pin.latitude}°, ${pin.longitude}°: ${pin.comment} `;
+                text.textContent = `${pin.latitude}°, ${pin.longitude}°${pin.comment ? `: ${pin.comment}` : ""} `;
                 const button = document.createElement("button");
                 button.type = "button";
                 button.textContent = "Delete my pin";
@@ -86,7 +89,7 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
             if (current === ownGeneration && error.name !== "AbortError") profileStatus.textContent = error.message;
         }
     }
-    root.querySelector("#community-own-refresh").addEventListener("click", loadOwnPins);
+    root.querySelector("#community-own-refresh")?.addEventListener("click", loadOwnPins);
 
     function clearMarkers(panel) {
         for (const marker of markerSets.get(panel) || []) marker.remove();
@@ -143,10 +146,13 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
                     content.className = "community-popup";
                     const name = document.createElement("strong");
                     name.textContent = pin.nickname;
-                    const comment = document.createElement("p");
-                    comment.className = "community-comment";
-                    comment.textContent = pin.comment;
-                    content.append(name, comment);
+                    content.append(name);
+                    if (pin.comment) {
+                        const comment = document.createElement("p");
+                        comment.className = "community-comment";
+                        comment.textContent = pin.comment;
+                        content.append(comment);
+                    }
                     if (adminCsrf) {
                         const remove = document.createElement("button");
                         remove.type = "button";
@@ -224,12 +230,42 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     placement?.addEventListener("change", renderDraft);
     latitude?.addEventListener("input", renderDraft);
     longitude?.addEventListener("input", renderDraft);
+    for (const input of [latitude, longitude, comment]) {
+        input?.addEventListener("input", () => { publicConsent.checked = false; });
+    }
+    function validateCommentLength() {
+        const tooLong = Array.from(comment.value.trim()).length > 500;
+        const message = tooLong ? "Keep the optional message to 500 characters or fewer." : "";
+        comment.setCustomValidity?.(message);
+        if (tooLong) {
+            pinStatus.textContent = message;
+            commentLengthError = true;
+            return false;
+        }
+        if (commentLengthError) {
+            commentLengthError = false;
+            if (pinStatus.textContent === "Keep the optional message to 500 characters or fewer.") {
+                pinStatus.textContent = "";
+            }
+        }
+        return true;
+    }
+    comment?.addEventListener("input", validateCommentLength);
     form?.addEventListener("submit", async event => {
         event.preventDefault();
         const identity = profile.get();
         if (!enabled || !identity || publishing) return;
         if (!placement.checked) {
             pinStatus.textContent = "Enable Place a pin before publishing.";
+            return;
+        }
+        if (!validateCommentLength()) {
+            comment.reportValidity?.();
+            return;
+        }
+        if (!publicConsent.checked) {
+            pinStatus.textContent = "Confirm that this pin and optional message will be public before publishing.";
+            publicConsent.focus();
             return;
         }
         if (!form.reportValidity()) return;
@@ -246,10 +282,10 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
                 nickname: identity.nickname, comment: root.querySelector("#community-comment").value,
                 latitude: coordinates[1], longitude: coordinates[0],
             }));
-            pinStatus.textContent = "Your pin and comment are now public.";
+            pinStatus.textContent = "Your pin and optional message are now public.";
             placement.checked = false;
             renderDraft();
-            root.querySelector("#community-public-consent").checked = false;
+            publicConsent.checked = false;
             await refresh();
         } catch (error) { pinStatus.textContent = error.message; }
         finally {
@@ -271,12 +307,23 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
             schedule();
         });
     }
-    return {handleMapClick(event) {
-        if (!enabled || !placement?.checked) return false;
-        latitude.value = event.lngLat.lat;
-        longitude.value = event.lngLat.lng;
+    function addPinHere(lngLat) {
+        const lat = Number(lngLat?.lat), lng = Number(lngLat?.lng);
+        if (!enabled || !Number.isFinite(lat) || lat < -85 || lat > 85
+            || !Number.isFinite(lng) || lng < -180 || lng > 180) return false;
+        controls.open = true;
+        placement.checked = true;
+        latitude.value = String(lat);
+        longitude.value = String(lng);
+        publicConsent.checked = false;
         renderDraft();
-        pinStatus.textContent = "Pin coordinates selected. Enter a comment and explicitly publish it when ready.";
+        pinStatus.textContent = "Coordinates selected. Review the optional message and explicitly publish when ready.";
+        root.querySelector("#community-comment")?.focus();
+        return true;
+    }
+    return {addPinHere: enabled ? addPinHere : null, handleMapClick(event) {
+        if (!enabled || !placement?.checked) return false;
+        addPinHere(event.lngLat);
         return true;
     }};
 }

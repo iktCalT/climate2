@@ -107,6 +107,16 @@ def text(value, maximum, label):
     return value
 
 
+def optional_comment(value):
+    """Validate a public message, allowing an omitted or blank message."""
+    if not isinstance(value, str):
+        raise CommunityError("Comment must be text.")
+    value = value.strip()
+    if not value:
+        return ""
+    return text(value, 500, "Comment")
+
+
 @contextmanager
 def connection(options, create=False):
     path = options["path"]
@@ -162,7 +172,7 @@ def publish(config, token, ip, payload):
     if not isinstance(payload, dict):
         raise CommunityError("Expected a JSON pin.")
     nickname = text(payload.get("nickname"), 40, "Nickname")
-    comment = text(payload.get("comment"), 500, "Comment")
+    comment = optional_comment(payload.get("comment", ""))
     latitude = coordinate(payload.get("latitude"), 85)
     longitude = coordinate(payload.get("longitude"), 180)
     now = time.time()

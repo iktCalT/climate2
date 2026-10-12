@@ -23,7 +23,9 @@ class CommunityTests(unittest.TestCase):
                            COMMUNITY_DATABASE_PATH=str(self.path),
                            USER_DATABASE_PATH=str(Path(self.temp.name) / "users.db"))
         self.now = patch("climate.services.community.time.time", return_value=100000).start()
-        self.settings = patch.dict(app.config, {**self.config, "TESTING": True})
+        self.settings = patch.dict(app.config, {**self.config, "TESTING": True,
+            "SESSION_FILE_DIR": str(Path(self.temp.name) / "sessions"),
+            "CLIMATE_CHART_DIRECTORY": str(Path(self.temp.name) / "charts")})
         self.settings.start()
         self.client = app.test_client()
 
@@ -197,3 +199,39 @@ class CommunityTests(unittest.TestCase):
         for field in ("nickname", "comment"):
             self.error(400, lambda: self.publish(**{field: "\ud800"}))
         self.assertFalse(self.path.exists())
+
+    def test_optional_message_is_trimmed_empty_or_rejected_without_leaking_private_fields(self):
+        omitted = c.publish(self.config, TOKEN, "192.0.2.1",
+                            {"nickname": "Reader", "latitude": 1, "longitude": 2})
+        self.assertEqual(omitted["comment"], "")
+        self.now.return_value += 11
+        whitespace = self.publish(comment=" \t\n ")
+        self.assertEqual(whitespace["comment"], "")
+        self.now.return_value += 11
+        boundary = self.publish(comment="  " + "é🙂" * 250 + "  ")
+        self.assertEqual(boundary["comment"], "é🙂" * 250)
+        self.assertEqual(set(boundary), {"id", "nickname", "comment", "latitude", "longitude", "created"})
+        for supplied in (None, 0, False, [], {}, "x" * 501,
+                         "bad\x00message", "bad\x01message", "\ud800"):
+            with self.subTest(supplied=type(supplied).__name__):
+                self.now.return_value += 11
+                self.error(400, lambda: self.publish(comment=supplied))
+
+    def test_routes_read_and_delete_message_free_pins_only_for_the_owner(self):
+        headers = self.headers()
+        response = self.client.post("/api/community/pins", json={**PAYLOAD, "comment": "  \t "}, headers=headers)
+        self.assertEqual(response.status_code, 201)
+        pin = response.json["pin"]
+        self.assertEqual(pin["comment"], "")
+        self.assertEqual(set(pin), {"id", "nickname", "comment", "latitude", "longitude", "created"})
+        self.assertNotIn("token", response.get_data(as_text=True))
+        self.assertNotIn("owner", response.get_data(as_text=True))
+        self.assertNotIn("ip", response.get_data(as_text=True))
+        own = self.client.get("/api/community/my-pins", headers=headers)
+        self.assertEqual(own.status_code, 200)
+        self.assertEqual(own.json["pins"][0]["comment"], "")
+        self.assertEqual(self.client.get("/api/community/my-pins", headers=self.headers(OTHER)).json["pins"], [])
+        url = f'/api/community/pins/{pin["id"]}'
+        self.assertEqual(self.client.delete(url, json={}, headers=self.headers(OTHER)).status_code, 403)
+        self.assertEqual(self.client.delete(url, json={}, headers=headers).status_code, 200)
+        self.assertEqual(self.client.get("/api/community/my-pins", headers=headers).json["pins"], [])
