@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-12 | COMMUNITY-004 | real-browser community lifecycle | done
+- Result: Lead's real browser run with MapLibre and actual community JS passed two-marker typed/click coordinates, placement-off clearing, storage and public-consent gates, simulated publish, comment popup, reload/profile restore, invalid-coordinate clearing, and final placement-off. Fixture used actual community includes/CSS/modules and two blank-style maps; it was not the full Maps page integration. Native Forget confirm/cancel could not be verified because the browser dialog stalled CDP; no claim of coverage. Profile storage remains on the fresh fixture origin; no token or unrelated browser storage was read or cleared.
+- Check: Sanitized fixture state: one simulated POST, zero DELETEs, one active synthetic pin; six public reads. Fixture stopped and former loopback port returned connection refused. Screenshot retained in the disposable temp fixture folder. No production edits, tests, or Git actions.
+- Next: Lead records native-confirm limitation; no QA follow-up. Temp fixture/screenshots remain disposable and were not removed.
+
 ## 2026-10-11 | LOCATION-UI-007 | wrapped chart legend | done
 - Result: Updated chart layout assertions for title y=0.75, below-plot legend position/anchor, and 145px bottom margin. Updated cache regression to prove v8 charts redraw as v9 and v9 is reused; preserved existing data, units, visibility, and coverage checks.
 - Check: Isolated focused batch (`test_chart_rendering`, `test_locations_route`): 56 passed, zero skips/failures. Temporary user/community/session/chart/image paths and empty `DATABASE_URL`; PostgreSQL flags disabled. No provider calls or live database. Content assertions not needed for this layout/cache change.

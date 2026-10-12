@@ -4,6 +4,20 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-12 | COMMUNITY-004 | isolated community browser checks | done
+
+- Result: real community JS/MapLibre passed linked draft placement, typed/click
+  movement, invalid-coordinate clearing, placement off, storage/public consent,
+  simulated publication/comment popup and explicit profile restore after reload.
+- Limit: native Forget confirm/cancel remains unverified after dialog automation
+  stalled. Two-map fixture is not full Maps-page integration or server security
+  testing. No production edits, real posts, provider calls or database work.
+- Cleanup: one simulated POST, zero DELETEs; test tab closed, fixture stopped
+  and port refused connections. Screenshot retained outside Git in temporary
+  fixture folder. Synthetic profile remains only on its fresh test origin;
+  no credential read or unrelated browser storage cleared. Existing suites not
+  repeated; Lead owns documentation publication.
+
 ## 2026-10-11 | LOCATION-UI-006/007 | mobile chart legend correction | done
 
 - Result: browser found wrapped legend overlapping titles on phones. Moved it

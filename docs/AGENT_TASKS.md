@@ -3,7 +3,26 @@
 Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
 and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Current assignment
+## Latest assignment (verification round complete)
+
+**COMMUNITY-004 — browser verification of profile forgetting and draft pins.**
+Lead owns board, own log, browser checks and integration. QA owns only a disposable
+loopback fixture and own log: real community templates/JS and MapLibre markers,
+synthetic pins and in-memory APIs, no production app/database/provider imports.
+Use a fresh test origin and synthetic local profile only. Verify consent on
+profile creation, forget cancel/confirm, linked unpublished marker placement,
+movement, cancellation and simulated publication. No live pin publication or
+real user data. No new application behavior or repeated full suite; report any
+defect before implementation. Stop fixture and close the test tab afterward.
+
+Result (2026-10-12): linked draft placement/movement/clearing, explicit storage
+and publication consent, simulated publication/comment popup and explicit profile
+restore passed. One simulated POST, zero DELETEs. Native Forget confirmation
+remains unverified because browser dialog automation stalled. This was a two-map
+fixture, not full Maps-page integration or server security testing. Test tab
+closed and fixture stopped; synthetic profile storage left on its fresh origin.
+
+## Previous chart assignment (complete)
 
 **LOCATION-UI-006 — compact location-chart browser confirmation.**
 Lead owns board, own log and browser checks. QA owns only a disposable loopback
@@ -22,7 +41,7 @@ tests (temporary outputs only), then Reviewer audits; Lead repeats browser
 checks. Record: first NEXT_REQUIREMENTS entry. No new dependencies or live data.
 Current result: v9 layout passes all four metrics at 1280/390/320px in the
 synthetic browser fixture; QA's 56 focused offline tests pass. Independent review
-clear; Lead owns publication. Test tab closed and viewport reset; no listener
+clear; merged in PR #92 (`b1b1483`). Test tab closed and viewport reset; no listener
 remained on fixture port 5012 at the final check.
 
 ## Previous browser assignment (complete)
@@ -71,9 +90,12 @@ evidence remains indexed, no repeat needed.
   import or real administrator browser session was exercised.
 - **LOCATION-UI-005/006/007:** compact titles and the corrected v9 legend pass
   desktop and 320/390px browser checks for all four metrics with synthetic data.
-- **COMMUNITY-002/003:** real-browser profile-forget confirmation and draft-pin
-  appearance/lifecycle remain unverified; offline tests passed. Use synthetic
-  profiles/pins only, never live publication merely to test the UI.
+- **COMMUNITY-002:** real-browser profile-forget confirm/cancel remains unverified;
+  dialog automation stalled. Offline confirmation tests passed previously.
+- **COMMUNITY-003/004:** draft appearance/lifecycle and consent-gated simulated
+  publication passed with real community JS and MapLibre in a two-map fixture.
+  Full Maps-page integration and live server security were not exercised.
+  Use synthetic profiles/pins only, never live publication merely to test UI.
 - **LOCATION-FETCH-004:** one unattributed MutationObserver browser error remains
   unisolated. No matching app call was found; do not call it an application bug
   without evidence. It recurred during LOCATION-UI-006, without a source URL.
