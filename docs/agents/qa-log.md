@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-13 | COMMUNITY-008 | full Maps route integration | done
+- Result: Disposable check used the real Maps template/API routes and community service with a fresh temp SQLite store; synthetic saved months/grid, simulation banner, exact route/static allowlist, temp cwd/account/session/chart/image paths, PostgreSQL/provider-request blocks. Community empty-message publish, owner list, wrong-owner 403, owner delete and empty public list passed. Auth/admin paths denied; no Set-Cookie.
+- Check: `PYTHONDONTWRITEBYTECODE=1 .venv/bin/python <fresh-temp>/community008_check.py` passed. The 3×3 interpolation lattice/global polygon validate route wiring only. No browser available, so visual interpolation and narrow layout were not verified. Own listener stopped; port 5088 no longer listened.
+- Next: Lead completes report; disposable script and SQLite remain under the fresh temporary directory.
+
 ## 2026-10-12 | COMMUNITY-007 | narrow popup action ordering | done
 - Result: Added a structural selection regression requiring enabled Add pin here immediately after selected coordinates and before climate values/provenance, comparison details, history link and explanation. The existing disabled-callback assertion still verifies the action is absent; readouts remain present.
 - Check: `node --test tests/test_map_selection.mjs tests/test_map_template.mjs` passed 3/3 reported tests. No production, browser, network or data changes.

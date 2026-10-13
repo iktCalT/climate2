@@ -4,6 +4,19 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-13 | COMMUNITY-008 | Maps and real pin-service integration | bounded check complete
+
+- Result: QA exercised real Maps rendering and community routes/service with
+  temporary SQLite, blocked PostgreSQL/provider requests and synthetic map data.
+  Empty-message publish, own list, wrong-owner 403, owner delete and empty public
+  list passed. Lead inspected fixture assertions and isolation; no app edits.
+- Limit: browser inventory had no connected browser. Sparse synthetic grid
+  verifies response wiring, not interpolation, linked popup/draft interaction or
+  narrow layout. These remain pending; prior component checks are not a full-page
+  pass. No old suites repeated or live data changed.
+- Cleanup: QA stopped its fixture listener; temporary script/store remain outside
+  Git. No browser tab opened. Next: connected-browser integration check only.
+
 ## 2026-10-12 | COMMUNITY-006/007 | pin browser verification and action placement | done
 
 - Result: isolated browser verified popup/typed drafts, consented profile expiry
