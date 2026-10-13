@@ -1,9 +1,26 @@
 # Next requirements
 
+## Keep the map-popup pin action reachable on narrow maps
+
+**Status:** Implemented 2026-10-12; COMMUNITY-007, found during COMMUNITY-006.
+Action now follows selected coordinates. Isolated browser checks passed at
+1280/390/320px; three focused selection/template tests passed. Review clear.
+
+At 390px with the site's actual map sizing, a center-click popup can clip its
+trailing Add pin here button below the map after the provenance/history text.
+Place this primary action directly after selected coordinates, before climate
+details and explanatory text. Keep the optional enabled-only callback, exact
+coordinates, linked readouts, history links and explicit draft/publish flow.
+Do not change climate values, fetching, storage or public-write authorization.
+Backend owns map_selection.js only plus own log; QA adds a focused order
+regression, then Reviewer audits and Lead repeats desktop/phone browser checks.
+
 ## Two pin entry methods and temporary ownership
 
 **Status:** Implemented and reviewed 2026-10-12; COMMUNITY-005. Focused offline
-checks pass. New popup/expiry behavior has not had real-browser QA.
+checks pass. COMMUNITY-006 verified popup/typed drafts, message-free simulated
+publication/deletion and 500/501 Unicode validation in an isolated browser
+fixture. Full Maps-route integration and expiry timing remain unverified there.
 
 Allow a public pin with latitude/longitude and an optional plain-text message
 (0–500 trimmed characters). Omitted/empty/whitespace messages become empty text;

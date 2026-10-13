@@ -106,6 +106,18 @@ export function createMapSelection({panels, Popup, document, unit, sample, onAdd
             line(document, body, panel.month, true);
             if (comparing && index === 0) line(document, body, "Baseline", true);
             line(document, body, `Selected: ${selected.lat.toFixed(4)}° lat, ${selected.lng.toFixed(4)}° lon`);
+            if (typeof onAddPinHere === "function" && Number.isFinite(selected.lat)
+                && selected.lat >= -85 && selected.lat <= 85 && Number.isFinite(selected.lng)
+                && selected.lng >= -180 && selected.lng <= 180) {
+                const addPin = document.createElement("button");
+                addPin.type = "button";
+                addPin.textContent = "Add pin here";
+                addPin.addEventListener("click", event => {
+                    event.stopPropagation();
+                    onAddPinHere(selected);
+                });
+                body.append(addPin);
+            }
             if (value.status === "loading") {
                 line(document, body, "Loading viewport data…");
             } else if (value.status === "error") {
@@ -158,18 +170,6 @@ export function createMapSelection({panels, Popup, document, unit, sample, onAdd
                 historyLink.textContent = "View saved location history";
                 body.append(historyLink);
                 line(document, body, "History uses its own sampling rule and may differ from the map display estimate.");
-            }
-            if (typeof onAddPinHere === "function" && Number.isFinite(selected.lat)
-                && selected.lat >= -85 && selected.lat <= 85 && Number.isFinite(selected.lng)
-                && selected.lng >= -180 && selected.lng <= 180) {
-                const addPin = document.createElement("button");
-                addPin.type = "button";
-                addPin.textContent = "Add pin here";
-                addPin.addEventListener("click", event => {
-                    event.stopPropagation();
-                    onAddPinHere(selected);
-                });
-                body.append(addPin);
             }
             const popup = new Popup({closeOnClick: false})
                 .setLngLat(selected)

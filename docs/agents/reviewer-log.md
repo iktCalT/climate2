@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-12 | COMMUNITY-007 | narrow popup action ordering | done
+- Result: No actionable issue. The existing enabled/bounds-gated Add pin here button now follows selected coordinates, ahead of climate values, comparison details, history and explanation. Callback coordinates, linked readouts, history and draft/publish flow are unchanged; requirement and board match.
+- Check: Read-only focused diff/test/docs audit; `git diff --check` clean. QA reports selection/template suites 3/3. Lead reports actual map sizing at 1280/390/320px: button reachable, focused form opened with two draft markers, readouts preserved, no horizontal overflow. COMMUNITY-006 fixture shut down; no browser retest here.
+- Next: No reviewer blocker; Lead owns integration. Expiry timing and native Forget dialog remain unverified in browser as recorded.
+
 ## 2026-10-12 | COMMUNITY-005 | optional messages and local expiry | done
 - Result: Initial P2 Unicode length mismatch is resolved. The form now counts trimmed code points with `Array.from`, sets and clears custom validity, and explicitly blocks overlength submission; native `maxlength` is removed. UI and Python service both permit 500 code points.
 - Check: Read correction, template, focused QA regression and docs; `git diff --check` clean. QA reports 500 emoji and mixed Unicode accepted, 501 blocked even with `reportValidity` stubbed true, valid edits clear stale validity, and 27/27 focused community/map-selection/template Node tests pass. No browser visual verification; no broad rerun.
