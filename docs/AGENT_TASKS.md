@@ -3,7 +3,32 @@
 Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
 and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Latest assignment (complete)
+## Latest assignment (bounded checks complete; browser pending)
+
+**COMMUNITY-008 — full Maps route integration, isolated storage.**
+Lead owns board, own log, browser checks and integration. QA owns a disposable
+loopback fixture and own log only. Use real Maps route/template/scripts and real
+community API/service against a fresh temporary SQLite store; temporary cwd,
+account/session/chart paths and explicit fake fixture configuration before app
+import. Replace climate reads with synthetic values; block PostgreSQL and
+provider network calls. Allow only the tested routes/public assets. Prominent
+simulation banner; no credential output, real posts, live stores or cloud work.
+Verify linked readouts → Add pin here → draft, explicit consented profile/publish,
+owner list/delete, and narrow layout. Basemap assets may use existing credited
+providers; no new resources. Record fixture adaptations honestly. Do not repeat
+full suites or change production code unless a defect is assigned. Stop listener
+and close test tab afterward. Native Forget and actual expiry timing stay out
+of this bounded check; their current evidence is in prior QA records.
+
+Result: isolated Flask test-client checks passed for the real rendered Maps
+page, synthetic map-data response and real SQLite-backed community service:
+empty-message publication, owner listing, wrong-owner deletion rejected (403),
+owner deletion and empty public list afterward. No connected browser was
+available; JavaScript interaction, interpolation and full-page narrow layout
+remain pending. No production files or live stores changed. Own fixture listener
+stopped; the disposable script/store stay outside Git. See QA log COMMUNITY-008.
+
+## Previous assignment (complete)
 
 **COMMUNITY-006 — browser follow-up for PR #94 (`dc49935`).**
 Lead owns board, own log and browser verification. QA owns a disposable loopback
@@ -141,6 +166,11 @@ evidence remains indexed, no repeat needed.
 
 ## Remaining verification
 
+- **COMMUNITY-008:** full Maps route/template and real community API/service
+  passed isolated finite checks. Full-page browser interaction still needs a
+  connected browser and a representative synthetic map-data fixture; the sparse
+  test lattice checked response wiring only. Do not rerun prior suites merely
+  because browser verification is unavailable.
 - **ADMIN-UI-006/007:** NOAA admin-page visual/default checks passed with simulated
   responses; access-control and API checks passed offline in PR #90. No live
   import or real administrator browser session was exercised.
