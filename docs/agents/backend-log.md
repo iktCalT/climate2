@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-12 | COMMUNITY-007 | narrow popup action visibility | done
+- Result: Moved the existing enabled/bounds-checked Add pin here action directly after selected coordinates, before climate details and history text. Callback and readout behavior are unchanged.
+- Check: `node --check static/map_selection.js` passed. No tests or browser run; QA owns order regression and Lead owns visual recheck.
+- Next: QA, then Lead browser verification.
+
 ## 2026-10-12 | COMMUNITY-005 | Unicode message length parity | done
 - Result: Removed textarea's UTF-16 `maxlength`; client validates trimmed Unicode code points against the server's 500-character limit, sets custom validity and announces an actionable error while editing, and explicitly blocks invalid submits.
 - Check: `node --check static/community_pins.js`, absence-of-maxlength search and scoped `git diff --check` passed. Tests left to QA as assigned.

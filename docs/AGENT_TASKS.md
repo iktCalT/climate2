@@ -5,6 +5,33 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Latest assignment (complete)
 
+**COMMUNITY-006 — browser follow-up for PR #94 (`dc49935`).**
+Lead owns board, own log and browser verification. QA owns a disposable loopback
+fixture and own log only: real community templates/modules and map-selection
+module with MapLibre, synthetic maps/pins and in-memory API; no production app,
+database, provider, credential output or real publication. Verify ordinary
+location popup → Add pin here → focused draft controls, typed entry, optional
+message publish and owner deletion with explicit consent. Check narrow layout
+and 500/501 Unicode form validation where practical. Existing expiry tests are
+evidence; do not pretend 30 days elapsed in a browser. Full Maps-page integration
+and native Forget dialog remain separate limitations. No production edits or
+repeated full suite without a discovered defect. Stop fixture and close tab.
+
+Browser finding: desktop popup-to-draft and message-free simulated publish/delete
+pass; 390px center-click popup clips its trailing Add pin here button. Correction
+**COMMUNITY-007** is recorded first in NEXT_REQUIREMENTS: Backend owns only
+map_selection.js + own log, moving action immediately after selected coordinates.
+QA owns focused map-selection ordering test + own log; Reviewer audits; Lead
+rechecks live fixture. Preserve readouts, callback/consent and all server behavior.
+Correction now passes browser action checks at 1280/390/320px and three focused
+selection/template tests. Popup/typed drafts, empty-message simulated publish
+and owner deletion passed; 500 emoji valid, 501 invalid, blank clears validation.
+No observed console warnings/errors. Independent review clear. Tab closed,
+viewport reset and fixture stopped; final state: one simulated POST, one owner
+DELETE, zero active pins. Screenshots remain temporary, outside Git.
+
+## Previous assignment (complete)
+
 **COMMUNITY-005 — optional messages, popup entry and 30-day local ownership.**
 Contract: first NEXT_REQUIREMENTS entry. Lead owns requirement, board and own
 log; implementation → QA → review runs sequentially. No live stores or posts.
@@ -125,6 +152,11 @@ evidence remains indexed, no repeat needed.
   publication passed with real community JS and MapLibre in a two-map fixture.
   Full Maps-page integration and live server security were not exercised.
   Use synthetic profiles/pins only, never live publication merely to test UI.
+- **COMMUNITY-005/006/007:** new popup/typed entry, optional-message simulated
+  publication/deletion and Unicode form bounds passed in the isolated browser
+  fixture. Corrected button works at desktop and phone widths. The fixture uses
+  real modules/templates/map sizing, not the entire Maps route; actual 30-day
+  expiry remains covered by offline clock-controlled tests, not elapsed browser time.
 - **LOCATION-FETCH-004:** one unattributed MutationObserver browser error remains
   unisolated. No matching app call was found; do not call it an application bug
   without evidence. It recurred during LOCATION-UI-006, without a source URL.

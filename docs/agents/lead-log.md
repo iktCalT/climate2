@@ -4,6 +4,20 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-12 | COMMUNITY-006/007 | pin browser verification and action placement | done
+
+- Result: isolated browser verified popup/typed drafts, consented profile expiry
+  date, message-free simulated publish/owner delete, 500/501 emoji validation and
+  cleared errors. Found trailing popup action clipped at 390px; Backend moved
+  it after coordinates. Action now works at 1280/390/320px, preserving readouts.
+- Check: three selection/template tests pass; no observed console warnings/errors
+  or narrow horizontal overflow. Actual modules/templates/map sizing used, not
+  full Maps-route integration. Expiry timing/native Forget not browser-verified.
+- Cleanup: tab closed, viewport reset, fixture stopped; one simulated POST/DELETE,
+  zero active pins. Screenshots temporary outside Git. Synthetic profile retained
+  only on test origin; no credential read or unrelated storage cleared. Review
+  clear; no real posts/data changes. Lead owns integration.
+
 ## 2026-10-12 | COMMUNITY-005 | two pin entry paths and temporary ownership | done
 
 - Contract: optional message, coordinate form or climate-popup draft action,

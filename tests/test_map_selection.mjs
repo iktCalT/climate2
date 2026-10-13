@@ -58,6 +58,10 @@ function strongRows(element) {
         .map(child => ({row: child, text: child.children[0].textContent}));
 }
 
+function allText(element) {
+    return [element.textContent, ...(element.children || []).flatMap(allText)].filter(Boolean).join("\n");
+}
+
 {
     const forwarded = [];
     const {panels, popups, selection} = harness(["baseline", "current"], "°C", undefined,
@@ -78,6 +82,35 @@ function strongRows(element) {
         {lng: 12.3456789012345, lat: -23.456789012345},
     ], "the popup forwards the exact unrounded selection without replacing readouts");
     assert.ok(popups.every(popup => popup.map === panels[popups.indexOf(popup)].map));
+}
+
+{
+    const {panels, popups, selection} = harness(["baseline", "current"], "°C", undefined, () => {});
+    panels.forEach((panel, index) => selection.acceptData(panel, {features: [feature({
+        west: -1, east: 1, south: -1, north: 1, value: index ? 12 : 10,
+        latitude: 0, longitude: 0,
+    })]}));
+    selection.select({lng: 0.25, lat: 0.5});
+    for (const popup of popups) {
+        const children = popup.content.children;
+        const selectedIndex = children.findIndex(child => child.textContent.startsWith("Selected:"));
+        const actionIndex = children.findIndex(child => child.tag === "button" && child.textContent === "Add pin here");
+        const valueOrSourceIndex = children.findIndex(child => /°C|Direct PostgreSQL value/.test(allText(child)));
+        const differenceIndex = children.findIndex(child => allText(child).includes("Difference from baseline"));
+        const historyIndex = children.findIndex(child => child.tag === "a"
+            && child.textContent === "View saved location history");
+        const explanationIndex = children.findIndex(child => child.textContent.startsWith("History uses its own"));
+        assert.ok(selectedIndex >= 0);
+        assert.equal(actionIndex, selectedIndex + 1, "Add pin here immediately follows the selected coordinates");
+        assert.ok(actionIndex < valueOrSourceIndex, "the action precedes climate values and provenance");
+        if (differenceIndex >= 0) {
+            assert.ok(actionIndex < differenceIndex, "the action precedes comparison details");
+        }
+        assert.ok(actionIndex < historyIndex && historyIndex < explanationIndex,
+            "the action precedes the history link and its explanatory text");
+        assert.match(popup.text(), /Baseline|Direct PostgreSQL value|Difference from baseline/,
+            "moving the action preserves the existing climate readouts");
+    }
 }
 
 {

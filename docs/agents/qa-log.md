@@ -2,6 +2,16 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-12 | COMMUNITY-007 | narrow popup action ordering | done
+- Result: Added a structural selection regression requiring enabled Add pin here immediately after selected coordinates and before climate values/provenance, comparison details, history link and explanation. The existing disabled-callback assertion still verifies the action is absent; readouts remain present.
+- Check: `node --test tests/test_map_selection.mjs tests/test_map_template.mjs` passed 3/3 reported tests. No production, browser, network or data changes.
+- Next: Reviewer audit; Lead owns narrow viewport browser recheck.
+
+## 2026-10-12 | COMMUNITY-006 | popup-to-pin browser fixture | done
+- Result: Lead verified real community templates/modules plus actual Maps CSS sizing and `map_selection.js` callback wiring; fixture was not the full Maps route. Desktop popup Add pin opened/focused controls and showed two linked draft markers; no storage access preceded explicit profile action. Explicit storage consent created a 30-day profile. Blank optional message published; owner delete removed both public markers. Typed 10/20 coordinates showed drafts. 500 emoji passed, 501 failed, and clearing restored validity. At 390px the trailing Add pin button was initially clipped; COMMUNITY-007 moved it near the heading and it worked at 1280/390/320px without horizontal overflow. No observed console warnings/errors.
+- Check: Counters-only state before shutdown: 1 simulated POST, 1 owner DELETE, 0 active pins (7 public reads, 2 own-pin reads). Fixture stopped and port refused connections. No production edits, Git action, test rerun, or token read/clear. Synthetic profile remains on the fresh test origin; screenshots retained in the disposable fixture folder.
+- Next: Lead owns remaining report. Expiry timing and native Forget dialog were not browser-verified; no native-dialog retry.
+
 ## 2026-10-12 | COMMUNITY-005 | optional messages, popup entry and expiry | done
 - Result: Tests cover optional message boundaries/private fields/owner-only routes, popup/draft parity, expiry lifecycle, message-free own-pin operations and content. Found stale consent after expiry; Backend cleared it. Added Unicode code-point boundaries and custom-validity reset checks; verified the textarea has no native `maxlength`.
 - Check: Isolated Python community tests 12 passed; content tests 14 passed. Initial Node batch was 35/36, exposing stale consent; focused community rerun passed 23/23 after Backend's fix. Unicode follow-up across community browser, map selection and template suites passed 27/27, including 500/501 code points. No live stores, providers, posts or browser.
