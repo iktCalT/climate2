@@ -4,6 +4,18 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-15 | REGRESSION-004 | combined offline checkpoint | done
+
+- Result: base `669afb6`, Python 234 total: 226 passed/eight expected PostgreSQL
+  skips/no failures or errors. Node 45 passed. No production/test changes.
+- Audit: runner isolated account/community/session state and blocked real
+  PostgreSQL/HTTP. Development ignores chart/image env overrides; QA confirmed
+  per-test temporary paths/mocks protect writes and no generated output changed.
+  Mode/fetch-enabled settings were inherited; do not claim they were pinned.
+- Next: no corrections or reruns. Updated task-board checkpoint and stale pin
+  requirement status from completed browser evidence. Deployment remains paused;
+  no live-data or additional browser validation claimed.
+
 ## 2026-10-15 | COMMUNITY-008 | full-page browser follow-up | done
 
 - Result: actual Maps route with synthetic NOAA lattice and temporary community

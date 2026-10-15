@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-15 | REGRESSION-004 | combined offline checkpoint | done
+- Result: Python discovery: 234 run, 226 passed, eight expected PostgreSQL skips, zero failures. Node: 45 passed, zero skipped/failed. No test IDs failed.
+- Check: Disposable runner set account/community paths and patched Flask-Session's cwd default before app import; empty `DATABASE_URL`, PostgreSQL opt-ins off, psycopg/HTTP blocked. Development does not consume chart/image env overrides: direct chart tests use temporary directories, route tests mock chart writes or assert reuse, and image coverage rejects unsupported uploads before saving. Repository chart/image file metadata predates this run; no repo-local generated output was changed. `CLIMATE_ENV` and `LOCATION_FETCH_ENABLED` were not explicitly pinned. Expected mocked-error logs appeared.
+- Next: Lead may record checkpoint; runner at `/private/tmp/climate-regression-004-qa/run_checkpoint.py`. No production/test edits or live stores/providers.
+
 ## 2026-10-15 | COMMUNITY-008 | full Maps route integration | done
 - Result: Real Maps route/browser used a synthetic NOAA 2°×4° grid, distinct months, simulation banner, exact asset/route allowlist and fresh SQLite. Lead verified linked 12/17 readouts, popup/typed draft pins, explicit local/public consent, blank-message publish, own list and owner deletion. At 390/320px no horizontal overflow; Add pin here reachable at 390px. SQLite ended with 0 pins.
 - Check: Prior isolated route/service checks passed. Browser visual review remains narrow; focus check was inconclusive after retained-page interruption. Lead closed tab/reset viewport; I stopped session 27400 and confirmed port 58882 no longer listens. No production edits, live stores or credentials.
