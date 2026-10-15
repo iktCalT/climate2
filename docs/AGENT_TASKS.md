@@ -3,7 +3,24 @@
 Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
 and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Latest assignment (bounded checks complete; browser pending)
+## Latest assignment (browser follow-up complete)
+
+Browser access is available again on 2026-10-13. Resume COMMUNITY-008 with
+the same ownership and exclusions: QA prepares a fresh disposable full-route
+fixture with schema-compatible synthetic NOAA data; Lead checks linked map
+readouts, popup and typed pin drafts, consented publication/owner deletion,
+and narrow layout. No production edits without a separately recorded defect.
+Reuse the completed finite API checks; do not rerun old suites.
+
+Browser result (2026-10-13, resumed 2026-10-15): actual full Maps route with
+synthetic NOAA data and temporary SQLite passed linked same-location readouts
+(12/17 °C, +5 °C difference), popup and typed drafts on both maps, explicit
+profile/public consent, blank-message publication, own listing and owner
+deletion. Deletion cleared both public markers and the own list. At 390px the
+popup action remained reachable; page width fit 390/320px without horizontal
+overflow. This is a bounded layout check, not an exhaustive mobile audit.
+Browser tab closed and viewport reset. No production code changed; live climate
+data, native Forget and actual expiry timing remain outside this check.
 
 **COMMUNITY-008 — full Maps route integration, isolated storage.**
 Lead owns board, own log, browser checks and integration. QA owns a disposable
@@ -20,7 +37,8 @@ full suites or change production code unless a defect is assigned. Stop listener
 and close test tab afterward. Native Forget and actual expiry timing stay out
 of this bounded check; their current evidence is in prior QA records.
 
-Result: isolated Flask test-client checks passed for the real rendered Maps
+Initial result (before the browser follow-up above): isolated Flask test-client
+checks passed for the real rendered Maps
 page, synthetic map-data response and real SQLite-backed community service:
 empty-message publication, owner listing, wrong-owner deletion rejected (403),
 owner deletion and empty public list afterward. No connected browser was
@@ -166,11 +184,11 @@ evidence remains indexed, no repeat needed.
 
 ## Remaining verification
 
-- **COMMUNITY-008:** full Maps route/template and real community API/service
-  passed isolated finite checks. Full-page browser interaction still needs a
-  connected browser and a representative synthetic map-data fixture; the sparse
-  test lattice checked response wiring only. Do not rerun prior suites merely
-  because browser verification is unavailable.
+- **COMMUNITY-008:** finite API checks and bounded full-page browser integration
+  now pass with synthetic climate data and temporary SQLite (see above). No
+  live provider/data verification, exhaustive mobile audit, native Forget or
+  elapsed 30-day browser-expiry claim. Earlier component-only limitations remain
+  historical, not a reason to repeat completed checks.
 - **ADMIN-UI-006/007:** NOAA admin-page visual/default checks passed with simulated
   responses; access-control and API checks passed offline in PR #90. No live
   import or real administrator browser session was exercised.

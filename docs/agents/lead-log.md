@@ -4,6 +4,20 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-15 | COMMUNITY-008 | full-page browser follow-up | done
+
+- Result: actual Maps route with synthetic NOAA lattice and temporary community
+  SQLite passed same-location 12/17 °C readouts (+5), popup/typed linked drafts,
+  explicit profile/public consent, blank-message publish, own list and deletion.
+  Both public markers disappeared after deletion. Desktop world basemap rendered.
+- Layout: popup action reachable at 390px; no horizontal overflow at 390/320px.
+  Phone screenshot shows zero own pins. Not an exhaustive mobile/focus audit.
+- Limits: native Forget, actual expiry timing and live climate data untested.
+  Browser tooling emitted Statsig 403 errors; no clean-console claim. No app
+  edits or repeated suites. Tab closed, viewport reset, fixture stopped; QA
+  confirmed zero temporary pins and no remaining listener.
+  Screenshot stays temporary outside Git; no profile credential read or cleared.
+
 ## 2026-10-13 | COMMUNITY-008 | Maps and real pin-service integration | bounded check complete
 
 - Result: QA exercised real Maps rendering and community routes/service with
