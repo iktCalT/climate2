@@ -20,7 +20,10 @@ regression, then Reviewer audits and Lead repeats desktop/phone browser checks.
 **Status:** Implemented and reviewed 2026-10-12; COMMUNITY-005. Focused offline
 checks pass. COMMUNITY-006 verified popup/typed drafts, message-free simulated
 publication/deletion and 500/501 Unicode validation in an isolated browser
-fixture. Full Maps-route integration and expiry timing remain unverified there.
+fixture. COMMUNITY-008 subsequently verified the full Maps route with synthetic
+NOAA data and temporary SQLite (2026-10-13/15): linked readouts/drafts,
+publication, own listing and deletion passed. Actual expiry timing and native
+Forget remain outside browser coverage; offline expiry tests passed earlier.
 
 Allow a public pin with latitude/longitude and an optional plain-text message
 (0–500 trimmed characters). Omitted/empty/whitespace messages become empty text;

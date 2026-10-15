@@ -3,7 +3,28 @@
 Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
 and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Latest assignment (browser follow-up complete)
+## Latest assignment (complete)
+
+**REGRESSION-004 — combined offline checkpoint after PR #97.**
+Lead owns board, documentation status and own log. QA owns one full Python
+unittest discovery and Node test batch, disposable isolation runner and own log;
+no production or test edits without an assigned finding. Use existing .venv and
+test conventions. Explicitly isolate account/community/session/chart/image
+paths before app import; disable PostgreSQL opt-ins and block real provider/DB
+connections. Do not read .env, start imports, use live stores, launch browsers
+or change cloud settings. Report exact totals/skips and any test contamination.
+Do not rerun full suites after a scoped correction. Reviewer is needed only
+if a correction is assigned; no new product behavior is part of this checkpoint.
+
+Result (2026-10-15, base `669afb6`): Python 234 total, 226 passed, eight
+expected PostgreSQL skips, no failures/errors; Node 45 passed. Lead audited
+the disposable runner: chart/image environment overrides were not consumed
+by development config, but relevant tests used temporary directories/mocks;
+no generated project output changed. Mode/fetch-enabled settings were inherited,
+not explicitly pinned. Account/community paths and session default were isolated;
+real PostgreSQL/HTTP calls were blocked. No corrections or reruns required.
+
+## Previous assignment (browser follow-up complete)
 
 Browser access is available again on 2026-10-13. Resume COMMUNITY-008 with
 the same ownership and exclusions: QA prepares a fresh disposable full-route
@@ -227,12 +248,12 @@ checks did not create a real administrator.
 
 ## Latest completed checkpoint
 
-**REGRESSION-003, PR #88 (`1d548e3`):** isolated Python discovery at `bdfbef9`
-ran 230 tests: 221 passed, eight expected PostgreSQL skips, one stale setup-count
-assertion failed. Corrected it to require all three SQL scripts and both
-location-fetch tables; three affected tests then passed. All 36 Node tests passed.
-Full batches were not repeated after correction; independent review clear.
-No application change, live provider/database operation or new visual claim.
+**REGRESSION-004, base `669afb6` (2026-10-15):** Python discovery ran 234
+tests: 226 passed, eight expected PostgreSQL skips, zero failures/errors.
+All 45 Node tests passed. Isolation details and limitations are recorded above
+and in the QA log. No application/test edits, live provider/database operation,
+or new browser claim; no repeated batches after this checkpoint.
+Prior REGRESSION-003 remains in the indexed historical handoff.
 
 Details: [completed rounds](agents/context/completed-rounds.md),
 [QA log](agents/qa-log.md), [reviewer log](agents/reviewer-log.md).
