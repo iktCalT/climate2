@@ -4,6 +4,19 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-17 | TEST-TOOLS-001 | reusable isolated verification | done
+
+- Result: scoped runner isolates local test state/output and guards PostgreSQL/
+  HTTP before app import; preserves relative chart-cache reads. Backend fixed
+  captured session-default and NOAA URL-alias restoration found by QA.
+- Check: full Python run 238 total: 228 passed/eight expected skips/two fixture
+  failures. The two Locations tests depended on development fetching being on;
+  scoped explicit settings preserve assertions and mocked I/O. Corrected module
+  50/50 and runner lifecycle checks 4/4 pass; full suite not repeated.
+- Review: no blocker; Lead owns authorized integration. No production changes,
+  live fetching, deployment work, or repeated Node/browser checks. Credits added
+  to README/References; no new dependency.
+
 ## 2026-10-15 | REGRESSION-004 | combined offline checkpoint | done
 
 - Result: base `669afb6`, Python 234 total: 226 passed/eight expected PostgreSQL

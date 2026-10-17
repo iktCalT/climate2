@@ -370,13 +370,21 @@ See [docs/USER_ROLES.md](docs/USER_ROLES.md) for administrator ingest limits and
 Run the offline regression suite from the repository root:
 
 ```sh
-DATABASE_URL= PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests
-node --test tests/test_map_scales.mjs
+.venv/bin/python tests/run_offline.py
+.venv/bin/python tests/run_offline.py --pattern 'test_locations_route.py'
+node --test tests/test_map*.mjs
+node --test tests/test_community*.mjs
 ```
 
-The route tests use temporary account databases and do not modify personal account data.
-The empty `DATABASE_URL` skips live PostgreSQL tests. Only enable database
-integration checks against an explicitly isolated test database.
+The Python runner isolates account, community and session state plus generated
+chart/image output paths in a temporary directory. Relative chart-cache reads
+keep their existing repository path. It disables PostgreSQL opt-ins and
+location fetching, and blocks real PostgreSQL and HTTP requests. It uses the
+repository's existing `unittest` suite and returns nonzero when discovery is
+empty or a test fails.
+This is an accident-prevention guard, not an operating-system sandbox; it does
+not establish live integration coverage. Only enable database integration
+checks against an explicitly isolated test database.
 Optional real-SQL cleanup tests create only connection-local temporary tables:
 `CLIMATE_CLEANUP_PG_TEST=1 .venv/bin/python -m unittest discover -s tests -p 'test_admin_cleanup.py'`.
 They verify date boundaries, all-provider retention, batch limits, rollback, and
@@ -437,6 +445,7 @@ Deployment research (evaluated, not deployed; checked 2026-10-03):
 Current application software and delivery services:
 
 - [Python threading](https://docs.python.org/3/library/threading.html) (Python Software Foundation licence) runs bounded background admin batches; no task-queue dependency was added.
+- [Python unittest](https://docs.python.org/3/library/unittest.html) and [tempfile](https://docs.python.org/3/library/tempfile.html) (Python Software Foundation licence) power the reusable test runner and its disposable state directory.
 - [Python hashlib](https://docs.python.org/3/library/hashlib.html) (Python Software Foundation licence) creates SHA-256 data-content keys for location chart reuse without stale results after imports or cleanup.
 - [Python sqlite3](https://docs.python.org/3/library/sqlite3.html) and [contextlib.closing](https://docs.python.org/3/library/contextlib.html#contextlib.closing) (Python Software Foundation licence) provide local account storage and explicit connection closure; the SQLite transaction context alone does not close a connection.
 - [Node.js](https://nodejs.org/) runs the dependency-free map-scale tests (`node tests/test_map_scales.mjs`); Node is MIT-licensed with bundled third-party notices in its [licence](https://github.com/nodejs/node/blob/main/LICENSE).

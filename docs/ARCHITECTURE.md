@@ -100,15 +100,20 @@ and the fixed `REFACTOR.md` may mention old paths; use this guide for navigation
 ## Verification and agents
 
 ```sh
-DATABASE_URL= CLIMATE_CLEANUP_PG_TEST=0 CLIMATE_AVAILABILITY_PG_TEST=0 \
-  PYTHONDONTWRITEBYTECODE=1 .venv/bin/python -m unittest discover -s tests
+.venv/bin/python tests/run_offline.py
+.venv/bin/python tests/run_offline.py --pattern 'test_locations_route.py'
 node --test tests/test_map*.mjs
 node --test tests/test_community*.mjs
 ```
 
-The empty `DATABASE_URL` and zero-valued opt-in flags keep PostgreSQL integration
-tests skipped even when other tests set a default. Node runs all map suites,
-including interpolation, selection, coordinates, scales and template lifecycle.
+The Python runner pins development mode, disables location fetching and
+PostgreSQL opt-ins, isolates account/community/session state and generated
+chart/image output paths in its own temporary directory, and blocks real
+PostgreSQL and HTTP calls. Relative chart-cache reads keep their existing
+repository path. It supports a bounded filename pattern and fails on empty
+discovery or test failures. This
+is an accident-prevention guard, not an OS sandbox or live-integration check.
+Node runs the separate map and community suites.
 Do not enable integration flags against a live
 climate database. Database-backed checks require an explicitly isolated test
 database; see [PostgreSQL operations](POSTGRESQL.md). No live import, cleanup,
