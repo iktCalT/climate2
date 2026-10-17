@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-17 | TEST-TOOLS-001 | reusable offline unittest runner | done
+- Result: Added `tests/run_offline.py` with isolated temporary account/community/session state and generated chart/image output paths, pre-import development/fetch/PostgreSQL settings and I/O guards, bounded `--pattern`, empty-discovery failure and cleanup/restoration. It preserves route chart-cache reads and rejects a pre-imported app. Captured Flask-Session defaults and NOAA's imported URL alias now restore after the run. README/architecture document separate Python and Node commands and clarify chart read behavior; README/References credit unittest/tempfile docs.
+- Check: `.venv/bin/python tests/test_offline_runner.py` passed 4/4; help, empty-pattern exit 2 and `git diff --check` passed. Full suite remains with QA. No production code, stores or credentials touched.
+- Next: QA owns the one full Python run. References URLs for content-page allowlist: `https://docs.python.org/3/library/unittest.html`, `https://docs.python.org/3/library/tempfile.html`.
+
 ## 2026-10-12 | COMMUNITY-007 | narrow popup action visibility | done
 - Result: Moved the existing enabled/bounds-checked Add pin here action directly after selected coordinates, before climate details and history text. Callback and readout behavior are unchanged.
 - Check: `node --check static/map_selection.js` passed. No tests or browser run; QA owns order regression and Lead owns visual recheck.

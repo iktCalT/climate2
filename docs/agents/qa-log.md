@@ -2,6 +2,11 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-17 | TEST-TOOLS-001 | offline runner QA | in progress
+- Result: Added focused offline-runner subprocess checks and canonical Python docs URLs; verified Backend restoration fixes. Updated two Locations route fixtures to opt in to NOAA fetching only within their `app.config` patch scopes, preserving every assertion and I/O mock. The earlier route failures were caused by the runner's intentional `LOCATION_FETCH_ENABLED=0`, which gated the guidance and `data-complete-months` markup those tests assert; they were not stale assertions.
+- Check: Full runner once: 238 tests, 228 passed, 8 expected PostgreSQL skips, 2 failures. Focused route suite before correction: 50 run, 48 passed, both failures reproduced. After scoped config fixes: `.venv/bin/python tests/run_offline.py --pattern test_locations_route.py` passed 50/50. Runner regression checks passed 4/4 after adding a completion marker to verify failure-path restoration assertions. Output: `/private/tmp/climate-offline-locations-qa-fixed.log`. No Node, browser, live store/provider calls, or generated chart/image files.
+- Next: Lead may complete integration; no full-suite rerun assigned.
+
 ## 2026-10-15 | REGRESSION-004 | combined offline checkpoint | done
 - Result: Python discovery: 234 run, 226 passed, eight expected PostgreSQL skips, zero failures. Node: 45 passed, zero skipped/failed. No test IDs failed.
 - Check: Disposable runner set account/community paths and patched Flask-Session's cwd default before app import; empty `DATABASE_URL`, PostgreSQL opt-ins off, psycopg/HTTP blocked. Development does not consume chart/image env overrides: direct chart tests use temporary directories, route tests mock chart writes or assert reuse, and image coverage rejects unsupported uploads before saving. Repository chart/image file metadata predates this run; no repo-local generated output was changed. `CLIMATE_ENV` and `LOCATION_FETCH_ENABLED` were not explicitly pinned. Expected mocked-error logs appeared.

@@ -5,6 +5,34 @@ and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
 ## Latest assignment (complete)
 
+**TEST-TOOLS-001 — reusable offline Python verification.**
+Contract: first NEXT_REQUIREMENTS entry. Lead owns requirements/board and own
+log. Backend owns `tests/run_offline.py`, README, References, ARCHITECTURE command
+documentation and own log. QA then owns `tests/test_offline_runner.py`, only the
+external-credit URL allowlist in `tests/test_content_pages.py`, and own log;
+validate setup/cleanup/failure semantics and run Python discovery once via
+the new runner, keeping live calls blocked. Reviewer read-only except own log.
+No production modules, existing test assertions, dependencies or deployment
+settings may change. Use temporary helper paths for actual chart writes while
+preserving legacy route cache-read expectations; explicitly isolate image
+config. Check app-import side effects before testing. No Node rerun or browser.
+
+QA follow-up: the full runner found two Locations UI tests implicitly relying
+on development fetching being enabled. QA may add scoped `patch.dict` settings
+for `LOCATION_FETCH_ENABLED=1` (and NOAA provider) to those two tests only in
+`tests/test_locations_route.py`; retain every assertion and all I/O mocks.
+This verifies enabled UI explicitly while the runner remains disabled by default.
+Run the focused Locations module after correction, not another full batch.
+
+Validation: one full Python run reported 238 tests: 228 passed, eight expected
+PostgreSQL skips and the two enabled-UI fixture failures described above.
+After scoped fixture correction, Locations passed 50/50; runner lifecycle
+checks passed 4/4, including a completion marker after restoration assertions.
+The full suite was not repeated. Independent review found no blocker. No production
+code, live stores, provider calls, Node/browser reruns or cloud changes.
+
+## Previous assignment (complete)
+
 **REGRESSION-004 — combined offline checkpoint after PR #97.**
 Lead owns board, documentation status and own log. QA owns one full Python
 unittest discovery and Node test batch, disposable isolation runner and own log;

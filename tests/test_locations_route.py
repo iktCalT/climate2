@@ -240,12 +240,13 @@ class LocationsRouteTests(unittest.TestCase):
             },
             index=pd.to_datetime(["2026-01-01"]),
         )
-        with patch("climate.web.app.get_location_history", return_value=(history, False)) as load:
-            with patch("climate.web.app.os.path.isfile", return_value=True):
-                with patch("climate.web.app.draw_chart") as draw:
-                    response = self.client.get(
-                        "/locations?latitude=10&longitude=10"
-                    )
+        with patch.dict(app.config, {"CLIMATE_PROVIDER": "noaa_core", "LOCATION_FETCH_ENABLED": "1"}), \
+             patch("climate.web.app.get_location_history", return_value=(history, False)) as load, \
+             patch("climate.web.app.os.path.isfile", return_value=True), \
+             patch("climate.web.app.draw_chart") as draw:
+            response = self.client.get(
+                "/locations?latitude=10&longitude=10"
+            )
 
         self.assertEqual(response.status_code, 200)
         load.assert_called_once()
@@ -260,7 +261,7 @@ class LocationsRouteTests(unittest.TestCase):
              "temp_min": [5.0, None, 7.0], "precip": [2.0, 3.0, 4.0]},
             index=pd.to_datetime(["2026-01-01", "2026-02-01", "2026-03-01"]),
         )
-        with patch.dict(app.config, {"CLIMATE_PROVIDER": "noaa_core"}), \
+        with patch.dict(app.config, {"CLIMATE_PROVIDER": "noaa_core", "LOCATION_FETCH_ENABLED": "1"}), \
              patch("climate.web.app.get_location_history", return_value=(history, False)), \
              patch("climate.web.app.os.path.isfile", return_value=True):
             response = self.client.get("/locations?latitude=1&longitude=2")

@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-17 | TEST-TOOLS-001 | reusable offline runner | done
+- Result: No review blocker on `codex/reusable-offline-checks` (base `9fcd08a`). Guards precede app import; effective account/community/session and chart/image write paths use temporary state. Relative chart-cache reads remain unchanged. Pattern validation, zero-test/failure exits, restoration, documentation and scoped Locations fetch settings match the contract. The HTTP guard covers current app entry points, not arbitrary new clients; docs correctly identify an accident guard rather than an OS sandbox.
+- Check: Read-only diff/source/test audit and `git diff --check` clean. QA reports runner lifecycle 4/4 and corrected Locations 50/50; the earlier full run had 228 passes, eight expected PostgreSQL skips and two now-scoped UI failures. No suite rerun per task boundary.
+- Next: Lead owns integration; no reviewer blocker.
+
 ## 2026-10-12 | COMMUNITY-007 | narrow popup action ordering | done
 - Result: No actionable issue. The existing enabled/bounds-gated Add pin here button now follows selected coordinates, ahead of climate values, comparison details, history and explanation. Callback coordinates, linked readouts, history and draft/publish flow are unchanged; requirement and board match.
 - Check: Read-only focused diff/test/docs audit; `git diff --check` clean. QA reports selection/template suites 3/3. Lead reports actual map sizing at 1280/390/320px: button reachable, focused form opened with two draft markers, readouts preserved, no horizontal overflow. COMMUNITY-006 fixture shut down; no browser retest here.

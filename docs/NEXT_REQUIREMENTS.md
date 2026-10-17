@@ -1,5 +1,32 @@
 # Next requirements
 
+## Reusable offline Python verification
+
+**Status:** Implemented and reviewed 2026-10-17; TEST-TOOLS-001.
+
+Recent regression checks used disposable runners, and development ignores
+chart/image environment overrides. Provide a tracked `tests/run_offline.py`
+command using the existing unittest runner and .venv. Before application imports,
+explicitly select development mode, disable location fetching and PostgreSQL
+integration opt-ins, isolate account/community/session state, and block real
+PostgreSQL and HTTP calls. Isolate effective chart/image output paths through
+the application/helper configuration, not unused environment variables. Preserve
+existing test assertions, especially relative chart-cache read paths; no app
+runtime changes or test-framework migration. Restore patched state on exit and
+clean only the runner's own temporary directory. Fail with a nonzero status on
+test failure; support a bounded filename pattern for focused runs. Do not read
+.env, print credentials, or claim an OS sandbox or live-integration coverage.
+Document Python and separate existing Node commands plus relevant canonical
+standard-library credits in README and website References. Verify isolation,
+failure exit status, cleanup and representative existing suites; run the full
+Python suite once to check the new entry point, without repeating unchanged Node
+tests from REGRESSION-004. Independent review follows.
+
+Verification follow-up: two existing Locations UI tests depended implicitly on
+development's enabled-fetch default. Give those tests explicit, scoped enabled
+settings with existing mocked data; preserve their assertions and the runner's
+disabled default. No actual fetching or application behavior change.
+
 ## Keep the map-popup pin action reachable on narrow maps
 
 **Status:** Implemented 2026-10-12; COMMUNITY-007, found during COMMUNITY-006.
