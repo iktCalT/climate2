@@ -2,6 +2,21 @@
 
 Writer: Agent 3 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-21 | COMMUNITY-010 | fixture restart | handoff ready
+- Result: Isolated fixture seeded three synthetic pins: short reproduction at 10/20, 500 unbroken characters plus 40-character nickname at 10/-40, and a 500-character newline-heavy comment at 10/100. The exact short text was “Disposable keyboard and mobile check.”
+- Check: Actual API returned 3 pins; count-only checks before/after browser use confirmed 3 rows/owners. Lead verified 320/390/1280px; at 320px map bounds were x=12..308 and popup x=60..300 (8px inset). Long text scrolled by keyboard to 1640px; Tab→Close→Enter worked. No console warnings/errors.
+- Next: Fixture stopped with no listener; test tab closed and viewport reset. No live data/posts or production edits.
+
+## 2026-10-20 | COMMUNITY-010 | community popup fit checks | handoff ready
+- Result: Added geometry/RAF/ResizeObserver popup mocks and regressions reproducing the 320px x=-18 clipping, all four edges at 320/390/desktop, actual map resize with bounded popup dimensions/no drift, 500 unbroken text and 40-character nickname, focusable labelled comment region, and close/replacement/refresh/move/removal cleanup. CSS checks are structural only. Citation URL allowlist now includes MapLibre Map API and MDN ResizeObserver/translate.
+- Check: `node --test tests/test_community_browser.mjs` passed 27/27 after final edits; offline content pages passed 14/14. Isolated full-Maps fixture used temporary state and pre-import HTTP/urllib/PostgreSQL guards. Browser visual check was pending; completed in the Oct 21 handoff below. No application edits or live calls.
+- Next: See Oct 21 browser result; no fixture remains running.
+
+## 2026-10-19 | COMMUNITY-009 | keyboard/mobile and Forget browser checks | done
+- Result: Lead's isolated browser pass reached coordinate/comment/public-consent/Publish, My Pins/Delete, and marker comment via Enter. At 390/320px there was no page overflow; 320px popup text clipped its first characters (popup left -18px, text left -8px, map bounds 12..308). Saving profile left focus on BODY, but the next Tab reached My Pins without a trap. Native Forget Enter stalled; cancel/confirm and post-forget public-pin survival remain unverified.
+- Check: Disposable full-Maps fixture used synthetic climate data and temporary SQLite; initial/final count-only checks found one test pin. Stopped fixture session 72799; port 61325 has no listener. Screenshot retained outside Git at `/private/tmp/community009-browser.jioprx/popup-320.jpg`; no app edits, live calls or credential inspection.
+- Next: Lead owns deciding whether to record/fix 320px popup clipping and arrange any bounded native-confirm follow-up.
+
 ## 2026-10-17 | TEST-TOOLS-001 | offline runner QA | in progress
 - Result: Added focused offline-runner subprocess checks and canonical Python docs URLs; verified Backend restoration fixes. Updated two Locations route fixtures to opt in to NOAA fetching only within their `app.config` patch scopes, preserving every assertion and I/O mock. The earlier route failures were caused by the runner's intentional `LOCATION_FETCH_ENABLED=0`, which gated the guidance and `data-complete-months` markup those tests assert; they were not stale assertions.
 - Check: Full runner once: 238 tests, 228 passed, 8 expected PostgreSQL skips, 2 failures. Focused route suite before correction: 50 run, 48 passed, both failures reproduced. After scoped config fixes: `.venv/bin/python tests/run_offline.py --pattern test_locations_route.py` passed 50/50. Runner regression checks passed 4/4 after adding a completion marker to verify failure-path restoration assertions. Output: `/private/tmp/climate-offline-locations-qa-fixed.log`. No Node, browser, live store/provider calls, or generated chart/image files.

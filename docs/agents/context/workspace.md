@@ -4,6 +4,16 @@ Snapshot 2026-10-10, integration base/main `1d548e3` (PR #88).
 Recheck Git and runtime state before acting; this note does not prove a server
 is still running. [Architecture](../../ARCHITECTURE.md) gives current commands.
 
+## Browser access preference (owner reminder, 2026-10-19)
+
+The owner permits opening ChatGPT desktop for its browser when browser work
+is needed, including while the agent runs in Codex CLI. Check the available
+browser connection and supported controls; CLI execution alone does not mean
+browser access is unavailable. Respect tool access restrictions and report
+specific connection/dialog limitations rather than assuming access works.
+
+## Historical runtime snapshot
+
 - Local development only: owner paused cloud/domain/VM work on 2026-10-08.
   Preserve portable production configuration; no cloud operations or credentials
   needed. Actual Docker build and hosted operation remain unverified.

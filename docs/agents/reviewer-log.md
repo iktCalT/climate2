@@ -2,6 +2,11 @@
 
 Writer: Agent 4 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-20 | COMMUNITY-010 | community popup fitting | done
+- Result: No static-review blocker on `codex/pin-accessibility-checks` (base `79778d2`). Popup fitting bounds the rendered box inside the map, uses CSS `translate` separately from MapLibre's placement transform, preserves text-only content, and disconnects/cancels work on close and existing invalidation paths. Close stays outside the scrollable comment region; community-only CSS and paired MapLibre/MDN credits match scope.
+- Check: Read-only diff/source/test/requirements audit; scoped `git diff --check` clean. QA reports 27/27 Node and 14/14 offline content checks; not rerun. Mock geometry and CSS assertions do not prove rendered 500-character wrapping, close/focus reachability, or actual ResizeObserver delivery.
+- Next: Lead owns 320/390/desktop browser pass and fixture shutdown. No reviewer production/test edit.
+
 ## 2026-10-17 | TEST-TOOLS-001 | reusable offline runner | done
 - Result: No review blocker on `codex/reusable-offline-checks` (base `9fcd08a`). Guards precede app import; effective account/community/session and chart/image write paths use temporary state. Relative chart-cache reads remain unchanged. Pattern validation, zero-test/failure exits, restoration, documentation and scoped Locations fetch settings match the contract. The HTTP guard covers current app entry points, not arbitrary new clients; docs correctly identify an accident guard rather than an OS sandbox.
 - Check: Read-only diff/source/test audit and `git diff --check` clean. QA reports runner lifecycle 4/4 and corrected Locations 50/50; the earlier full run had 228 passes, eight expected PostgreSQL skips and two now-scoped UI failures. No suite rerun per task boundary.

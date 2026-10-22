@@ -28,6 +28,8 @@ https://crudata.uea.ac.uk/cru/data/hrg/
 https://cs50.harvard.edu/x/
 https://developers.openai.com/api/docs/guides/image-generation
 https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
+https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver
+https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/translate
 https://developers.cloudflare.com/fundamentals/reference/http-headers/
 https://developers.cloudflare.com/ssl/origin-configuration/ssl-modes/full-strict/
 https://docs.cloud.google.com/run/docs/container-contract
@@ -68,6 +70,7 @@ https://jquery.com/
 https://leafletjs.com/
 https://maplibre.org/maplibre-gl-js/docs/
 https://maplibre.org/maplibre-gl-js/docs/API/classes/CanvasSource/
+https://maplibre.org/maplibre-gl-js/docs/API/classes/Map/
 https://maplibre.org/maplibre-gl-js/docs/API/classes/Popup/
 https://maplibre.org/maplibre-style-spec/layers/
 https://nodejs.org/

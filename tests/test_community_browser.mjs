@@ -34,15 +34,48 @@ function harness({denied = false, enabled = true, panels = [], confirmResult = t
     const fetch = (path, options) => new Promise(resolve => requests.push({path, options,
         resolve: (data, ok = true) => resolve({ok, json: async () => data})}));
     class Marker { constructor({element}) { this.element = element; markers.push(this); } setLngLat(value) {this.coordinates = value; return this;} addTo(map) {this.map = map; return this;} remove() {this.removed = true;} }
-    class Popup { constructor() {popups.push(this);} setLngLat() {return this;} setDOMContent(content) {this.content = content; return this;} addTo() {return this;} remove() {this.removed = true;} }
+    const animationFrames = new Map(), observers = [];
+    let frameSerial = 0;
+    class ResizeObserverMock {
+        constructor(callback) { this.callback = callback; this.targets = []; this.disconnected = false; observers.push(this); }
+        observe(target) { this.targets.push(target); }
+        disconnect() { this.disconnected = true; }
+        trigger() { if (!this.disconnected) this.callback(); }
+    }
+    class Popup {
+        constructor(options = {}) { this.options = options; this.listeners = {}; this.element = element("popup");
+            this.element.style = {translate: "none", maxWidth: "", values: new Map(), setProperty(name, value) { this.values.set(name, value); }};
+            this.element.classList = {values: new Set(), toggle(name, force) { if (force) this.values.add(name); else this.values.delete(name); }};
+            this.baseRect = {left: 0, top: 0, width: 160, height: 80}; this.element.getBoundingClientRect = () => {
+                const [x = 0, y = 0] = this.element.style.translate === "none" ? [] : this.element.style.translate.split("px").map(Number);
+                const mapRect = this.map?.getContainer().getBoundingClientRect();
+                const widthLimit = Number.parseFloat(this.element.style.maxWidth);
+                const heightLimit = Number.parseFloat(this.element.style.values.get("--community-popup-height"));
+                const width = Number.isFinite(widthLimit) ? Math.min(this.baseRect.width, widthLimit) : this.baseRect.width;
+                const height = Number.isFinite(heightLimit) ? Math.min(this.baseRect.height, heightLimit) : this.baseRect.height;
+                const left = this.baseRect.left + (Number.isFinite(x) ? x : 0);
+                const top = this.baseRect.top + (Number.isFinite(y) ? y : 0);
+                return {left, top, right: left + width, bottom: top + height, width, height};
+            };
+            popups.push(this);
+        }
+        setLngLat() {return this;}
+        setDOMContent(content) {this.content = content; return this;}
+        getElement() {return this.element;}
+        on(name, callback) {(this.listeners[name] ||= []).push(callback); return this;}
+        addTo(map) {this.map = map; return this;}
+        remove() {if (this.removed) return; this.removed = true; for (const callback of this.listeners.close || []) callback();}
+    }
     function TestDate(...args) { return new Date(...args); }
     TestDate.now = () => clock;
     TestDate.prototype = Date.prototype;
-    const make = new Function("localStorage", "crypto", "document", "fetch", "setTimeout", "clearTimeout", "queueMicrotask", "confirm", "Date", profileSource + "\n" + pinsSource + "\nreturn {createLocalProfile, createCommunityPins};");
+    const make = new Function("localStorage", "crypto", "document", "fetch", "setTimeout", "clearTimeout", "queueMicrotask", "confirm", "Date", "requestAnimationFrame", "cancelAnimationFrame", "ResizeObserver", profileSource + "\n" + pinsSource + "\nreturn {createLocalProfile, createCommunityPins};");
     const functions = make(storage, crypto, {createElement: element}, fetch,
         (callback, delay) => {timers.set(++serial, {callback, delay}); return serial;}, id => timers.delete(id), queueMicrotask,
-        message => {confirmations.push(message); return confirmResult;}, TestDate);
-    return {root, elements, operations, requests, markers, popups, timers, confirmations, panels, Marker, Popup, functions,
+        message => {confirmations.push(message); return confirmResult;}, TestDate,
+        callback => { const id = ++frameSerial; animationFrames.set(id, callback); return id; }, id => animationFrames.delete(id), ResizeObserverMock);
+    return {root, elements, operations, requests, markers, popups, timers, confirmations, panels, Marker, Popup, observers, animationFrames, functions,
+        flushFrames() { const frames = [...animationFrames.entries()]; animationFrames.clear(); for (const [, callback] of frames) callback(); },
         randomCalls: () => randomCalls, saved: () => saved,
         now: () => clock,
         advance(ms) { clock += ms; },
@@ -58,7 +91,8 @@ async function activate(h) {
 }
 const flush = () => new Promise(resolve => setImmediate(resolve));
 function panel(styleReady = true) {
-    return {styleReady, map: {listeners: {}, on(name, callback) {this.listeners[name] = callback;},
+    const bounds = {left: 0, top: 0, width: 320, height: 240};
+    return {styleReady, bounds, map: {listeners: {}, on(name, callback) {this.listeners[name] = callback;}, getContainer() {return {getBoundingClientRect: () => ({...bounds, right: bounds.left + bounds.width, bottom: bounds.top + bounds.height})};},
         getBounds: () => ({getSouth: () => -85, getNorth: () => 85, getWest: () => -180, getEast: () => 180})}};
 }
 const drafts = h => h.markers.filter(marker => marker.element.className === "community-draft-marker");
@@ -353,6 +387,157 @@ test("public reads omit identity and render comments as text; pagination is expl
     h.requests[1].resolve({pins: [], more: false, next_cursor: null});
     await more;
     assert.equal(h.elements.get("#community-more").hidden, true);
+});
+
+test("reported 320px left-clipped comment popup is translated back inside its map", async () => {
+    const p = panel();
+    p.bounds.left = 12;
+    p.bounds.width = 296; // map right edge is x=308, matching COMMUNITY-009.
+    const h = harness({panels: [p]});
+    h.pins();
+    const read = h.elements.get("#community-retry").fire("click");
+    h.requests[0].resolve({pins: [{id: 1, nickname: "N", comment: "starts clipped", latitude: 1, longitude: 2}]});
+    await read;
+    const click = h.markers[0].element.fire("click");
+    const popup = h.popups[0];
+    popup.baseRect = {left: -18, top: 40, width: 180, height: 90};
+    assert.equal(popup.element.getBoundingClientRect().left, -18, "the old placement reproduces the reported clipped left edge");
+    h.flushFrames();
+    await click;
+    assert.equal(popup.element.style.translate, "38px 0px");
+    assert.equal(popup.element.getBoundingClientRect().left, 20);
+    assert.equal(popup.content.children[1].textContent, "starts clipped");
+});
+
+test("popup fit handles all four map edges at 320/390/desktop, uses bounded width/height and does not drift on resize", async () => {
+    for (const [size, left, width, height] of [["320px", 12, 296, 240], ["390px", 12, 366, 300], ["desktop", 40, 1120, 600]]) {
+      for (const [edge, overflow, expected] of [
+        ["left", -18, "26px 0px"], ["right", 30, "-38px 0px"],
+        ["top", -22, "0px 30px"], ["bottom", 48, "0px -56px"],
+      ]) {
+        const p = panel();
+        p.bounds.left = left;
+        p.bounds.width = width;
+        p.bounds.height = height;
+        const h = harness({panels: [p]});
+        h.pins();
+        const read = h.elements.get("#community-retry").fire("click");
+        const longComment = "x".repeat(500);
+        h.requests[0].resolve({pins: [{id: 1, nickname: "N".repeat(40), comment: longComment, latitude: 1, longitude: 2}]});
+        await read;
+        const click = h.markers[0].element.fire("click");
+        const popup = h.popups[0];
+        const translation = size === "desktop" && (edge === "top" || edge === "bottom")
+            ? `8px ${expected.split(" ")[1]}` : expected;
+        popup.baseRect = edge === "left" ? {left: left + overflow, top: 40, width: 180, height: 90}
+            : edge === "right" ? {left: left + width - 70, top: 40, width: 100, height: 90}
+                : edge === "top" ? {left: 40, top: overflow, width: 100, height: 90}
+                    : {left: 40, top: height - 90 + overflow, width: 100, height: 90};
+        h.flushFrames();
+        await click;
+        assert.equal(popup.element.style.translate, translation, `${size} ${edge}`);
+        assert.equal(popup.element.classList.values.has("community-map-popup-shifted"), true, `${size} ${edge}`);
+        assert.equal(popup.element.style.maxWidth, "240px", `${size} ${edge}`);
+        assert.equal(popup.element.style.values.get("--community-popup-height"), `${height - 16}px`, `${size} ${edge}`);
+        assert.equal(popup.content.children[0].textContent, "N".repeat(40), `${size} ${edge} long nickname stays text-only`);
+        assert.equal(popup.content.children[1].textContent, longComment, `${size} ${edge} long comment stays text-only`);
+        assert.equal(popup.content.tabIndex, 0, `${size} ${edge} comment region is keyboard focusable`);
+        assert.equal(popup.content.role, "region", `${size} ${edge} comment has region semantics`);
+        assert.equal(popup.content["aria-label"], "Community pin comment", `${size} ${edge} comment has an accessible label`);
+        popup.baseRect.width = 400;
+        popup.baseRect.height = 800;
+        p.bounds.width += 30;
+        p.bounds.height += 40;
+        h.observers.at(-1).trigger();
+        h.flushFrames();
+        const resized = popup.element.getBoundingClientRect();
+        const mapRight = p.bounds.left + p.bounds.width;
+        const mapBottom = p.bounds.top + p.bounds.height;
+        assert.ok(resized.left >= p.bounds.left + 8, `${size} ${edge} resize keeps popup inside the left inset`);
+        assert.ok(resized.right <= mapRight - 8, `${size} ${edge} resize keeps popup inside the right inset`);
+        assert.ok(resized.top >= p.bounds.top + 8, `${size} ${edge} resize keeps popup inside the top inset`);
+        assert.ok(resized.bottom <= mapBottom - 8, `${size} ${edge} resize keeps popup inside the bottom inset`);
+        assert.ok(resized.width <= Math.min(240, p.bounds.width - 16), `${size} ${edge} resized width stays within map policy`);
+        assert.ok(resized.height <= p.bounds.height - 16, `${size} ${edge} resized total height stays within map policy`);
+        const resizedTranslation = popup.element.style.translate;
+        h.observers.at(-1).trigger();
+        h.flushFrames();
+        assert.equal(popup.element.style.translate, resizedTranslation, `${size} ${edge} repeat resize does not alter the correction`);
+        assert.deepEqual(popup.element.getBoundingClientRect(), resized, `${size} ${edge} repeat resize does not drift`);
+      }
+    }
+
+    const p = panel();
+    p.bounds.width = 180;
+    p.bounds.height = 120;
+    const h = harness({panels: [p]});
+    h.pins();
+    const read = h.elements.get("#community-retry").fire("click");
+    h.requests[0].resolve({pins: [{id: 1, nickname: "Reader", comment: "plain text", latitude: 1, longitude: 2}]});
+    await read;
+    const click = h.markers[0].element.fire("click");
+    const popup = h.popups[0];
+    popup.baseRect = {left: 30, top: 20, width: 300, height: 400};
+    h.flushFrames();
+    await click;
+    assert.equal(popup.element.style.maxWidth, "164px", "popup width reserves an 8px inset on each side");
+    assert.equal(popup.element.style.values.get("--community-popup-height"), "104px", "popup total height follows map height");
+    const css = await readFile(new URL("../static/styles.css", import.meta.url), "utf8");
+    // Structural declaration checks only; the fake DOM does not prove browser CSS layout.
+    assert.match(css, /\.community-map-popup \.maplibregl-popup-content\s*\{[^}]*overflow:\s*hidden/s);
+    assert.match(css, /\.community-popup\s*\{[^}]*overflow-y:\s*auto/s);
+    assert.match(css, /\.community-popup\s*\{[^}]*overflow-wrap:\s*anywhere/s);
+    assert.equal(popup.content.children[1].textContent, "plain text", "comments remain text-only content");
+
+    for (const width of [16, Number.NaN]) {
+        const p = panel();
+        p.bounds.width = width;
+        const h = harness({panels: [p]});
+        h.pins();
+        const pending = h.elements.get("#community-retry").fire("click");
+        h.requests[0].resolve({pins: [{id: 1, nickname: "Reader", comment: "safe", latitude: 1, longitude: 2}]});
+        await pending;
+        const open = h.markers[0].element.fire("click");
+        h.flushFrames();
+        await open;
+        assert.equal(h.popups[0].element.style.maxWidth, "", `unsupported map width ${width} skips fitting`);
+        assert.equal(h.popups[0].element.style.translate, "none", `unsupported map width ${width} leaves placement untouched`);
+    }
+});
+
+test("popup fitting disconnects and cancels queued work on close, replacement, refresh, move and map removal", async () => {
+    for (const action of ["close", "replacement", "refresh", "move", "remove"]) {
+        const p = panel(), h = harness({panels: [p]});
+        h.pins();
+        const read = h.elements.get("#community-retry").fire("click");
+        h.requests[0].resolve({pins: [
+            {id: 1, nickname: "First", comment: "first", latitude: 1, longitude: 2},
+            {id: 2, nickname: "Second", comment: "second", latitude: 3, longitude: 4},
+        ]});
+        await read;
+        const firstClick = h.markers[0].element.fire("click");
+        const popup = h.popups[0];
+        assert.equal(h.animationFrames.size, 1, `${action} starts with pending fit frame`);
+        const observer = h.observers[0];
+        if (action === "close") popup.remove();
+        if (action === "replacement") await h.markers[1].element.fire("click");
+        if (action === "refresh") h.elements.get("#community-retry").fire("click");
+        if (action === "move") p.map.listeners.move();
+        if (action === "remove") p.map.listeners.remove();
+        await firstClick;
+        assert.equal(observer.disconnected, true, `${action} disconnects ResizeObserver`);
+        assert.equal(h.animationFrames.size, action === "replacement" ? 1 : 0,
+            action === "replacement" ? "only the replacement popup owns a queued fit" : `${action} cancels the pending fit frame`);
+        const translationAfterCleanup = popup.element.style.translate;
+        h.flushFrames();
+        observer.trigger();
+        h.flushFrames();
+        assert.equal(popup.element.style.translate, translationAfterCleanup, `${action} cannot revive fitting`);
+        if (action === "replacement") {
+            assert.equal(h.popups.length, 2);
+            assert.equal(h.popups[1].content.children[0].textContent, "Second");
+        }
+    }
 });
 
 test("movement and removal discard stale reads, markers and popups", async () => {
