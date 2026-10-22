@@ -3,7 +3,65 @@
 Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
 and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Latest assignment (complete)
+## Current assignment
+
+**COMMUNITY-010 — fit community comment popups on small maps.**
+Continue 2026-10-19 on `codex/pin-accessibility-checks`, base `79778d2`.
+Lead owns design, requirements/board, browser verification and own log.
+Developer owns `static/community_pins.js`, community-only rules in
+`static/styles.css`, relevant README/References description if needed, and own
+log. First propose the smallest positioning strategy for Lead review; preserve
+map coordinates, comparison, text-only content and ownership. No camera jumps,
+new dependencies, data/provider changes or native-dialog work.
+QA owns `tests/test_community_browser.mjs`, citation URL additions only in
+`tests/test_content_pages.py` if needed, and the disposable browser fixture;
+Reviewer read-only except own log. Validate short/long comments, close control,
+320/390px and desktop, resize and lifecycle cleanup. Use existing credited
+MapLibre, preserve user changes and prior QA notes. No full-suite rerun.
+
+2026-10-21 checkpoint: implementation and focused QA complete (27/27 Node
+community checks, 14/14 offline content-page checks). Independent review found
+no static-review blocker. Browser connection restored: real Maps templates/JS
+with synthetic climate data and isolated SQLite passed short/500-character
+unbroken/multiline comments at 320/390px and desktop. The original message now
+fits the 320px map (map x=12–308, popup x=60–300). Long content wraps without
+horizontal overflow; keyboard End reaches the scroll end, Tab reaches close,
+and Enter closes it. Resize closes the popup through existing map invalidation;
+reopening fits the new size. No observed warning/error logs. Viewport reset and
+test tab closed; fixture stopped with no listener; user tabs preserved. No live
+data or cloud changes. Lead owns integration; native Forget remains a separate,
+unverified check.
+
+## Previous assignment (bounded results; follow-up remains)
+
+**COMMUNITY-009 — pin keyboard/mobile and Forget confirmation checks.**
+Approved 2026-10-19, base `79778d2`. Lead owns board, browser interaction and
+own log. QA owns a disposable loopback full-Maps fixture and own log. Reuse
+COMMUNITY-008's actual templates/modules and synthetic NOAA data; isolate all
+account/community/session/generated state and block PostgreSQL/provider calls
+before app import. Use a fresh browser origin and test-only profile/pins.
+Check keyboard reachability/focus for coordinate draft and pin actions, visible
+controls at 390/320px, and native Forget Cancel/Confirm: cancellation preserves
+the profile; confirmation removes local ownership without deleting public pins.
+Do not inspect credential values. No production edits, broad regressions, live
+posts/data, deployment or new dependencies. Record any defect before assigning
+a bounded fix. Stop fixture and close its tab afterward; preserve user tabs.
+
+Checkpoint: keyboard profile setup, coordinate entry, consented test publication,
+owner-list/Delete-button reachability and opening a public comment passed.
+Controls fit at 390/320px without page overflow. Native Forget stalled in the
+in-app browser; Safari fallback was interrupted, so Cancel/Confirm remain
+unverified. Recovery is limited to checking possible 320px comment-popup clipping,
+recording results and stopping the disposable fixture. Do not repeat native
+dialog attempts or claim the entire accessibility check passed.
+
+Recovery result: clipping reproduced at 320px (map x=12–308; popup content
+x=-18; text x=-8). The short message fits at 390px. COMMUNITY-010 records the
+planned correction in NEXT_REQUIREMENTS; no implementation assigned here.
+Test tab closed and viewport reset. Native Forget Cancel/Confirm still need
+a working dialog-capable browser or manual verification; no pass claimed.
+
+## Previous assignment (complete)
 
 **TEST-TOOLS-001 — reusable offline Python verification.**
 Contract: first NEXT_REQUIREMENTS entry. Lead owns requirements/board and own

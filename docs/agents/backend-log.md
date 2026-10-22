@@ -2,6 +2,11 @@
 
 Writer: Agent 2 only. Follow [SKILL.md](SKILL.md).
 
+## 2026-10-20 | COMMUNITY-010 | fit public comment popups | implementation handoff
+- Result: Community-only popup measures map and popup bounds, limits width/height, and applies an independent 8px inset translation; long content scrolls below the native close control. Container/popup resize triggers refit; close, refresh, move and map removal disconnect/cancel fitting. Plain-text content, coordinates and request/consent paths remain unchanged. README/References cite MapLibre and browser APIs.
+- Check: `node --check static/community_pins.js` and scoped `git diff --check` pass. Existing Node checks now pass 22/24; two popup cases stop at the old fake's missing `getElement()` method. QA owns the fake update and fit/cleanup checks. No browser or live services run.
+- Next: QA focused tests, then Lead narrow/desktop browser verification and Reviewer audit.
+
 ## 2026-10-17 | TEST-TOOLS-001 | reusable offline unittest runner | done
 - Result: Added `tests/run_offline.py` with isolated temporary account/community/session state and generated chart/image output paths, pre-import development/fetch/PostgreSQL settings and I/O guards, bounded `--pattern`, empty-discovery failure and cleanup/restoration. It preserves route chart-cache reads and rejects a pre-imported app. Captured Flask-Session defaults and NOAA's imported URL alias now restore after the run. README/architecture document separate Python and Node commands and clarify chart read behavior; README/References credit unittest/tempfile docs.
 - Check: `.venv/bin/python tests/test_offline_runner.py` passed 4/4; help, empty-pattern exit 2 and `git diff --check` passed. Full suite remains with QA. No production code, stores or credentials touched.

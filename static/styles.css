@@ -639,4 +639,7 @@ table {
 .community-marker:focus-visible { outline: 3px solid #b85232; outline-offset: 3px; }
 .community-draft-marker { background: #fff1b8; border: 2px dashed #755000; border-radius: 0.35rem; box-shadow: 0 1px 5px #18342c88; color: #493000; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.4rem; pointer-events: none; white-space: nowrap; }
 .community-comment { white-space: pre-wrap; overflow-wrap: anywhere; }
-.community-popup { max-width: 18rem; }
+.community-map-popup { box-sizing: border-box; max-height: var(--community-popup-height); min-width: 0; overflow: hidden; width: max-content; z-index: 20; }
+.community-map-popup.community-map-popup-shifted .maplibregl-popup-tip { visibility: hidden; }
+.community-map-popup .maplibregl-popup-content { box-sizing: border-box; max-height: calc(var(--community-popup-height) - 16px); min-width: 0; overflow: hidden; }
+.community-popup { box-sizing: border-box; max-height: calc(var(--community-popup-height, 400px) - 48px); min-width: 0; overflow-x: hidden; overflow-y: auto; overflow-wrap: anywhere; padding-right: 1.4rem; }

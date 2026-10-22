@@ -29,7 +29,7 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     const markerSets = new Map();
     const draftMarkers = new Map();
     const removed = new Set();
-    let pins = [], nextCursor = null, controller, timer, generation = 0, popup;
+    let pins = [], nextCursor = null, controller, timer, generation = 0, popup, popupFitCleanup;
     let ownGeneration = 0, ownController, publishing = false, loading = false;
     let commentLengthError = false;
     const live = () => panels.filter(panel => !panel.removed && !removed.has(panel) && panel.styleReady);
@@ -50,7 +50,7 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
         if (!admin && !identity) throw new Error("Activate your saved local profile to delete your pins.");
         await api(`/api/community/${admin ? "admin/" : ""}pins/${id}`,
             writeOptions(admin ? adminCsrf : identity.token, "DELETE", {}, admin));
-        popup?.remove();
+        closePopup();
         if (pinStatus) pinStatus.textContent = "Public pin deleted.";
         if (panels.length) await refresh();
         if (profile.get()) await loadOwnPins();
@@ -94,6 +94,51 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
     function clearMarkers(panel) {
         for (const marker of markerSets.get(panel) || []) marker.remove();
         markerSets.delete(panel);
+    }
+    function closePopup() {
+        popupFitCleanup?.();
+        popupFitCleanup = null;
+        const openPopup = popup;
+        popup = null;
+        openPopup?.remove();
+    }
+    function fitPopup(openPopup, map) {
+        const element = openPopup.getElement();
+        const container = map.getContainer();
+        let frame = 0, closed = false;
+        const fit = () => {
+            frame = 0;
+            if (closed || popup !== openPopup) return;
+            const mapRect = container.getBoundingClientRect();
+            if (![mapRect.left, mapRect.top, mapRect.right, mapRect.bottom,
+                mapRect.width, mapRect.height].every(Number.isFinite)
+                || mapRect.width <= 16 || mapRect.height <= 16) return;
+            element.style.setProperty("--community-popup-height", `${mapRect.height - 16}px`);
+            element.style.maxWidth = `${Math.min(240, mapRect.width - 16)}px`;
+            // Measure MapLibre's placement without our previous correction.
+            element.style.translate = "none";
+            const rect = element.getBoundingClientRect();
+            if (![rect.left, rect.top, rect.right, rect.bottom, rect.width, rect.height].every(Number.isFinite)) return;
+            const inset = 8;
+            const x = rect.left < mapRect.left + inset ? mapRect.left + inset - rect.left
+                : rect.right > mapRect.right - inset ? mapRect.right - inset - rect.right : 0;
+            const y = rect.top < mapRect.top + inset ? mapRect.top + inset - rect.top
+                : rect.bottom > mapRect.bottom - inset ? mapRect.bottom - inset - rect.bottom : 0;
+            element.style.translate = `${x}px ${y}px`;
+            element.classList.toggle("community-map-popup-shifted", x !== 0 || y !== 0);
+        };
+        const schedule = () => {
+            if (!closed && !frame) frame = requestAnimationFrame(fit);
+        };
+        const observer = new ResizeObserver(schedule);
+        observer.observe(container);
+        observer.observe(element);
+        schedule();
+        return () => {
+            closed = true;
+            observer.disconnect();
+            if (frame) cancelAnimationFrame(frame);
+        };
     }
     function draftCoordinates() {
         if (!enabled || !placement?.checked) return null;
@@ -141,9 +186,12 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
                 button.setAttribute("aria-label", `Read community comment by ${pin.nickname}`);
                 button.addEventListener("click", event => {
                     event.stopPropagation();
-                    popup?.remove();
+                    closePopup();
                     const content = document.createElement("div");
                     content.className = "community-popup";
+                    content.tabIndex = 0;
+                    content.setAttribute("role", "region");
+                    content.setAttribute("aria-label", "Community pin comment");
                     const name = document.createElement("strong");
                     name.textContent = pin.nickname;
                     content.append(name);
@@ -165,7 +213,16 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
                         });
                         content.append(remove);
                     }
-                    popup = new Popup().setLngLat([pin.longitude, pin.latitude]).setDOMContent(content).addTo(panel.map);
+                    const openPopup = new Popup({className: "community-map-popup"})
+                        .setLngLat([pin.longitude, pin.latitude]).setDOMContent(content).addTo(panel.map);
+                    popup = openPopup;
+                    popupFitCleanup = fitPopup(openPopup, panel.map);
+                    openPopup.on("close", () => {
+                        if (popup !== openPopup) return;
+                        popupFitCleanup?.();
+                        popupFitCleanup = null;
+                        popup = null;
+                    });
                 });
                 markers.push(new Marker({element: button}).setLngLat([pin.longitude, pin.latitude]).addTo(panel.map));
             }
@@ -179,7 +236,7 @@ export function createCommunityPins({panels = [], Marker, Popup, root = document
         loading = false;
         pins = [];
         nextCursor = null;
-        popup?.remove();
+        closePopup();
         for (const panel of panels) clearMarkers(panel);
         if (moreButton) moreButton.hidden = true;
     }

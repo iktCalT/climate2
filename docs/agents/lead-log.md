@@ -4,6 +4,40 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-21 | COMMUNITY-010 | bounded popup fitting | verified
+
+- Design: preserve pin/camera state; translate community-only popup into an
+  8px map inset, bound long content, keep close accessible, clean resize callbacks.
+  Requirement and ownership recorded before code; implementation complete.
+- Check: QA reports 27/27 Node geometry/lifecycle and 14/14 offline content-page
+  checks; diff whitespace clean. Independent review found no static blocker.
+- Browser: connection restored; isolated real Maps page passed short, 500-character
+  unbroken/multiline comments at 320/390px and desktop. Original message fits
+  map x=12–308 at popup x=60–300. Keyboard scroll/close and reopen after resize
+  pass; no observed console warnings/errors. Fresh fixture corrected duplicate
+  disposable seeding; no live data touched. Tab closed, viewport reset, fixture
+  stopped with no listener.
+- Next: authorized integration; native Forget remains unverified separately.
+
+## 2026-10-19 | Browser access preference | recorded
+
+- Owner permits opening ChatGPT desktop for browser work even from Codex CLI.
+  Saved in [workspace context](context/workspace.md); verify available connection
+  and respect tool restrictions. No browser launch or test requested this turn.
+
+## 2026-10-19 | COMMUNITY-009 | pin keyboard/mobile check | finding recorded
+
+- Verified: keyboard profile setup, coordinate entry, consented publication,
+  owner-list/Delete-button reachability and comment opening with disposable data.
+  Forms fit 390/320px; profile-save focus falls to body but next Tab reaches
+  Show my published pins (no observed trap).
+- Finding: at 320px, popup content starts x=-18 and text x=-8 while map starts
+  x=12; initial comment characters clip. Same short message fits at 390px.
+  COMMUNITY-010 records a planned fix; production code unchanged.
+- Limit: native Forget stalled in-app; Safari fallback interrupted. Neither
+  Cancel nor Confirm passed. Recovery tab closed and viewport reset; no credentials
+  inspected or live data changed. Screenshot remains outside Git with fixture.
+
 ## 2026-10-17 | TEST-TOOLS-001 | reusable isolated verification | done
 
 - Result: scoped runner isolates local test state/output and guards PostgreSQL/

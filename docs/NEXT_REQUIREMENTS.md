@@ -1,5 +1,31 @@
 # Next requirements
 
+## Keep community comments inside narrow maps
+
+**Status:** Implemented 2026-10-20; COMMUNITY-010, discovered during COMMUNITY-009.
+Focused QA and static review pass; isolated browser validation passed 2026-10-21
+at 320/390px and desktop, including the original message, 500-character unbroken
+and multiline comments, keyboard scrolling/close and reopening after resize.
+
+At a 320px viewport, the public comment popup for a test pin at latitude 10,
+longitude 20 clips text on the map's left edge. In the isolated full Maps page,
+the map spans x=12–308, popup content starts at x=-18 and message text at x=-8.
+The same short comment fits at 390px. Constrain popup placement/size to the
+visible map and keep the comment and close action reachable, including after
+resize. Preserve coordinates, map comparison, plain-text rendering, ownership
+and consent; no fetching or storage changes. Reproduce with short and long
+messages at 320/390px and desktop before choosing a bounded fix. The original
+QA finding was recorded before the separate implementation assignment.
+
+Implementation assignment 2026-10-20: use a community-only popup wrapper,
+measure the rendered popup/map bounds and apply a separate CSS translation to
+fit an 8px inset without changing the map camera or pin coordinates. Bound
+width and long-content height to the map; keep the close control visible and
+keyboard-reachable above map controls. Recompute after container layout changes;
+remove observers/queued callbacks on close or invalidation. Avoid accumulated
+translation drift, and suppress a displaced pointer rather than implying a
+different geographic attachment. Retain existing plain-text construction.
+
 ## Reusable offline Python verification
 
 **Status:** Implemented and reviewed 2026-10-17; TEST-TOOLS-001.
