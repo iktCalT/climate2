@@ -3,354 +3,80 @@
 Lead owns this board. Read [roles](AGENT_ROLES.md), [architecture](ARCHITECTURE.md)
 and [shared memory](agents/SKILL.md). Specialists run sequentially.
 
-## Current assignment
+## Latest coordination round (complete)
 
-**COMMUNITY-010 — fit community comment popups on small maps.**
-Continue 2026-10-19 on `codex/pin-accessibility-checks`, base `79778d2`.
-Lead owns design, requirements/board, browser verification and own log.
-Developer owns `static/community_pins.js`, community-only rules in
-`static/styles.css`, relevant README/References description if needed, and own
-log. First propose the smallest positioning strategy for Lead review; preserve
-map coordinates, comparison, text-only content and ownership. No camera jumps,
-new dependencies, data/provider changes or native-dialog work.
-QA owns `tests/test_community_browser.mjs`, citation URL additions only in
-`tests/test_content_pages.py` if needed, and the disposable browser fixture;
-Reviewer read-only except own log. Validate short/long comments, close control,
-320/390px and desktop, resize and lifecycle cleanup. Use existing credited
-MapLibre, preserve user changes and prior QA notes. No full-suite rerun.
+**COORD-008 — reconcile completed handoffs (2026-10-26).** Lead owns this
+four-file documentation round on base `a51e9b3`: this board, workspace context,
+completed-round context and own log. Preserved unresolved limits, recovery refs
+and other agents' logs. Validation: 19 local links and 44 cited revisions resolve;
+scoped diff is clean. No repeated suites, browser, application edits, live data
+or deployment.
 
-2026-10-21 checkpoint: implementation and focused QA complete (27/27 Node
-community checks, 14/14 offline content-page checks). Independent review found
-no static-review blocker. Browser connection restored: real Maps templates/JS
-with synthetic climate data and isolated SQLite passed short/500-character
-unbroken/multiline comments at 320/390px and desktop. The original message now
-fits the 320px map (map x=12–308, popup x=60–300). Long content wraps without
-horizontal overflow; keyboard End reaches the scroll end, Tab reaches close,
-and Enter closes it. Resize closes the popup through existing map invalidation;
-reopening fits the new size. No observed warning/error logs. Viewport reset and
-test tab closed; fixture stopped with no listener; user tabs preserved. No live
-data or cloud changes. Lead owns integration; native Forget remains a separate,
-unverified check.
+No production implementation is currently assigned. Completed handoffs below
+are evidence, not instructions to repeat work. Lead must define the next task's
+owner, files and acceptance criteria before implementation.
 
-## Previous assignment (bounded results; follow-up remains)
+## Latest completed work
 
-**COMMUNITY-009 — pin keyboard/mobile and Forget confirmation checks.**
-Approved 2026-10-19, base `79778d2`. Lead owns board, browser interaction and
-own log. QA owns a disposable loopback full-Maps fixture and own log. Reuse
-COMMUNITY-008's actual templates/modules and synthetic NOAA data; isolate all
-account/community/session/generated state and block PostgreSQL/provider calls
-before app import. Use a fresh browser origin and test-only profile/pins.
-Check keyboard reachability/focus for coordinate draft and pin actions, visible
-controls at 390/320px, and native Forget Cancel/Confirm: cancellation preserves
-the profile; confirmation removes local ownership without deleting public pins.
-Do not inspect credential values. No production edits, broad regressions, live
-posts/data, deployment or new dependencies. Record any defect before assigning
-a bounded fix. Stop fixture and close its tab afterward; preserve user tabs.
+- **COMMUNITY-010, PR #100, `a51e9b3`:** comment popups fit an 8px map inset;
+  long content wraps/scrolls and close remains keyboard-accessible. QA 27 Node
+  + 14 offline content checks; independent review clear. Isolated real Maps-page
+  checks passed at 320/390/1280px, including the original message, 500-character
+  unbroken/multiline comments, keyboard scrolling/close and reopening after resize.
+  Original 320px case: map x=12–308, popup x=60–300. Test tab closed, viewport
+  reset and disposable server stopped. No live posts/data or cloud changes.
+- **TEST-TOOLS-001, PR #99, `79778d2`:** reusable offline Python runner.
+  Full run: 238 total, 228 passed/eight expected PostgreSQL skips/two enabled-UI
+  fixture failures. Scoped fixture fixes then passed Locations 50/50; runner
+  lifecycle 4/4 passed. No full rerun; independent review clear.
+- **REGRESSION-004, PR #98, `9fcd08a`, tested base `669afb6`:** Python
+  234 total, 226 passed/eight expected PostgreSQL skips; Node 45 passed. No
+  application/test edits. This is historical evidence, not a new test run.
+- **COMMUNITY-008/009:** full Maps route with synthetic climate/temporary SQLite
+  passed linked readouts, popup/typed drafts, consented publication, own listing
+  and deletion. Keyboard/mobile follow-up found the clipping fixed in #100.
+  Native Forget did not complete; see limits below.
 
-Checkpoint: keyboard profile setup, coordinate entry, consented test publication,
-owner-list/Delete-button reachability and opening a public comment passed.
-Controls fit at 390/320px without page overflow. Native Forget stalled in the
-in-app browser; Safari fallback was interrupted, so Cancel/Confirm remain
-unverified. Recovery is limited to checking possible 320px comment-popup clipping,
-recording results and stopping the disposable fixture. Do not repeat native
-dialog attempts or claim the entire accessibility check passed.
+Earlier tasks and merge revisions: [completed rounds](agents/context/completed-rounds.md).
+Detailed results: [QA log](agents/qa-log.md), [reviewer log](agents/reviewer-log.md).
+Full pre-compaction board and scopes: `git show a51e9b3:docs/AGENT_TASKS.md`.
 
-Recovery result: clipping reproduced at 320px (map x=12–308; popup content
-x=-18; text x=-8). The short message fits at 390px. COMMUNITY-010 records the
-planned correction in NEXT_REQUIREMENTS; no implementation assigned here.
-Test tab closed and viewport reset. Native Forget Cancel/Confirm still need
-a working dialog-capable browser or manual verification; no pass claimed.
+## Remaining verification and limits
 
-## Previous assignment (complete)
-
-**TEST-TOOLS-001 — reusable offline Python verification.**
-Contract: first NEXT_REQUIREMENTS entry. Lead owns requirements/board and own
-log. Backend owns `tests/run_offline.py`, README, References, ARCHITECTURE command
-documentation and own log. QA then owns `tests/test_offline_runner.py`, only the
-external-credit URL allowlist in `tests/test_content_pages.py`, and own log;
-validate setup/cleanup/failure semantics and run Python discovery once via
-the new runner, keeping live calls blocked. Reviewer read-only except own log.
-No production modules, existing test assertions, dependencies or deployment
-settings may change. Use temporary helper paths for actual chart writes while
-preserving legacy route cache-read expectations; explicitly isolate image
-config. Check app-import side effects before testing. No Node rerun or browser.
-
-QA follow-up: the full runner found two Locations UI tests implicitly relying
-on development fetching being enabled. QA may add scoped `patch.dict` settings
-for `LOCATION_FETCH_ENABLED=1` (and NOAA provider) to those two tests only in
-`tests/test_locations_route.py`; retain every assertion and all I/O mocks.
-This verifies enabled UI explicitly while the runner remains disabled by default.
-Run the focused Locations module after correction, not another full batch.
-
-Validation: one full Python run reported 238 tests: 228 passed, eight expected
-PostgreSQL skips and the two enabled-UI fixture failures described above.
-After scoped fixture correction, Locations passed 50/50; runner lifecycle
-checks passed 4/4, including a completion marker after restoration assertions.
-The full suite was not repeated. Independent review found no blocker. No production
-code, live stores, provider calls, Node/browser reruns or cloud changes.
-
-## Previous assignment (complete)
-
-**REGRESSION-004 — combined offline checkpoint after PR #97.**
-Lead owns board, documentation status and own log. QA owns one full Python
-unittest discovery and Node test batch, disposable isolation runner and own log;
-no production or test edits without an assigned finding. Use existing .venv and
-test conventions. Explicitly isolate account/community/session/chart/image
-paths before app import; disable PostgreSQL opt-ins and block real provider/DB
-connections. Do not read .env, start imports, use live stores, launch browsers
-or change cloud settings. Report exact totals/skips and any test contamination.
-Do not rerun full suites after a scoped correction. Reviewer is needed only
-if a correction is assigned; no new product behavior is part of this checkpoint.
-
-Result (2026-10-15, base `669afb6`): Python 234 total, 226 passed, eight
-expected PostgreSQL skips, no failures/errors; Node 45 passed. Lead audited
-the disposable runner: chart/image environment overrides were not consumed
-by development config, but relevant tests used temporary directories/mocks;
-no generated project output changed. Mode/fetch-enabled settings were inherited,
-not explicitly pinned. Account/community paths and session default were isolated;
-real PostgreSQL/HTTP calls were blocked. No corrections or reruns required.
-
-## Previous assignment (browser follow-up complete)
-
-Browser access is available again on 2026-10-13. Resume COMMUNITY-008 with
-the same ownership and exclusions: QA prepares a fresh disposable full-route
-fixture with schema-compatible synthetic NOAA data; Lead checks linked map
-readouts, popup and typed pin drafts, consented publication/owner deletion,
-and narrow layout. No production edits without a separately recorded defect.
-Reuse the completed finite API checks; do not rerun old suites.
-
-Browser result (2026-10-13, resumed 2026-10-15): actual full Maps route with
-synthetic NOAA data and temporary SQLite passed linked same-location readouts
-(12/17 °C, +5 °C difference), popup and typed drafts on both maps, explicit
-profile/public consent, blank-message publication, own listing and owner
-deletion. Deletion cleared both public markers and the own list. At 390px the
-popup action remained reachable; page width fit 390/320px without horizontal
-overflow. This is a bounded layout check, not an exhaustive mobile audit.
-Browser tab closed and viewport reset. No production code changed; live climate
-data, native Forget and actual expiry timing remain outside this check.
-
-**COMMUNITY-008 — full Maps route integration, isolated storage.**
-Lead owns board, own log, browser checks and integration. QA owns a disposable
-loopback fixture and own log only. Use real Maps route/template/scripts and real
-community API/service against a fresh temporary SQLite store; temporary cwd,
-account/session/chart paths and explicit fake fixture configuration before app
-import. Replace climate reads with synthetic values; block PostgreSQL and
-provider network calls. Allow only the tested routes/public assets. Prominent
-simulation banner; no credential output, real posts, live stores or cloud work.
-Verify linked readouts → Add pin here → draft, explicit consented profile/publish,
-owner list/delete, and narrow layout. Basemap assets may use existing credited
-providers; no new resources. Record fixture adaptations honestly. Do not repeat
-full suites or change production code unless a defect is assigned. Stop listener
-and close test tab afterward. Native Forget and actual expiry timing stay out
-of this bounded check; their current evidence is in prior QA records.
-
-Initial result (before the browser follow-up above): isolated Flask test-client
-checks passed for the real rendered Maps
-page, synthetic map-data response and real SQLite-backed community service:
-empty-message publication, owner listing, wrong-owner deletion rejected (403),
-owner deletion and empty public list afterward. No connected browser was
-available; JavaScript interaction, interpolation and full-page narrow layout
-remain pending. No production files or live stores changed. Own fixture listener
-stopped; the disposable script/store stay outside Git. See QA log COMMUNITY-008.
-
-## Previous assignment (complete)
-
-**COMMUNITY-006 — browser follow-up for PR #94 (`dc49935`).**
-Lead owns board, own log and browser verification. QA owns a disposable loopback
-fixture and own log only: real community templates/modules and map-selection
-module with MapLibre, synthetic maps/pins and in-memory API; no production app,
-database, provider, credential output or real publication. Verify ordinary
-location popup → Add pin here → focused draft controls, typed entry, optional
-message publish and owner deletion with explicit consent. Check narrow layout
-and 500/501 Unicode form validation where practical. Existing expiry tests are
-evidence; do not pretend 30 days elapsed in a browser. Full Maps-page integration
-and native Forget dialog remain separate limitations. No production edits or
-repeated full suite without a discovered defect. Stop fixture and close tab.
-
-Browser finding: desktop popup-to-draft and message-free simulated publish/delete
-pass; 390px center-click popup clips its trailing Add pin here button. Correction
-**COMMUNITY-007** is recorded first in NEXT_REQUIREMENTS: Backend owns only
-map_selection.js + own log, moving action immediately after selected coordinates.
-QA owns focused map-selection ordering test + own log; Reviewer audits; Lead
-rechecks live fixture. Preserve readouts, callback/consent and all server behavior.
-Correction now passes browser action checks at 1280/390/320px and three focused
-selection/template tests. Popup/typed drafts, empty-message simulated publish
-and owner deletion passed; 500 emoji valid, 501 invalid, blank clears validation.
-No observed console warnings/errors. Independent review clear. Tab closed,
-viewport reset and fixture stopped; final state: one simulated POST, one owner
-DELETE, zero active pins. Screenshots remain temporary, outside Git.
-
-## Previous assignment (complete)
-
-**COMMUNITY-005 — optional messages, popup entry and 30-day local ownership.**
-Contract: first NEXT_REQUIREMENTS entry. Lead owns requirement, board and own
-log; implementation → QA → review runs sequentially. No live stores or posts.
-Implementation and focused QA complete: 12 community + 14 content Python
-checks passed; initial combined Node run found one stale-consent issue, fixed
-and verified with 23 community passes. Review found Unicode length mismatch,
-corrected with 27 community/selection/template passes. Final review clear;
-new popup/expiry behavior has no real-browser visual verification this round.
-
-- Backend owns `climate/services/community.py`, `static/community_profile.js`,
-  `static/community_pins.js`, `static/map_selection.js`, `templates/maps.html`,
-  community templates, narrowly necessary CSS, README, References, COMMUNITY
-  guide and own log. Preserve all server authorization/rate controls and existing
-  map readouts. Add optional selection callback rather than coupling climate
-  selection to community storage. No new dependencies or schema changes.
-- QA owns focused community Python/Node, map-selection/template and content
-  tests plus own log. Use isolated temporary stores and mock network only.
-  Cover blank/omitted/invalid messages, draft-only popup action, disabled mode,
-  coordinate entry, fixed expiry/legacy reuse/storage failures, own-only delete,
-  stale active expiry and existing consent/marker/selection regressions.
-- Reviewer is read-only except own log; audit security, integration/lifecycle,
-  expiry semantics and documentation parity. Report fixes to Lead/Backend.
-- Acceptance: both entry paths lead to the same explicit draft/publish flow;
-  optional messages survive reads/deletes; temporary identity preserves owner
-  checks and consent, never leaks credentials to public APIs. Focused tests and
-  review required before integration; real-browser coverage reported separately.
-
-## Previous assignment (verification round complete)
-
-**COMMUNITY-004 — browser verification of profile forgetting and draft pins.**
-Lead owns board, own log, browser checks and integration. QA owns only a disposable
-loopback fixture and own log: real community templates/JS and MapLibre markers,
-synthetic pins and in-memory APIs, no production app/database/provider imports.
-Use a fresh test origin and synthetic local profile only. Verify consent on
-profile creation, forget cancel/confirm, linked unpublished marker placement,
-movement, cancellation and simulated publication. No live pin publication or
-real user data. No new application behavior or repeated full suite; report any
-defect before implementation. Stop fixture and close the test tab afterward.
-
-Result (2026-10-12): linked draft placement/movement/clearing, explicit storage
-and publication consent, simulated publication/comment popup and explicit profile
-restore passed. One simulated POST, zero DELETEs. Native Forget confirmation
-remains unverified because browser dialog automation stalled. This was a two-map
-fixture, not full Maps-page integration or server security testing. Test tab
-closed and fixture stopped; synthetic profile storage left on its fresh origin.
-
-## Previous chart assignment (complete)
-
-**LOCATION-UI-006 — compact location-chart browser confirmation.**
-Lead owns board, own log and browser checks. QA owns only a disposable loopback
-fixture and own log: real Locations template/chart helper, labelled synthetic
-values, temporary chart output, no application/DB/account/provider imports or
-live fetching. Check four metrics at desktop and 390/320px, readable compact
-titles/context and metric switching. Do not repeat prior suites or edit production
-code; report defects for assignment. Reset viewport and stop fixture afterward.
-
-Browser finding: compact titles fit, but the season legend wraps upward into
-them at 390/320px. LOCATION-UI-007 now owns this bounded correction: Backend
-may edit chart layout in `climate/web/helpers.py`, chart cache version only in
-`climate/web/app.py`, README/References description if needed, and own log.
-Preserve calculations/source/fetch behavior. QA follows with focused chart/cache
-tests (temporary outputs only), then Reviewer audits; Lead repeats browser
-checks. Record: first NEXT_REQUIREMENTS entry. No new dependencies or live data.
-Current result: v9 layout passes all four metrics at 1280/390/320px in the
-synthetic browser fixture; QA's 56 focused offline tests pass. Independent review
-clear; merged in PR #92 (`b1b1483`). Test tab closed and viewport reset; no listener
-remained on fixture port 5012 at the final check.
-
-## Previous browser assignment (complete)
-
-**ADMIN-UI-007 — isolated browser confirmation of PR #90 (`8c8bb90`).**
-Lead owns this board and own log, browser checks and integration. QA owns a
-temporary loopback fixture and own log only: render real admin template/JS with
-labelled synthetic responses, no production app import, accounts, PostgreSQL,
-provider calls or real jobs. Verify defaults, explicit simulated start/status
-and desktop/narrow layout. No application changes or repeated offline suite.
-Remove no user artifacts; stop the fixture and reset browser overrides afterward.
-Result: connected in-app browser passed defaults, explicit simulated start,
-running/completed state and 1280/390/320px layout. Exactly one `last`/1 POST;
-opening made only a status GET. No console warnings/errors or horizontal overflow.
-This validates real templates/JS with synthetic responses, not live acquisition
-or authenticated browser sessions. Published in PR #91 (`8347909`).
-
-## Previous assignment (complete)
-
-**ADMIN-UI-006 — NOAA Update-page workflow and defaults.**
-Owner chose the existing monthly importer. Contract: first NEXT_REQUIREMENTS entry.
-Implementation, 56 focused offline tests and independent review are complete
-(2026-10-11); merged in PR #90 (`8c8bb90`). No live imports were started.
-
-- Lead owns requirement/board and own log. Backend owns only `/update` route and
-  dead imports/constants in app.py, old update template removal, admin_data and
-  layout templates, Docker exact-file allowlist, README/References/USER_ROLES and
-  own log. Keep `/admin/data` security, import service and cleanup unchanged.
-- QA then owns admin-role/import/content and narrowly affected tests plus own
-  log. Verify both GET/POST access controls, safe redirect, legacy POST rejection
-  with no acquisition, selected recent window/one-month default, existing CSRF
-  API behavior and removed-template inventory. Temporary app/account/session
-  state and mocked downloads only. No test weakening or production edits.
-- Reviewer follows read-only except own log: source identity, no accidental
-  downloads, authentication/CSRF, documentation/defaults parity.
-- No live data/cloud operations or new dependencies. Existing browser connection
-  absent; report missing visual verification rather than claiming a pass.
-
-Previous COORD-007 handoff cleanup merged in PR #89 (`3cc6534`); historical
-evidence remains indexed, no repeat needed.
-
-## Remaining verification
-
-- **COMMUNITY-008:** finite API checks and bounded full-page browser integration
-  now pass with synthetic climate data and temporary SQLite (see above). No
-  live provider/data verification, exhaustive mobile audit, native Forget or
-  elapsed 30-day browser-expiry claim. Earlier component-only limitations remain
-  historical, not a reason to repeat completed checks.
-- **ADMIN-UI-006/007:** NOAA admin-page visual/default checks passed with simulated
-  responses; access-control and API checks passed offline in PR #90. No live
-  import or real administrator browser session was exercised.
-- **LOCATION-UI-005/006/007:** compact titles and the corrected v9 legend pass
-  desktop and 320/390px browser checks for all four metrics with synthetic data.
-- **COMMUNITY-002:** real-browser profile-forget confirm/cancel remains unverified;
-  dialog automation stalled. Offline confirmation tests passed previously.
-- **COMMUNITY-003/004:** draft appearance/lifecycle and consent-gated simulated
-  publication passed with real community JS and MapLibre in a two-map fixture.
-  Full Maps-page integration and live server security were not exercised.
-  Use synthetic profiles/pins only, never live publication merely to test UI.
-- **COMMUNITY-005/006/007:** new popup/typed entry, optional-message simulated
-  publication/deletion and Unicode form bounds passed in the isolated browser
-  fixture. Corrected button works at desktop and phone widths. The fixture uses
-  real modules/templates/map sizing, not the entire Maps route; actual 30-day
-  expiry remains covered by offline clock-controlled tests, not elapsed browser time.
-- **LOCATION-FETCH-004:** one unattributed MutationObserver browser error remains
-  unisolated. No matching app call was found; do not call it an application bug
-  without evidence. It recurred during LOCATION-UI-006, without a source URL.
-  Simulated fetch progress/refresh/throttle/Retry passed.
-- Actual container build, hosted operation, production load/security and opt-in
-  PostgreSQL integration tests are not established by offline checks.
-  These limitations are not permission to deploy or use live stores.
+- **Native Forget:** real-browser Cancel/Confirm and post-forget public-pin
+  survival remain unverified. Dialog automation stalled; Safari fallback was
+  interrupted. Offline tests passed. Do not repeat the stalled attempts as part
+  of another task; arrange a separately scoped dialog-capable/manual check.
+- **Community:** synthetic full-page and bounded keyboard/mobile checks passed,
+  not exhaustive accessibility, production security/load, live posts or actual
+  elapsed 30-day browser expiry. Expiry has clock-controlled offline tests.
+- **NOAA administrator page:** defaults/start/status and narrow layout passed
+  with simulated responses; access controls/API passed offline. No live import
+  or real administrator browser session exercised.
+- **Locations:** v9 compact chart titles/legend passed all four metrics at
+  desktop and 320/390px. Simulated gap-fetch progress/refresh/throttle/Retry
+  passed. One unattributed MutationObserver browser error remains unisolated;
+  do not call it an application defect without source evidence.
+- Actual container build, hosted operation and opt-in PostgreSQL integration
+  are not established by offline checks. No live DB, migration, data cleanup,
+  provider fetch or cloud work is authorized by these verification gaps.
 
 ## Paused / deferred
 
 **DEPLOY-005:** Google Cloud + Cloudflare hosting paused by owner on 2026-10-08.
-Do not resume cloud account, billing, domain, VM, DNS or data-transfer work until
-the owner resumes it. Prior authentication and billing/project verification were
-incomplete. Preserve local startup and portable production configuration.
-See [deployment requirements](NEXT_REQUIREMENTS.md#google-cloud-launch-with-a-portable-migration-path).
+Do not resume accounts, billing, domain, VM, DNS or transfers until requested.
+Preserve local startup and portable production configuration. See
+[deployment requirements](NEXT_REQUIREMENTS.md#google-cloud-launch-with-a-portable-migration-path).
 
 Community clustering remains deferred until density/performance warrants it.
 Public comments stay disabled until operator configuration; implementation
 checks did not create a real administrator.
-
-## Latest completed checkpoint
-
-**REGRESSION-004, base `669afb6` (2026-10-15):** Python discovery ran 234
-tests: 226 passed, eight expected PostgreSQL skips, zero failures/errors.
-All 45 Node tests passed. Isolation details and limitations are recorded above
-and in the QA log. No application/test edits, live provider/database operation,
-or new browser claim; no repeated batches after this checkpoint.
-Prior REGRESSION-003 remains in the indexed historical handoff.
-
-Details: [completed rounds](agents/context/completed-rounds.md),
-[QA log](agents/qa-log.md), [reviewer log](agents/reviewer-log.md).
-Completed handoffs are history, not instructions to redo the work.
 
 ## Recovery and scope
 
 Retain both stashes: `climate2 REGRESSION-001 checkpoint before README demo request`
 and `climate2 pre-layout working changes`. Do not reapply blindly.
 No caches, environments, databases or user data are scheduled for cleanup.
-Read [workspace](agents/context/workspace.md) before branching; use local Meow-5
-identity and climate2 only. Removed Cursor rules remain recoverable in Git;
-guidance lives in root AGENTS.md and PROJECT_DIRECTION.
-Full prior board: `git show 1d548e3:docs/AGENT_TASKS.md`.
+Read [workspace](agents/context/workspace.md) before branching; use repository-local
+Meow-5 identity and climate2 only. Removed Cursor rules remain recoverable in
+Git; guidance lives in root AGENTS.md and PROJECT_DIRECTION.
