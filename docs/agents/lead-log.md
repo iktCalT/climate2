@@ -4,6 +4,16 @@ Writer: Agent 1 only. Follow [SKILL.md](SKILL.md).
 Older results: [completed rounds](context/completed-rounds.md). Full prior log:
 `git show 1d548e3:docs/agents/lead-log.md`.
 
+## 2026-10-26 | COORD-008 | reconcile current handoffs | done
+
+- Result: compacted task board; indexed PRs #89–100 and refreshed workspace
+  context from main `a51e9b3`. Recorded #100 as merged, separated completed
+  browser checks from unresolved native Forget/expiry/deployment limits.
+- Scope: four Lead-owned documents only; full previous board recoverable from
+  `a51e9b3`. Other agent logs, source, tests, data and caches untouched.
+- Check: 19 local links and 44 cited revisions resolve; scoped diff clean. No
+  repeated tests or browser checks needed for this documentation-only round.
+
 ## 2026-10-21 | COMMUNITY-010 | bounded popup fitting | verified
 
 - Design: preserve pin/camera state; translate community-only popup into an
@@ -17,7 +27,8 @@ Older results: [completed rounds](context/completed-rounds.md). Full prior log:
   pass; no observed console warnings/errors. Fresh fixture corrected duplicate
   disposable seeding; no live data touched. Tab closed, viewport reset, fixture
   stopped with no listener.
-- Next: authorized integration; native Forget remains unverified separately.
+- Integration: merged in PR #100 (`a51e9b3`); native Forget remains unverified
+  separately. Local main updated; merged remote branch removed, local retained.
 
 ## 2026-10-19 | Browser access preference | recorded
 

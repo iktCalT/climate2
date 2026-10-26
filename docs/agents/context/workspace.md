@@ -1,6 +1,6 @@
 # Workspace and verification context
 
-Snapshot 2026-10-10, integration base/main `1d548e3` (PR #88).
+Snapshot 2026-10-26, integration base/main `a51e9b3` (PR #100).
 Recheck Git and runtime state before acting; this note does not prove a server
 is still running. [Architecture](../../ARCHITECTURE.md) gives current commands.
 
@@ -12,7 +12,7 @@ browser connection and supported controls; CLI execution alone does not mean
 browser access is unavailable. Respect tool access restrictions and report
 specific connection/dialog limitations rather than assuming access works.
 
-## Historical runtime snapshot
+## Current verification snapshot
 
 - Local development only: owner paused cloud/domain/VM work on 2026-10-08.
   Preserve portable production configuration; no cloud operations or credentials
@@ -22,17 +22,20 @@ specific connection/dialog limitations rather than assuming access works.
   live September 2026 sample for requested (10, 10), sampled (10, 8), passed
   download/readback/chart HTTP checks (coverage 272→273/909). This feature has no
   verified full-history or automatic live multi-month run. Maps remain cache-only.
-- PR #87 recorded synthetic browser progress/refresh/throttle/Retry success,
-  corrected narrow chart headings (cache v8), and removed Cursor duplicates.
-  The updated title's real-browser confirmation remains pending. One prior
-  unattributed browser MutationObserver error remains unisolated.
-- PRs #82–83 added local-profile forget confirmation and unpublished pin preview;
-  offline checks pass, real-browser verification remains pending. Community stays
-  disabled until configured; no real administrator was provisioned.
-- Latest combined checkpoint (PR #88): Python 230 total, 221 pass/eight expected
-  integration skips/one stale assertion; corrected module three passes. Node 36
-  pass. Full batches not repeated after correction. QA used temporary app state;
-  ordinary commands are not thereby proven isolated. See QA log for evidence.
+- Chart v9 layout passed all four metrics at desktop/390/320px in PR #92.
+  Simulated location-fetch progress/refresh/throttle/Retry passed previously;
+  one unattributed browser MutationObserver error remains unisolated.
+- Community drafts, consented publication, own listing/deletion and full Maps
+  integration passed with synthetic climate data/temporary SQLite (PRs #93–97).
+  PR #100 fixes comment clipping; 320/390/1280px wrapping, scrolling and keyboard
+  close checks passed. Native Forget Cancel/Confirm and actual elapsed 30-day
+  expiry remain unverified in browser. Community stays disabled until configured;
+  no real administrator was provisioned.
+- Latest full checkpoint (PR #98): Python 234, 226 passed/eight expected PG skips;
+  Node 45 passed. PR #99 introduced the reusable offline runner: 238 total,
+  228 passed/eight skips/two fixture failures; scoped fixes passed Locations 50/50
+  and runner lifecycle 4/4. PR #100 passed 27 Node + 14 content checks. These are
+  historical results, not reruns; see [completed rounds](completed-rounds.md).
 
 ## Git and safety
 

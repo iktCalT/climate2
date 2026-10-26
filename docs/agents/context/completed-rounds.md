@@ -1,12 +1,51 @@
 # Completed implementation rounds
 
-Index refreshed 2026-10-10 from main `1d548e3` and agent handoffs. These are
+Index refreshed 2026-10-26 from main `a51e9b3` and agent handoffs. These are
 completed tasks, not assignments. Product contracts remain in
 [requirements](../../NEXT_REQUIREMENTS.md); current scope is on the
 [task board](../../AGENT_TASKS.md). Python counts include the eight skipped
 PostgreSQL integration tests in full runs; focused counts are listed separately.
 No production database was used for these suites. Results below are historical,
 not tests rerun during the documentation refresh.
+
+## Latest checkpoints
+
+- **COMMUNITY-009/010, PR #100, `a51e9b3`:** keyboard/mobile checks found
+  clipped comments at 320px; community-only fitting, wrapped/scrollable text
+  and resize cleanup fix it. 27 Node + 14 offline content checks passed; review
+  clear. Real Maps fixture passed 320/390/1280px, original short text,
+  500-character unbroken/multiline text and keyboard scroll/close. No live data.
+- **TEST-TOOLS-001, PR #99, `79778d2`:** reusable isolated Python runner.
+  Full batch 238: 228 passed/eight expected PG skips/two enabled-UI fixture
+  failures. Scoped fixture correction passed Locations 50/50; runner lifecycle
+  4/4 passed. Full batch not repeated; review clear.
+- **REGRESSION-004, PR #98, `9fcd08a`:** tested base `669afb6`: Python 234,
+  226 passed/eight expected PG skips; Node 45 passed. No production/test changes.
+- **COMMUNITY-008, PRs #96–97, `5454bdd` / `669afb6`:** finite API checks,
+  then real Maps route/synthetic NOAA/temporary SQLite browser checks: linked
+  values, typed/popup drafts, consented publication, own listing and deletion.
+  Page fits 320/390px; native Forget and actual elapsed expiry remain unverified.
+- **COMMUNITY-005/006/007, PRs #94–95, `dc49935` / `4b25195`:** optional pin
+  messages, popup entry and 30-day local ownership; Unicode/stale-consent fixes.
+  Focused offline checks and review clear. Synthetic browser found a clipped
+  Add pin action; reordered action passes desktop/390/320px. Full-route follow-up
+  is COMMUNITY-008 above, not an outstanding repeat of component-only testing.
+- **COMMUNITY-004, PR #93, `2a2a8a6`:** simulated draft/consent/publication and
+  restore passed in a two-map fixture. Native Forget dialog automation stalled.
+- **LOCATION-UI-006/007, PR #92, `b1b1483`:** v9 chart legend/title separation;
+  56 focused offline checks and independent review passed. All four metrics
+  passed desktop/390/320px, superseding PR #87's pending layout check.
+- **ADMIN-UI-006/007, PRs #90–91, `8c8bb90` / `8347909`:** legacy Update
+  redirects to NOAA monthly workflow; legacy POST rejected without acquisition.
+  56 offline checks; simulated defaults/start/status and desktop/390/320px
+  browser checks passed. No live importer or real admin browser session.
+- **COORD-007, PR #89, `3cc6534`:** prior completed handoff reconciliation.
+
+## Earlier history
+
+Pending browser statements below describe evidence at the time of each round;
+newer checkpoints above supersede chart, draft and full-Maps limitations.
+Native Forget, actual elapsed expiry, hosted operation and live-data limits remain.
 
 - **REGRESSION-003, PR #88, `1d548e3`:** combined offline checkpoint at `bdfbef9`:
   Python 230 total, 221 pass/eight integration skips/one stale setup-count
@@ -134,6 +173,8 @@ for preserved audit limitations and [coordination history](coordination-history.
 for setup. Other agents retain ownership of their detailed logs.
 
 Recover pre-compaction task scopes and Lead evidence without transcript copies:
+`git show a51e9b3:docs/AGENT_TASKS.md` and
+`git show a51e9b3:docs/agents/lead-log.md` for PRs #89–100;
 `git show 1d548e3:docs/AGENT_TASKS.md` and
 `git show 1d548e3:docs/agents/lead-log.md` for PRs #75–88;
 `git show 5b17b0d:docs/AGENT_TASKS.md` and
